@@ -1,4 +1,4 @@
 # License
 
 See the
-[guidelines for contributions](https://github.com/thpts/srt-rfc/blob/master/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/Haivision/srt-rfc/blob/master/CONTRIBUTING.md).
