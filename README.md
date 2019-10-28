@@ -2,9 +2,9 @@
 
 This is the working area for the individual Internet-Draft, "The SRT Protocol".
 
-* [Editor's Copy](https://thpts.github.io/srt-rfc/#go.draft-sharabayko-srt.html)
+* [Editor's Copy](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt.html)
 * [Individual Draft](https://tools.ietf.org/html/draft-sharabayko-srt)
-* [Compare Editor's Copy to Individual Draft](https://thpts.github.io/srt-rfc/#go.draft-sharabayko-srt.diff)
+* [Compare Editor's Copy to Individual Draft](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt.diff)
 
 ## Building the Draft
 
@@ -21,4 +21,4 @@ This requires that you have the necessary software installed.  See
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/thpts/srt-rfc/blob/master/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/Haivision/srt-rfc/blob/master/CONTRIBUTING.md).
