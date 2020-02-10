@@ -18,6 +18,11 @@ author:
     name: "Maxim Sharabayko"
     organization: "Haivision"
     email: maxsharabayko@haivision.com
+ -
+    ins: "J. Kim"
+    name: "Jeongseok Kim"
+    organization: "SK Telecom Co., Ltd."
+    email: jeongseok.kim@sk.com
 
 normative:
   RFC2119:
