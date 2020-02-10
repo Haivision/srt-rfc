@@ -51,7 +51,84 @@ when, and only when, they appear in all capitals, as shown here.
 
 # Data Packets
 
+The data packet structure is as following.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|F|                    Packet Sequence Number                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| PP|O|Enc|R|                   Message Number                  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                              Data                             +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+
+F: 
+: Packet Flag (1 bit). The flag value of data packet must be 0.
+
+Packet Sequence Number:
+: (31 bits).
+
+PP:
+: Position of Packet (2 bits). This field indicates the position of packet.
+The value "10b" means the first packet, "00b" is packets in the middle, "01b" is the last packet.
+If it is a single data packet, the value is "11b".
+
+O:
+: Order (1 bit).  Indicates whether the message should be delivered in order or not.
+This value is not used in Live Transmission Mode({{live-transmission-mode}}).
+
+Enc:
+: Encryption Flag (2 bits). The flag bits indicate whether or not data is encrypted.
+The value "00b" is not encrypted, "01b" means ecnrypted data with even key, 
+"11b" signifies ecrypted data with odd key.
+
+R:
+: Retransmitted Packet (1 bit). This flag bit is clear when a packet is transmitted very first time.
+If a packet is retransmitted, the flag is set as "1".
+
+Message Number:
+: (26 bits).
+
+Timestamp:
+: (32 bits). The time stamp when the packet is sent. 
+This is relative time value starting from when the connection is established.
+
+Destination Socket ID:
+: (32 bits). 
+
+Data:
+: (variable length).
+
 # Control Packets
+
+If the flag bit of SRT packet is set as 1, it should have a following structure as a control packet.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|F|             Type            |            Reserved           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Additional Information                    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                   Control Information Field                   +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
 
 ## Handshake
 
@@ -83,7 +160,7 @@ when, and only when, they appear in all capitals, as shown here.
 
 # Congestion Control
 
-## Live Transmission mode
+## Live Transmission mode {#live-transmission-mode}
 
 ## File Transmission mode
 
