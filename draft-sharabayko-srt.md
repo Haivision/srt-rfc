@@ -49,6 +49,43 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 document are to be interpreted as described in BCP 14 {{RFC2119}} {{RFC8174}}
 when, and only when, they appear in all capitals, as shown here.
 
+# Data Packets
+
+# Control Packets
+
+## Handshake
+
+### Handshake Extension
+
+### Key Material Exchange
+
+## Keep Alive
+
+## ACK
+
+## NAK (Loss Report)
+
+## Congestion Warning
+
+## Shutdown
+
+## ACKACK
+
+## Drop Request
+
+## Peer Error
+
+# Bandwidth Estimation
+
+# Control Events
+
+# Timers
+
+# Congestion Control
+
+## Live Transmission mode
+
+## File Transmission mode
 
 # Security Considerations
 
