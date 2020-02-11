@@ -70,6 +70,7 @@ The data packet structure is as following.
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
+{: #datapacket title="data packet structure"}
 
 F: 
 : Packet Flag (1 bit). The flag value of data packet must be 0.
@@ -110,15 +111,15 @@ Data:
 
 # Control Packets
 
-If the flag bit of SRT packet is set as 1, it should have a following structure as a control packet.
+If the flag bit of SRT packet is set as "1", it should have a following structure as a control packet.
 
 ~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|F|             Type            |            Reserved           |
+|F|         Message Type        |            Reserved           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Additional Information                    |
+|                   Type-specific Information                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -129,6 +130,31 @@ If the flag bit of SRT packet is set as 1, it should have a following structure 
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
+{: #controlpacket title="control packet structure"}
+
+F: 
+: Packet Flag (1 bit). The control packet must set this flag as "1".
+
+Message Type:
+: Control Message Type (15 bits). The use of these bits is determined
+  by the control message type definition.
+
+Reserved:
+: (16 bits). This field is reserved for future definition.
+
+Type-specific Information:
+: (32 bits). The use of this field is defined the particular control
+  message type. Handshake messages don't use this field.
+
+Timestamp:
+: (32 bits). The time stamp when the packet is sent. 
+This is relative time value starting from when the connection is established.
+
+Destination Socket ID:
+: (32 bits). 
+
+Control Informationn Field:
+: (variable length).
 
 ## Handshake
 
