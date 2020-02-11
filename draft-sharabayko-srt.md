@@ -139,6 +139,16 @@ Message Type:
 : Control Message Type (15 bits). The use of these bits is determined
   by the control message type definition.
 
+  - "0": Handshake
+  - "1": Keep Alive
+  - "2": ACK
+  - "3": NACK (Loss Report)
+  - "4": Congestion Warning
+  - "5": Shutdown
+  - "6": ACKACK
+  - "7": Drop Request
+  - "8": Peer Error
+
 Reserved:
 : (16 bits). This field is reserved for future definition.
 
