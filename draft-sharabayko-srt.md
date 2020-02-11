@@ -72,42 +72,42 @@ The data packet structure is as following.
 ~~~
 {: #datapacket title="data packet structure"}
 
-F: 
-: Packet Flag (1 bit). The flag value of data packet must be 0.
+F (1 bit): 
+: Packet Flag. The flag value of data packet must be 0.
 
-Packet Sequence Number:
-: (31 bits).
+Packet Sequence Number (31 bits):
+: 
 
-PP:
-: Position of Packet (2 bits). This field indicates the position of packet.
-The value "10b" means the first packet, "00b" is packets in the middle, "01b" is the last packet.
-If it is a single data packet, the value is "11b".
+PP (2 bits):
+: Position of Packet. This field indicates the position of packet.
+  The value "10b" means the first packet, "00b" is packets in the middle, "01b" is the last packet.
+  If it is a single data packet, the value is "11b".
 
-O:
-: Order (1 bit).  Indicates whether the message should be delivered in order or not.
-This value is not used in Live Transmission Mode({{live-transmission-mode}}).
+O (1 bit):
+: Order.  Indicates whether the message should be delivered in order or not.
+  This value is not used in Live Transmission Mode({{live-transmission-mode}}).
 
-Enc:
-: Encryption Flag (2 bits). The flag bits indicate whether or not data is encrypted.
-The value "00b" is not encrypted, "01b" means ecnrypted data with even key, 
-"11b" signifies ecrypted data with odd key.
+Enc (2 bits):
+: Encryption Flag. The flag bits indicate whether or not data is encrypted.
+  The value "00b" is not encrypted, "01b" means ecnrypted data with even key, 
+ "11b" signifies ecrypted data with odd key.
 
-R:
-: Retransmitted Packet (1 bit). This flag bit is clear when a packet is transmitted very first time.
-If a packet is retransmitted, the flag is set as "1".
+R (1 bit):
+: Retransmitted Packet. This flag bit is clear when a packet is transmitted very first time.
+  If a packet is retransmitted, the flag is set as "1".
 
-Message Number:
-: (26 bits).
+Message Number (26 bits):
+: 
 
-Timestamp:
-: (32 bits). The time stamp when the packet is sent. 
-This is relative time value starting from when the connection is established.
+Timestamp (32 bits):
+: The time stamp when the packet is sent. 
+  This is relative time value starting from when the connection is established.
 
-Destination Socket ID:
-: (32 bits). 
+Destination Socket ID (32 bits):
+: 
 
-Data:
-: (variable length).
+Data (variable length):
+:
 
 # Control Packets
 
@@ -132,11 +132,11 @@ If the flag bit of SRT packet is set as "1", it should have a following structur
 ~~~
 {: #controlpacket title="control packet structure"}
 
-F: 
-: Packet Flag (1 bit). The control packet must set this flag as "1".
+F (1 bit): 
+: Packet Flag. The control packet must set this flag as "1".
 
-Message Type:
-: Control Message Type (15 bits). The use of these bits is determined
+Message Type (15 bits):
+: Control Message Type. The use of these bits is determined
   by the control message type definition.
 
   - "0": Handshake
@@ -149,22 +149,22 @@ Message Type:
   - "7": Drop Request
   - "8": Peer Error
 
-Reserved:
-: (16 bits). This field is reserved for future definition.
+Reserved (16 bits):
+: This field is reserved for future definition.
 
-Type-specific Information:
-: (32 bits). The use of this field is defined the particular control
+Type-specific Information (32 bits):
+: The use of this field is defined the particular control
   message type. Handshake messages don't use this field.
 
-Timestamp:
-: (32 bits). The time stamp when the packet is sent. 
-This is relative time value starting from when the connection is established.
+Timestamp (32 bits):
+: The time stamp when the packet is sent. 
+  This is relative time value starting from when the connection is established.
 
-Destination Socket ID:
-: (32 bits). 
+Destination Socket ID (32 bits):
+: 
 
-Control Informationn Field:
-: (variable length).
+Control Information Field (variable length):
+:
 
 ## Handshake
 
