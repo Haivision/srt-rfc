@@ -315,6 +315,16 @@ The TsbPD feature uses this time to stamp the packet for first transmission
 and any subsequent re-transmission. This timestamp and the configured latency
 control the recovery buffer size and the instant that packets are delivered at the destination.
 
+## Too-Late-Packet-Drop
+
+Too-Late-Packet Drop allows the sender to drop packets that have no chance to be delivered in time.
+In the SRT sender, when Too-Late Packet Drop is enabled, and a packet timestamp
+is older than 125% of the SRT latency, it is considered too late to be delivered and may be dropped
+by the sender. Packets of an IFrame tail can then be dropped before being delivered.
+In the receiver, tail packets of a big I-Frame may be quite late and not held by the SRT receive buffer.
+They pass through to the application. The receiver buffer depletes and there is no time left
+for retransmission if missing packets are discovered. Missing packets are then skipped by the receiver.
+
 ## Packet Acknowledgement (ACKs)
 
 
