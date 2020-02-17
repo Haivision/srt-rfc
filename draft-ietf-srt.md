@@ -14,10 +14,10 @@ pi: [toc, sortrefs, symrefs]
 
 author:
  -
-    ins: "M. Sharabayko"
+    ins: "M.P. Sharabayko"
     name: "Maxim Sharabayko"
     organization: "Haivision"
-    email: maxlovic@gmail.com
+    email: maxsharabayko@haivision.com
 
 normative:
   RFC2119:
