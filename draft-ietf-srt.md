@@ -180,20 +180,11 @@ SRT control packet has the following structure.
 
 Type (15 bits):
 : Control Packet Type. The use of these bits is determined
-  by the control packet type definition.
-
-  - "0": Handshake
-  - "1": Keep Alive
-  - "2": ACK
-  - "3": NAK (Loss Report)
-  - "4": Congestion Warning
-  - "5": Shutdown
-  - "6": ACKACK
-  - "7": Drop Request
-  - "8": Peer Error
+  by the control packet type definition. See Table 1.
 
 Subtype (16 bits):
 : This field specifies additional subtype of specific packets.
+  See Table 1.
 
 Type-specific Information (32 bits):
 : The use of this field is defined by the particular control
@@ -236,7 +227,66 @@ The types of SRT control packets are shown in Table 1.
 
 ### ACK (Acknowledgement)
 
+Acknowledgement control packets are used to provide delivery status of data packets.
+These packets may also carry some additional information from the receiver like
+RTT, bandwidth, receiving speed, etc.
 
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|1|         Control Type        |            Subtype            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Type-specific Information                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+----
+|            Last Acknowledged Packet Sequence Number           | Lite ACK
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+----
+|                              RTT                              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          RTT variance                         | Small Ack
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Available Buffer Size                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+----
+|                     Packets Receiving Rate                    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Estimated Link Capacity                   | Full ACK
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         Receiving Rate                        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+----
+~~~
+{: #ack-control-packet title="ACK control packet"}
+
+
+Control Type: 
+: The type value of ACK control packet is "2".
+
+Subtype: 
+: The type value of ACK control packet is "0".
+
+Last Acknowledged Packet Sequence Number (32 bits):
+: The sequence number of the last acknowledged data packet +1.
+
+RTT (32 bits):
+: RTT value estimated by the receiver based on the ACK-ACKACK packets exchange.
+
+RTT variance (32 bits):
+: The variance of the RTT estimation.
+
+Available Buffer Size (32 bits):
+: Available size of the receiver's buffer.
+
+Packets Receiving Rate (32 bits):
+: The receiving rate of the packets in packets / second.
+
+Estimated Link Capacity (32 bits):
+: Estimated bandwidth of the link.
+
+Receiving Rate (32 bits):
+: Estimated receiving rate.
 
 ### NAK (Loss Report)
 
