@@ -46,7 +46,23 @@ when, and only when, they appear in all capitals, as shown here.
 
 # Packet Structure
 
-The structure of the SRT packet is shown in Figure 1.
+SRT packets are transmitted in UDP packets.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|            SrcPort            |            DstPort            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ UDP Header
+|              Len              |            ChkSum             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|                                                               |
++                          SRT Packet                           +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+
+The structure of the SRT packet is shown in Figure 2.
 
 ~~~
  0                   1                   2                   3
@@ -83,8 +99,60 @@ Destination Socket ID (32 bits):
   The field may have the special value "0" when the packet is a connection request.
 
 
-
 ## Data Packets
+
+The structure of the SRT data packet is the following.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|0|                    Packet Sequence Number                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| PP|O|KK |R|                   Message Number                  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                              Data                             +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #srtdatapacket title="data packet structure"}
+
+Packet Sequence Number (31 bits):
+: The sequential number of the data packet.
+
+PP (2 bits):
+: Packet Position. This field indicates the position of data packet in the message.
+  The value "10b" means the first packet of the message, "00b" - a packet in the middle,
+  "01b" is the last packet. If a single data packet forms the whole message,
+  the value is "11b".
+
+O (1 bit):
+: Order Flag. Indicates whether the message should be delivered by the receiver
+  in order (1) or not (0).
+  Note. In file transfer mode this a message with O=0 that is sent later 
+  (but reassembled before an earlier message which may be incomplete due to packet loss)
+  is allowed to be delivered immediately, without waiting for the earlier message to be completed.
+  In Live Transmission Mode the only valid value is "1".
+
+KK (2 bits):
+: Encryption Flag. The flag bits indicate whether or not data is encrypted.
+  The value "00b" means data is not encrypted, "01b" - data is encrypted with even key, 
+  "11b" - data is encrypted with odd key.
+
+R (1 bit):
+: Retransmitted Packet Flag. This flag is clear when a packet is transmitted the very first time.
+  The flag set to "1" means the packet is retransmitted.
+
+Message Number (26 bits):
+: The sequential number of the message formed by consecutive data packets (see PP field).
+
+Data (variable length):
+: The payload of the data packet. The length of the data is the remaining length of the UDP packet.
 
 
 ## Control Packets
