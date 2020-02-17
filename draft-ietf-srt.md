@@ -287,9 +287,37 @@ TODO: Priority 2.
 
 ## SRT Buffer Latency
 
+The sender and receiver have buffers to store packets.
+On the sender, latency is the time that SRT holds a packet to give it a chance to be
+delivered successfully while maintaining the rate of the sender at the receiver.
+The effect of latency is minimal on the sender, where it is used in the context of
+dropping packets if an ACK is missing or late. It‘s much clearer on the receiver side.
+
+Latency is a value specified in milliseconds, which can cover hundreds or even thousands
+of packets at high bitrate. Latency can be thought of as a window that slides over time,
+during which a number of activities take place.
+
 ## Timestamp Based Packet Delivery
 
+This feature uses the timestamp of the SRT data packet header.
+TsbPD allows a receiver to deliver packets to the decoder at the same pace they were
+provided to the SRT sender by an encoder. Basically, the sender timestamp
+in the received packet is adjusted to the receiver’s local time
+(compensating for time drift or different time zone)
+before releasing the packet to the application.
+Packets can be withheld by SRT for a configured receiver delay (ms).
+Higher delay can accommodate a larger uniform packet drop rate or larger packet burst drop.
+Packets received after their “play time” are dropped.
+The packet timestamp (in microseconds) is relative to the SRT connection creation time.
+The origin time (in microseconds) of the packet is already sampled when a packet is first
+submitted by the application to the SRT sender.
+The TsbPD feature uses this time to stamp the packet for first transmission
+and any subsequent re-transmission. This timestamp and the configured latency
+control the recovery buffer size and the instant that packets are delivered at the destination.
+
 ## Packet Acknowledgement (ACKs)
+
+
 
 ## Packet Retransmission (NAKs)
 
