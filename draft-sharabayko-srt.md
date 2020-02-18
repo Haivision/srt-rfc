@@ -314,6 +314,17 @@ The CIF of handshake control packet is revealed as the following.
 
 ### Keep Alive
 
+Keep-alive control packets are exchaged approximately every 10ms to 
+enable SRT streams to be automatically restored after a connection loss.
+
+Control Type: 
+: The type value of keep-alive control packet is "1".
+
+Type-specific Information: 
+: This field is reserved for future definition.
+
+Control Information Field:
+: This field must not appear in keep-alive control packets.
 
 
 ### ACK (Acknowledgement)
