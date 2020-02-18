@@ -392,7 +392,19 @@ Receiving Rate (32 bits):
 
 ### NAK (Loss Report)
 
+Negative acknowledgement control packets are used to signal failed
+data packet deliveries. The receiver notifies the sender about the lost packets using the NAK packets.
+The NAK packet contains a list of sequence numbers of lost packets.
 
+Control Type: 
+: The type value of NAK control packet is "3".
+
+Type-specific Information: 
+: This field is reserved for future definition.
+
+Control Information Field:
+: One or list of lost packet sequence number. See packet sequence number coding in
+  {{packet-seq-list-coding}}.
 
 ### Congestion Warning
 
@@ -527,5 +539,34 @@ TODO acknowledge.
 --- back
 
 # Packet Sequence List coding {#packet-seq-list-coding}
+
+For any single packet sequence number,
+it uses the original sequence number in the field. The first bit 
+must start with "0".
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|0|                   Sequence Number                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #single-sequence-number title="single sequence numbers coding"}
+
+For any consectutive packet seqeunce numbers that the differnece between
+the last and first is more than 1, only record the first (a) and the
+the last (b) sequence numbers in the list field, and modify the
+the first bit of a to "1".
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|1|                   Sequence Number a (first)                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|0|                   Sequence Number b (last)                  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #list-sequence-numbers title="list of sequence numbers coding"}
 
 
