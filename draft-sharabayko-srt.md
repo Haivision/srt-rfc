@@ -410,7 +410,16 @@ Control Information Field:
 
 ### Shutdown
 
+Shutdown control packets are used to initiate the closing of an SRT connection.
 
+Control Type: 
+: The type value of Shutdown control packet is "5".
+
+Type-specific Information: 
+: This field is reserved for future definition.
+
+Control Information Field:
+: This field must not appear in shutdown control packets.
 
 ### ACKACK
 
