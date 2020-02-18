@@ -67,7 +67,7 @@ SRT packets are transmitted in UDP packets.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 
-The structure of the SRT packet is shown in Figure 2.
+The structure of the SRT packet is shown in {{srtpacket}}.
 
 ~~~
  0                   1                   2                   3
