@@ -183,39 +183,40 @@ SRT control packet has the following structure.
 ~~~
 {: #controlpacket title="control packet structure"}
 
-Type (15 bits):
+Control Type (15 bits):
 : Control Packet Type. The use of these bits is determined
-  by the control packet type definition. See Table 1.
+  by the control packet type definition. See {{srt-ctrl-pkt-type-table}}
 
 Subtype (16 bits):
 : This field specifies additional subtype of specific packets.
-  See Table 1.
+  See {{srt-ctrl-pkt-type-table}}
 
 Type-specific Information (32 bits):
 : The use of this field is defined by the particular control
   packet type. Handshake packets don't use this field.
 
 Control Information Field (variable length):
-: The use of this field is defined by the Type field of the control packet.
+: The use of this field is defined by the Control Type field of the control packet.
 
 
-The types of SRT control packets are shown in Table 1.
+The types of SRT control packets are shown as following. The value, "0x7ffff", is
+reserved for user-defined type.
 
-| ----------------- | ------- | ------- | -------------------------- |
-| Packet Type       | Type    | Subtype | Section                    |
-| ----------------- | :-----: | :-----: | -------------------------- |
-| HANDSHAKE         |  0x0000 |   0x0   | N/A                        |
-| KEEPALIVE         |  0x0001 |   0x0   | N/A                        |
-| ACK               |  0x0002 |   0x0   | N/A                        |
-| NAK (Loss Report) |  0x0003 |   0x0   | N/A                        |
-| SHUTDOWN          |  0x0005 |   0x0   | N/A                        |
-| ACKACK            |  0x0006 |   0x0   | N/A                        |
-| User Defined Type |  0x7FFF |    -    | N/A                        |
-| ----------------- | ------- | ------- | -------------------------- |
+| ----------------- | ------------ | ------- | -------------------------- |
+| Packet Type       | Control Type | Subtype | Section                    |
+| ----------------- | :----------: | :-----: | -------------------------- |
+| HANDSHAKE         |  0x0000      |   0x0   | {{ctrl-pkt-handshake}}     |
+| KEEPALIVE         |  0x0001      |   0x0   | {{ctrl-pkt-keepalive}}     |
+| ACK               |  0x0002      |   0x0   | {{ctrl-pkt-ack}}           |
+| NAK (Loss Report) |  0x0003      |   0x0   | {{ctrl-pkt-nak}}           |
+| SHUTDOWN          |  0x0005      |   0x0   | {{ctrl-pkt-shutdown}}      |
+| ACKACK            |  0x0006      |   0x0   | {{ctrl-pkt-ackack}}        |
+| User-Defined Type |  0x7FFF      |    -    | N/A                        |
+| ----------------- | ------------ | ------- | -------------------------- |
 {: #srt-ctrl-pkt-type-table title="SRT Control Packet Types"}
 
 
-### Handshake
+### Handshake {#ctrl-pkt-handshake}
 
 The CIF of handshake control packet is revealed as the following.
 
@@ -305,7 +306,7 @@ The CIF of handshake control packet is revealed as the following.
 
 
 
-### Keep Alive
+### Keep Alive {#ctrl-pkt-keepalive}
 
 Keep-alive control packets are exchaged approximately every 10ms to 
 enable SRT streams to be automatically restored after a connection loss.
@@ -320,7 +321,7 @@ Control Information Field:
 : This field must not appear in keep-alive control packets.
 
 
-### ACK (Acknowledgement)
+### ACK (Acknowledgement) {#ctrl-pkt-ack}
 
 Acknowledgement control packets are used to provide delivery status of data packets.
 These packets may also carry some additional information from the receiver like
@@ -383,7 +384,7 @@ Estimated Link Capacity (32 bits):
 Receiving Rate (32 bits):
 : Estimated receiving rate.
 
-### NAK (Loss Report)
+### NAK (Loss Report) {#ctrl-pkt-nak}
 
 Negative acknowledgement control packets are used to signal failed
 data packet deliveries. The receiver notifies the sender about the lost packets using the NAK packets.
@@ -399,7 +400,7 @@ Control Information Field:
 : One or list of lost packet sequence number. See packet sequence number coding in
   {{packet-seq-list-coding}}.
 
-### Shutdown
+### Shutdown {#ctrl-pkt-shutdown}
 
 Shutdown control packets are used to initiate the closing of an SRT connection.
 
@@ -412,7 +413,7 @@ Type-specific Information:
 Control Information Field:
 : This field must not appear in shutdown control packets.
 
-### ACKACK
+### ACKACK {#ctrl-pkt-ackack}
 
 ACKACK control packets are used to acknowledge the reception of an ACK.
 Furthermore, these packets are used in the calculation of RTT by the receiver.
