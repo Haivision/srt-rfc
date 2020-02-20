@@ -208,11 +208,8 @@ The types of SRT control packets are shown in Table 1.
 | KEEPALIVE         |  0x0001 |   0x0   | N/A                        |
 | ACK               |  0x0002 |   0x0   | N/A                        |
 | NAK (Loss Report) |  0x0003 |   0x0   | N/A                        |
-| Congestion Warning|  0x0004 |   0x0   | N/A                        |
 | SHUTDOWN          |  0x0005 |   0x0   | N/A                        |
 | ACKACK            |  0x0006 |   0x0   | N/A                        |
-| DROPREQ           |  0x0007 |   0x0   | N/A                        |
-| PEER_ERROR        |  0x0008 |   0x0   | N/A                        |
 | Extension         |  0x7FFF |    -    | N/A                        |
 | SRT_HSREQ         |  0x7FFF |   0x1   | N/A                        |
 | SRT_HSRSP         |  0x7FFF |   0x2   | N/A                        |
@@ -406,8 +403,6 @@ Control Information Field:
 : One or list of lost packet sequence number. See packet sequence number coding in
   {{packet-seq-list-coding}}.
 
-### Congestion Warning
-
 ### Shutdown
 
 Shutdown control packets are used to initiate the closing of an SRT connection.
@@ -447,11 +442,6 @@ Control Type:
 
 ACK Sequence Number: 
 : This field stores the sequence number of the ACK packet acknowledged.
-
-
-### Drop Request
-
-### Peer Error
 
 
 # SRT Data Transmission and Control
