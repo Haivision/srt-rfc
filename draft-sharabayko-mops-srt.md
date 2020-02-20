@@ -210,11 +210,7 @@ The types of SRT control packets are shown in Table 1.
 | NAK (Loss Report) |  0x0003 |   0x0   | N/A                        |
 | SHUTDOWN          |  0x0005 |   0x0   | N/A                        |
 | ACKACK            |  0x0006 |   0x0   | N/A                        |
-| Extension         |  0x7FFF |    -    | N/A                        |
-| SRT_HSREQ         |  0x7FFF |   0x1   | N/A                        |
-| SRT_HSRSP         |  0x7FFF |   0x2   | N/A                        |
-| SRT_KMREQ         |  0x7FFF |   0x3   | N/A                        |
-| SRT_KMRSP         |  0x7FFF |   0x4   | N/A                        |
+| User Defined Type |  0x7FFF |    -    | N/A                        |
 | ----------------- | ------- | ------- | -------------------------- |
 {: #srt-ctrl-pkt-type-table title="SRT Control Packet Types"}
 
