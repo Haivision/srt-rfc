@@ -325,19 +325,12 @@ Control Information Field:
 
 Acknowledgement control packets are used to provide delivery status of data packets.
 These packets may also carry some additional information from the receiver like
-RTT, bandwidth, receiving speed, etc.
+RTT, bandwidth, receiving speed, etc. The CIF of ACK control packet is expanded
+as the following.
 
 ~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|1|         Control Type        |            Subtype            |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                   Type-specific Information                   |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Timestamp                           |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+----
 |            Last Acknowledged Packet Sequence Number           | Lite ACK
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+----
@@ -355,13 +348,6 @@ RTT, bandwidth, receiving speed, etc.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+----
 ~~~
 {: #ack-control-packet title="ACK control packet"}
-
-
-Control Type: 
-: The type value of ACK control packet is "2".
-
-Subtype: 
-: The type value of ACK control packet is "0".
 
 Last Acknowledged Packet Sequence Number (32 bits):
 : The sequence number of the last acknowledged data packet +1.
