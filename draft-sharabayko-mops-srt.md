@@ -404,28 +404,15 @@ Control Information Field:
 ACKACK control packets are used to acknowledge the reception of an ACK.
 Furthermore, these packets are used in the calculation of RTT by the receiver.
 
-~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|1|         Control Type        |            Subtype            |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                       ACK Sequence Number                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Timestamp                           |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+                             None                              +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-~~~
-
 Control Type: 
 : The type value of ACKACK control packet is "6".
 
-ACK Sequence Number: 
-: This field stores the sequence number of the ACK packet acknowledged.
+Type-specific Information: 
+: ACK Sequence Number. This field is used for the sequence number of
+  the ACK packet acknowledged.
 
+Control Information Field:
+: This field must not appear in ACKACK control packets.
 
 # SRT Data Transmission and Control
 
