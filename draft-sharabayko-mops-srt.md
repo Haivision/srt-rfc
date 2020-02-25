@@ -133,22 +133,19 @@ Packet Sequence Number (31 bits):
 
 PP (2 bits):
 : Packet Position. This field indicates the position of data packet in the message.
-  The value "10b" means the first packet of the message, "00b" - a packet in the middle,
+  The value "10b" means the first packet of the message. "00b" indicates a packet in the middle,
   "01b" is the last packet. If a single data packet forms the whole message,
   the value is "11b".
 
 O (1 bit):
 : Order Flag. Indicates whether the message should be delivered by the receiver
-  in order (1) or not (0).
-  Note. In file transfer mode this a message with O=0 that is sent later 
-  (but reassembled before an earlier message which may be incomplete due to packet loss)
-  is allowed to be delivered immediately, without waiting for the earlier message to be completed.
-  In Live Transmission Mode the only valid value is "1".
+  in order (1) or not (0). This field is used to determine behaviour of data
+  transmission mode. See in {{data-transmission-mode}}.
 
 KK (2 bits):
 : Encryption Flag. The flag bits indicate whether or not data is encrypted.
-  The value "00b" means data is not encrypted, "01b" - data is encrypted with even key, 
-  "11b" - data is encrypted with odd key.
+  The value "00b" means data is not encrypted, "01b" indicates that data is
+  encrypted with even key, and "11b" is used for odd key encryption.
 
 R (1 bit):
 : Retransmitted Packet Flag. This flag is clear when a packet is transmitted the very first time.
@@ -418,6 +415,17 @@ Control Information Field:
 # SRT Data Transmission and Control
 
 TODO: Priority 2.
+
+## Data Transmission Mode {#data-transmission-mode}
+
+In file transfer mode this a message with O=0 that is sent later 
+(but reassembled before an earlier message which may be incomplete due to packet loss)
+is allowed to be delivered immediately, without waiting for the earlier message to be completed.
+In Live Transmission Mode the only valid value is "1".
+
+### Live mode
+
+### File mode
 
 ## SRT Buffer Latency
 
