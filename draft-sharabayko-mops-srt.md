@@ -503,7 +503,11 @@ Control Information Field:
 
 # SRT Data Transmission and Control
 
-TODO: Priority 2.
+After handshakes and exchanges of capability information, packet data 
+can be sent and received over the established connection. To fully utilize 
+the features of low latency and error recovery provided by SRT, the sender 
+and receiver MUST handle control packets, timers and buffers for the connection
+as specified in this section.
 
 ## Data Transmission Mode {#data-transmission-mode}
 
