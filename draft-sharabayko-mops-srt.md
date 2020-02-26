@@ -51,7 +51,8 @@ when, and only when, they appear in all capitals, as shown here.
 
 # Packet Structure
 
-SRT packets are transmitted in UDP packets.
+SRT packets are transmitted in UDP packets. Every UDP packet carrying SRT 
+traffic contains an SRT header (immediately after the UDP header).
 
 ~~~
  0                   1                   2                   3
@@ -68,6 +69,8 @@ SRT packets are transmitted in UDP packets.
 ~~~
 {: #srt-in-udp title="SRT packet as UDP payload"}
 
+SRT has two kinds of packets distinguished by the first bit; 
+data packet and conrol packet.
 The structure of the SRT packet is shown in {{srtpacket}}.
 
 ~~~
@@ -216,6 +219,10 @@ reserved for user-defined type.
 
 ### Handshake {#ctrl-pkt-handshake}
 
+The handshake control packet is for exchanging peer configuration
+and implementation information to ensure seamless upgrades while 
+evolving the protocol.
+
 The CIF of handshake control packet is revealed as the following.
 
 ~~~
@@ -238,7 +245,13 @@ The CIF of handshake control packet is revealed as the following.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           SYN Cookie                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                        Peer IP Address                        |
+|                                                               |
++                                                               +
+|                                                               |
++                        Peer IP Address                        +
+|                                                               |
++                                                               +
+|                                                               |
 +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 |         Extension Type        |        Extension Length       |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -249,7 +262,80 @@ The CIF of handshake control packet is revealed as the following.
 ~~~
 {: #handshake-packet-structure title="handshake packet structure"}
 
-#### Handshake Extension
+Version (32 bits):
+: A base protocol version number. It has fixed value as 5.
+  The value greater than 5 is reserved for future definition, but
+  the less than 5 is not used.
+
+Encryption Field (16 bits):
+: Block cipher family and block size. The values of this field are
+  described as the following.
+
+ | Value | Cipher family and block size |
+ | ----- | :--------------------------: |
+ |     0 | No Encryption                |
+ |     2 | AES-128                      |
+ |     3 | AES-192                      |
+ |     4 | AES-256                      |
+{: #handshake-encr-fld title="Handshake Encryption Field Values"}
+
+Extension Field (16 bits):
+: This field is message specific extension related to Connection Type field.
+  The value must be set as 0 except for the following cases.
+  If the handshake control packet is a INDUCTION message, this field is 
+  sent back by the Listener. In case of CONCLUSION message, this field value 
+  should contain a combination of Extension Type value. For more details, see in
+  {{caller-listener-handshake}}.
+
+Initial Packet Sequence Number (32 bits):
+: The sequence number for the first data packet.
+
+Maximum Packet Size (32 bits):
+: The value is typically 1500 to follow default size of MTU(Maximum Transmission Unit)
+  in Ethernet, but can be less.
+
+Maximum Flow Window Size (32 bits):
+: The value of this field is the maximum number of buffers allowed
+  to be "in flight" which means that the number of sent packets 
+  without receiving ACK control packet.
+
+Connection Type (32 bits):
+: This field indicates the handshake message types and the type is 32 bits
+  signed integer. The value 0 means WAVEHAND message, INDUCTION message has 1. 
+  If the message is CONCLUSION, the value is -1. The value -2 means AGREEMENT.
+  For more details of handshake message type, see in {{handshake-messages}}.
+
+Socket ID (32 bits):
+: The value of this field has the source socket id from that the message is issued.
+  It is the destination socket id in SRT header.
+
+SYN Cookie (32 bits):
+: Randomized value for processing handshake. The value of this field is specified
+  by handshake message type. See in {{handshake-messages}}.
+
+Peer IP Address (128 bits):
+: The sender's IPv4 or IPv6 IP address. It consists of four 32-bit field.
+
+Extension Type (16 bits):
+: The value of this field is used for processing integrated handshake.
+  There are two basic extension; Handshake Extension({{handshake-extension}})
+  and Key Material Exchange({{key-material-exchange}}).
+  Each extension can have a pair of request and response type.  
+
+Extension Length (16 bits):
+: The length of Extension Contents.
+
+Extension Contents (variable length):
+: The payload of the extension type.
+
+
+#### Handshake Extension {#handshake-extension}
+
+In Handshake Extension, the value of the Extension Field of 
+handshake control packet is defined as 1 for Handshake Extension Request, 
+or 2 for Handshake Extension Response.
+
+The Extension Contents is revealed as the following.
 
 ~~~
  0                   1                   2                   3
@@ -265,7 +351,10 @@ The CIF of handshake control packet is revealed as the following.
 {: #handshake-extension-structure title="handshake extension structure"}
 
 
-#### Key Material Exchange
+#### Key Material Exchange {#key-material-exchange}
+
+The Key Material Exchange has both request and response type extensions.
+The value of request is 3, and the response value is 4.
 
 ~~~
  0                   1                   2                   3
@@ -426,6 +515,12 @@ In Live Transmission Mode the only valid value is "1".
 ### Live mode
 
 ### File mode
+
+## Handshake Messages {#handshake-messages}
+
+### Caller-Listener Handshake {#caller-listener-handshake}
+
+### Rendezvous Handshake
 
 ## SRT Buffer Latency
 
