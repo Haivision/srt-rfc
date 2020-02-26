@@ -527,12 +527,20 @@ In Live Transmission Mode the only valid value is "1".
 The sender and receiver have buffers to store packets.
 On the sender, latency is the time that SRT holds a packet to give it a chance to be
 delivered successfully while maintaining the rate of the sender at the receiver.
-The effect of latency is minimal on the sender, where it is used in the context of
-dropping packets if an ACK is missing or late. It‘s much clearer on the receiver side.
+If an ACK is missing or late for the configured latency, the packet is dropped
+from the sender buffer. The packet can be retransmitted, while the packet exists
+in the buffer for the latency window. On the receiver, a packet delivered to an 
+application from a buffer after latency time passed, to recover from a potential
+packet loss. 
 
 Latency is a value specified in milliseconds, which can cover hundreds or even thousands
 of packets at high bitrate. Latency can be thought of as a window that slides over time,
-during which a number of activities take place.
+during which a number of activities take place, such as report of ACKs({{packet-acks}})
+or NAKs({{packet-naks}}).
+Latency is configured through capability exchange during extended handshake process 
+between initiator and responder. The handshake extension({{handshake-extension}}) has 
+receiver and sender TsbPd Delay information in milliseconds. The maximum value of latencies
+from initiator and responder will be established. 
 
 ## Timestamp Based Packet Delivery
 
@@ -562,11 +570,11 @@ In the receiver, tail packets of a big I-Frame may be quite late and not held by
 They pass through to the application. The receiver buffer depletes and there is no time left
 for retransmission if missing packets are discovered. Missing packets are then skipped by the receiver.
 
-## Packet Acknowledgement (ACKs)
+## Packet Acknowledgement (ACKs) {#packet-acks}
 
 
 
-## Packet Retransmission (NAKs)
+## Packet Retransmission (NAKs) {#packet-naks}
 
 ## Packet Acknowledgment in SRT
 
