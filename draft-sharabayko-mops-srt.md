@@ -471,7 +471,8 @@ TODO:
 * There should be earlier a section describing which data transmissions methods we have: live, file, message (also file)
 as per https://github.com/Haivision/srt/blob/master/docs/API.md
 * Do not forget about my notes from notebook - 3 main ideas behind TSBPD
-* Renaming: PktTsbpdTime -> PktDeliveryTime, TsbPd -> Tsbpd in all places, TsbpdTimeBase -> TsbpdBaseTime
+* Renaming: PktTsbpdTime -> PktDeliveryTime, TsbPd -> Tsbpd in all places, TsbpdTimeBase -> TsbpdBaseTime, check everything
+* Variables names: PKT_TIMESTAMP vs PktTimestamp
 * Concept of caller, listener, rendevous
 * Concept of receiver and sender
 -->
@@ -513,11 +514,10 @@ Picture which reflects the idea:
 
 <!-- Packet delivery time is the time point, estimated by the receiver, when a packet should be given (delivered) to the upstream application (via `srt_recvmsg(...)`). -->
 
-The calculation of packet delivery time (PktTsbpdTime) is performed using the following formula:
-(at the receiver side)
+The calculation of packet delivery time (PktTsbpdTime) is performed upon receiving a data packet according to the following formula:
 
 ~~~
-PktTsbpdTime = TsbpdTimeBase + PktTimestamp + TsbpdDelay + Drift
+PktTsbpdTime = TsbpdTimeBase + PKT_TIMESTAMP + TsbpdDelay + Drift
 ~~~
 
 where
@@ -527,38 +527,132 @@ the base time difference between sender's and receiver's clock
 Question:
 time base - what's this https://www.lingvolive.com/en-us/translate/en-ru/time%20base
 time base or base time -->
-PktTimestamp is the (data) packet timestamp, in microseconds,
+PKT_TIMESTAMP is the data packet timestamp, in microseconds,
 TsbpdDelay is the receiver's buffer delay (?latency), in milliseconds (?),
 Drift is the time drift (write later).
 
-#### TSBPD Base Time
+///
+NB: The default live mode settings set SRTO_RCVLATENCY to 120 ms! The buffer mode settings set SRTO_RCVLATENCY to 0.
+The time that should elapse since the moment when the packet was sent and the moment when it's delivered to the receiver application in the receiving function. This time should be a buffer time large enough to cover the time spent for sending, unexpectedly extended RTT time, and the time needed to retransmit the lost UDP packet. The effective latency value will be the maximum of this options' value and the value of SRTO_PEERLATENCY set by the peer side. This option in pre-1.3.0 version is available only as SRTO_LATENCY.
 
-The initial value of TSBPD base time (TsbpdTimeBase) is calculated
+#### TSBPD Base Time Calculation
 
-The value of `TsbPdTimeBase`  is initialized at the time of the handshake request \(`HSREQ` \) is received.  
-`TsbPdTimeBase = T_NOW - HSREQ_TIMESTAMP`.  
-This value should roughly correspond to the one-way delay \(**~RTT/2**\).
+The initial value of TSBPD base time (TsbpdTimeBase) is calculated at the moment of second handshake request is received as follows
 
+~~~
+TsbpdTimeBase = T_NOW - HSREQ_TIMESTAMP
+~~~
 
+where
+T_NOW is the current time at the receiver clocks,
+HSREQ_TIMESTAMP is the handshake packet timestamp, in microseconds.
+
+<!-- This value should roughly correspond to the one-way delay \(**~RTT/2**\). - It's initial RTT -->
+
+During the transmission process, this value may be adjusted due to the following reasons:
 <!-- TODO -->
 Time Base may change because of 2 reasons:
 1. 32-bit integer is not enough (link to SRT packet structure).
 2. Drift algorithm.
 
+
+## Drift Management (provide formula and leave for later)
+
+Start with this 
+https://srtlab.github.io/srt-cookbook/protocol/tsbpd/drift-management/
+
+The drift tracer algorithm is designed to capture the fluctuations in time between sender and receiver and adjust the value of TSBPD base time (TsbpdTimeBase) whenever necessary. 
+<!-- (due to clock inaccuracy) -->
+
+
 Note regarding drift tracer: The current algorith does not take into account RTT variations, but we are going to improve this.
-<!-- TODO ends -->
+<!-- Assuming that the link latency is constant (RTT=const), the only cause of the drift fluctuations should be clock inaccuracy. -->
+
+
+## Too-Late Packet Drop
+
+<!-- ? Too-Late -> Too Late -->
+
+Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop packets that have no chance
+to be delivered in time and the receiver to skip missing packets that have not been delivered in time.
+
+In the SRT sender, when Too-Late Packet Drop is enabled, a packet is
+considered too late to be delivered and may be dropped by the sending application if its
+timestamp is older than 125% of the SRT latency. However, the sender keeps packets at least
+1000 milliseconds if SRT latency is lower than the specified value (SRT latency is not enough for large RTT).
+
+When enabled on the receiver, it drops packets that have not been delivered or retransmitted in time and delivers
+the subsequent packets to the application when their time-to-play has come. 
+<!-- ??? It also sends a fake ACK message to the sender. -->
+
+In pseudo-code the reading from receiver buffer 
+
+// 1
+
+both - seq numbers
+NextScheduled = 1
+<!-- NextAvailable = 1 -->
+
+while (True) {
+  read next available in the buffer packet NextAvailable;
+
+  if NextScheduled == NextAvailable, then /* if next available in the buffer packet is equal to next scheduled for the delivery packet */
+    calculate delivery time for the packet;
+    sleep until the moment of packet is scheduled for delivery;
+    deliver the packet;
+    NextScheduled = NextScheduled + 1;
+    continue
+
+  if NextScheduled < NextAvailable, then /* if there are missing packets */
+    calculate delivery time of the next available packet NextAvailableDeliveryTime;
+
+    if T_NOW <= NextAvailableDeliveryTime:
+      continue
+
+}
+
+// 2
+
+NextScheduled = 1
+
+while(True) {
+  read next available in the buffer packet NextAvailable;
+  calculate packet delivery time PacketDeliveryTime;
+
+  if T_NOW <= PacketDeliveryTime
+
+}
 
 
 
-## Too-Late-Packet-Drop
 
-Too-Late-Packet Drop allows the sender to drop packets that have no chance to be delivered in time.
-In the SRT sender, when Too-Late Packet Drop is enabled, and a packet timestamp
-is older than 125% of the SRT latency, it is considered too late to be delivered and may be dropped
-by the sender. Packets of an IFrame tail can then be dropped before being delivered.
-In the receiver, tail packets of a big I-Frame may be quite late and not held by the SRT receive buffer.
-They pass through to the application. The receiver buffer depletes and there is no time left
-for retransmission if missing packets are discovered. Missing packets are then skipped by the receiver.
+
+
+add Next Exp cplumn
+
+| s @ Dst | SrcTime (PKT_TIMESTAMP) | SND Clocks   | Time Base    | RCV Clocks   | SRT Latency | Drift | Packet Delivery Time |   |
+|---------|-------------------------|--------------|--------------|--------------|-------------|-------|----------------------|---|
+| 1       | 20                      | 00:00:00,020 | 00:00:00,040 | 00:00:00,060 | 120         | 0     | 00:00:00,180         |   |
+| 2       | 40                      | 00:00:00,040 | 00:00:00,040 | 00:00:00,080 | 120         | 0     | 00:00:00,200         |   |
+| 5       | 100                     | 00:00:00,100 | 00:00:00,040 | 00:00:00,140 | 120         | 0     | 00:00:00,260         |   |
+| 6       | 120                     | 00:00:00,120 | 00:00:00,040 | 00:00:00,160 | 120         | 0     | 00:00:00,280         |   |
+| 7       | 140                     | 00:00:00,140 | 00:00:00,040 | 00:00:00,180 | 120         | 0     | 00:00:00,300         |   |
+| 8       | 160                     | 00:00:00,160 | 00:00:00,040 | 00:00:00,200 | 120         | 0     | 00:00:00,320         |   |
+| 3       | 60                      | 00:00:00,060 | 00:00:00,040 | 00:00:00,210 | 120         | 0     | 00:00:00,220         |   |
+| 4       | 80                      | 00:00:00,080 | 00:00:00,040 | 00:00:00,212 | 120         | 0     | 00:00:00,240         |   |
+| 9       | 180                     | 00:00:00,180 | 00:00:00,040 | 00:00:00,220 | 120         | 0     | 00:00:00,340         |   |
+| 10      | 200                     | 00:00:00,200 | 00:00:00,040 | 00:00:00,240 | 120         | 0     | 00:00:00,360         |   |
+
+
+
+
+///
+SRTO_TLPKTDROP: When true (default), it will drop the packets that haven't been retransmitted on time, that is, before the next packet that is already received becomes ready to play. You can turn this off to always ensure a clean delivery. However, a lost packet can simply pause a delivery for some longer, potentially undefined time, and cause even worse tearing for the player. Setting higher latency will help much more in the case when TLPKTDROP causes packet drops too often.
+
+///
+NB: The default live mode settings set SRTO_SNDDROPDELAY to 0. The buffer mode settings set SRTO_SNDDROPDELAY to -1.
+
+[SET] - Sets an extra delay before TLPKTDROP is triggered on the data sender. TLPKTDROP discards packets reported as lost if it is already too late to send them (the receiver would discard them even if received). The total delay before TLPKTDROP is triggered consists of the LATENCY (SRTO_PEERLATENCY), plus SRTO_SNDDROPDELAY, plus 2 * the ACK interval (default ACK interval is 10ms). The minimum total delay is 1 second. A value of -1 discards packet drop. SRTO_SNDDROPDELAY extends the tolerance for retransmitting packets at the expense of more likely retransmitting them uselessly. To be effective, it must have a value greater than 1000 - SRTO_PEERLATENCY.
 
 ## Packet Acknowledgement (ACKs)
 
