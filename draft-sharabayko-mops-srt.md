@@ -26,7 +26,7 @@ author:
 
 normative:
   RFC2119:
-  RFC768:
+  RFC0768:
 
 informative:
   RFC8174:
@@ -52,7 +52,7 @@ when, and only when, they appear in all capitals, as shown here.
 
 # Packet Structure
 
-SRT packets are transmitted in UDP packets {{RFC768}}. Every UDP packet carrying SRT 
+SRT packets are transmitted in UDP packets {{RFC0768}}. Every UDP packet carrying SRT 
 traffic contains an SRT header (immediately after the UDP header).
 
 ~~~
