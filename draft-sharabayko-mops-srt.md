@@ -462,7 +462,7 @@ during which a number of activities take place.
 <!--
 TODO:
 * Introduction
-* Section with notations plus put TsbPD in here, check how to make the first reference
+* Section with notations plus put TsbPD in here, check how to make the first reference: TSBPD, TLPKTDROP, SRT
 * Why TsbPD? Why not TSBPD?
 * Encoder/Decoder - not 100% correct terminology here, cause it can be gateway, etc. -> sending/receiving application
 * It's designed and used in live mode
@@ -478,29 +478,28 @@ as per https://github.com/Haivision/srt/blob/master/docs/API.md
 -->
 
 The initial intent of the SRT Timestamp Based Packet Delivery (TsbPD) feature was 
-to reproduce the output of the encoding engine at the input of the decoding one.
+to reproduce the output of the sending application at the input of the receiving one.
 
+<!-- TODO: Insert link -->
 It's designed in a way that SRT receiver, using the timestamp of the SRT data packet header,
-delivers packets to the decoder at the same pace they were provided to the SRT sender by an encoder.
+delivers packets to the receiving application at the same pace they were provided to the SRT sender by a sending applicaton.
 Basically, the sender timestamp in the received packet is adjusted to the receiver’s local time
 (compensating for time drift or different time zone) before releasing the packet to the application.
-<!-- ms - microseconds -->
-<!-- How the delay is configured -->
-Packets can be withheld by the SRT receiver for a configured receiver delay (ms).
+Packets can be withheld by the SRT receiver for a configured receiver delay.
 Higher delay can accommodate a larger uniform packet drop rate or larger packet burst drop.
-Packets received after their “play time” are dropped (!!! link to Too Late Packet Drop section, ? packets are dropped only if the option eneabled).
+Packets received after their “play time” are dropped if Too-Late Packet Drop feature is enabled, see Section xx for details. **(!!! link to Too Late Packet Drop section, ? packets are dropped only if the option eneabled).**
 
-The packet timestamp (in microseconds) is relative to the SRT connection creation time (!!! link).
-<!-- Understand this part an rewrite a bit -->
-The original UDT code uses the packet sending time to stamp the packet. This is inappropriate for
-the TsbPD feature since a new time (current sending time) is used for retransmitted packets,
+<!-- TODO: Insert link to SRT connection creation time plus what's bold -->
+The packet timestamp (in microseconds) is relative to the SRT connection creation time.
+It is worth mentioning that the use of the packet sending time to stamp the packets is 
+inappropriate for TSBPD feature since a new time (current sending time) is used for retransmitted packets,
 putting them out of order when inserted at their proper place in the stream. Packets are
-inserted based on the sequence number in the header field.
-The origin time (in microseconds) of the packet is already sampled when a packet is first
-submitted by the application to the SRT sender. The TsbPD feature uses this time to stamp the
-packet for first transmission and any subsequent re-transmission. This timestamp and the
-configured latency (!!! link) control the recovery buffer size and the instant that packets are delivered at
-the destination.
+inserted based on the sequence number in the header field. The origin time (in microseconds)
+of the packet is already sampled when a packet is first
+submitted by the application to the SRT sender. The TSBPD feature uses this time to stamp the
+packet for first transmission and any subsequent retransmission. **This timestamp and the
+configured SRT latency (!!! link)** control the recovery buffer size and **the instant that packets are delivered at
+the destination.**
 
 <!-- TODO -->
 Picture which reflects the idea:
@@ -512,48 +511,36 @@ Picture which reflects the idea:
 
 ### Packet Delivery Time
 
-<!-- Packet delivery time is the time point, estimated by the receiver, when a packet should be given (delivered) to the upstream application (via `srt_recvmsg(...)`). -->
+<!-- TODO: Bold, some questions, drift -->
 
-The calculation of packet delivery time (PktTsbpdTime) is performed upon receiving a data packet according to the following formula:
+**Packet delivery time is the time point, estimated by the receiver, when a packet should be given (delivered) to the upstream application.** The calculation of packet delivery time (PktTsbpdTime) is performed upon receiving a data packet according to the following formula:
 
 ~~~
 PktTsbpdTime = TsbpdTimeBase + PKT_TIMESTAMP + TsbpdDelay + Drift
 ~~~
 
-where
-TsbpdTimeBase is the base time which reflects or used by receiver to ... (write, but it is not a time difference), in microseconds,
-<!-- `TsbPdTimeBase` is the base time difference between local clock of the receiver, and the clock used by the sender to timestamp packets being sent. A unit of measurement is microseconds. 
-the base time difference between sender's and receiver's clock
-Question:
-time base - what's this https://www.lingvolive.com/en-us/translate/en-ru/time%20base
-time base or base time -->
-PKT_TIMESTAMP is the data packet timestamp, in microseconds,
-TsbpdDelay is the receiver's buffer delay (?latency), in milliseconds (?),
-Drift is the time drift (write later).
+**where TsbpdTimeBase is the base time that reflects the time difference between local clock of the receiver, and the clock used by the sender to timestamp packets being sent;** PKT_TIMESTAMP is the data packet timestamp, in microseconds;
+**TsbpdDelay is the receiver's buffer delay (?latency or any additional delay as well), in milliseconds (?);**
+**Drift is the time drift used to adjustthe fluctuations in sender and receiver clock.**
 
-///
-NB: The default live mode settings set SRTO_RCVLATENCY to 120 ms! The buffer mode settings set SRTO_RCVLATENCY to 0.
-The time that should elapse since the moment when the packet was sent and the moment when it's delivered to the receiver application in the receiving function. This time should be a buffer time large enough to cover the time spent for sending, unexpectedly extended RTT time, and the time needed to retransmit the lost UDP packet. The effective latency value will be the maximum of this options' value and the value of SRTO_PEERLATENCY set by the peer side. This option in pre-1.3.0 version is available only as SRTO_LATENCY.
+<!-- NB: The default live mode settings set SRTO_RCVLATENCY to 120 ms! The buffer mode settings set SRTO_RCVLATENCY to 0.
+The time that should elapse since the moment when the packet was sent and the moment when it's delivered to the receiver application in the receiving function. This time should be a buffer time large enough to cover the time spent for sending, unexpectedly extended RTT time, and the time needed to retransmit the lost UDP packet. The effective latency value will be the maximum of this options' value and the value of SRTO_PEERLATENCY set by the peer side. This option in pre-1.3.0 version is available only as SRTO_LATENCY. -->
 
 #### TSBPD Base Time Calculation
 
-The initial value of TSBPD base time (TsbpdTimeBase) is calculated at the moment of second handshake request is received as follows
+The initial value of TSBPD base time (TsbpdTimeBase) is calculated at the moment of the second handshake request is received as follows:
 
 ~~~
 TsbpdTimeBase = T_NOW - HSREQ_TIMESTAMP
 ~~~
 
-where
-T_NOW is the current time at the receiver clocks,
-HSREQ_TIMESTAMP is the handshake packet timestamp, in microseconds.
+where T_NOW is the current time according to the receiver clock; HSREQ_TIMESTAMP is the handshake packet timestamp, in microseconds.
 
-<!-- This value should roughly correspond to the one-way delay \(**~RTT/2**\). - It's initial RTT -->
+<!-- TODO: This value should roughly correspond to the one-way delay \(**~RTT/2**\). - It's initial RTT -->
 
-During the transmission process, this value may be adjusted due to the following reasons:
-<!-- TODO -->
-Time Base may change because of 2 reasons:
+<!-- TODO: During the transmission process, the value of TSBPD Base Time may be adjusted due to the following reasons:
 1. 32-bit integer is not enough (link to SRT packet structure).
-2. Drift algorithm.
+2. Drift algorithm. -->
 
 
 ## Drift Management (provide formula and leave for later)
@@ -604,7 +591,7 @@ In pseudo-code, the algorithm of reading from the receiver buffer is the followi
         pos = i + 1;
     }
 
-where T_NOW is the current time at the receiver clocks.
+where T_NOW is the current time according to the receiver clock.
 
 You can turn TLPKTDROP mechanism off to always ensure a clean delivery. However, a lost packet can
 simply pause a delivery for some longer, potentially undefined time, and cause even worse tearing
@@ -613,7 +600,7 @@ causes packet drops too often.
 
 <!-- TODO: Pictures and tables to illustrate pseudo-code -->
 
-<!-- | s @ Dst | SrcTime (PKT_TIMESTAMP) | SND Clocks   | Time Base    | RCV Clocks   | SRT Latency | Drift | Packet Delivery Time |   |
+<!-- | s @ Dst | SrcTime (PKT_TIMESTAMP) | SND Clock   | Time Base    | RCV Clock   | SRT Latency | Drift | Packet Delivery Time |   |
 |---------|-------------------------|--------------|--------------|--------------|-------------|-------|----------------------|---|
 | 1       | 20                      | 00:00:00,020 | 00:00:00,040 | 00:00:00,060 | 120         | 0     | 00:00:00,180         |   |
 | 2       | 40                      | 00:00:00,040 | 00:00:00,040 | 00:00:00,080 | 120         | 0     | 00:00:00,200         |   |
