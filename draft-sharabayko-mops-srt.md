@@ -571,66 +571,49 @@ Note regarding drift tracer: The current algorith does not take into account RTT
 
 ## Too-Late Packet Drop
 
-<!-- ? Too-Late -> Too Late -->
-
 Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop packets that have no chance
 to be delivered in time and the receiver to skip missing packets that have not been delivered in time.
 
 In the SRT sender, when Too-Late Packet Drop is enabled, a packet is
 considered too late to be delivered and may be dropped by the sending application if its
-timestamp is older than 125% of the SRT latency. However, the sender keeps packets at least
-1000 milliseconds if SRT latency is lower than the specified value (SRT latency is not enough for large RTT).
+timestamp is older than 125% of the SRT latency. **However, the sender keeps packets at least
+1 second if 125% of the SRT latency is lower than the (this) specified value
+(the case, the SRT latency is not enough for large RTT).**
 
-When enabled on the receiver, it drops packets that have not been delivered or retransmitted in time and delivers
-the subsequent packets to the application when their time-to-play has come. 
+When enabled on the receiver, the receiver drops packets that have not been delivered or retransmitted in time and delivers
+the subsequent packets to the application when their time-to-play has come.
+
 <!-- ??? It also sends a fake ACK message to the sender. -->
 
-In pseudo-code the reading from receiver buffer 
+In pseudo-code, the algorithm of reading from the receiver buffer is the following:
 
-// 1
+    pos = 0;  /* Current receiver buffer position */
+    i = 0;    /* Position of the next available in the receiver buffer packet relatively to the current buffer position pos */
 
-both - seq numbers
-NextScheduled = 1
-<!-- NextAvailable = 1 -->
+    while(True) {
+        Get the position of the next available in receiver buffer packet i;
+        Calculate packet delivery time for the next available packet PktTsbpdTime;
 
-while (True) {
-  read next available in the buffer packet NextAvailable;
+        if T_NOW < PktTsbpdTime:
+            continue;
 
-  if NextScheduled == NextAvailable, then /* if next available in the buffer packet is equal to next scheduled for the delivery packet */
-    calculate delivery time for the packet;
-    sleep until the moment of packet is scheduled for delivery;
-    deliver the packet;
-    NextScheduled = NextScheduled + 1;
-    continue
+        Drop packets which buffer position number is less than i;
 
-  if NextScheduled < NextAvailable, then /* if there are missing packets */
-    calculate delivery time of the next available packet NextAvailableDeliveryTime;
+        Deliver packet with the buffer position i;
 
-    if T_NOW <= NextAvailableDeliveryTime:
-      continue
+        pos = i + 1;
+    }
 
-}
+where T_NOW is the current time at the receiver clocks.
 
-// 2
+You can turn TLPKTDROP mechanism off to always ensure a clean delivery. However, a lost packet can
+simply pause a delivery for some longer, potentially undefined time, and cause even worse tearing
+for the player. Setting higher SRT latency will help much more in the case when TLPKTDROP
+causes packet drops too often.
 
-NextScheduled = 1
+<!-- TODO: Pictures and tables to illustrate pseudo-code -->
 
-while(True) {
-  read next available in the buffer packet NextAvailable;
-  calculate packet delivery time PacketDeliveryTime;
-
-  if T_NOW <= PacketDeliveryTime
-
-}
-
-
-
-
-
-
-add Next Exp cplumn
-
-| s @ Dst | SrcTime (PKT_TIMESTAMP) | SND Clocks   | Time Base    | RCV Clocks   | SRT Latency | Drift | Packet Delivery Time |   |
+<!-- | s @ Dst | SrcTime (PKT_TIMESTAMP) | SND Clocks   | Time Base    | RCV Clocks   | SRT Latency | Drift | Packet Delivery Time |   |
 |---------|-------------------------|--------------|--------------|--------------|-------------|-------|----------------------|---|
 | 1       | 20                      | 00:00:00,020 | 00:00:00,040 | 00:00:00,060 | 120         | 0     | 00:00:00,180         |   |
 | 2       | 40                      | 00:00:00,040 | 00:00:00,040 | 00:00:00,080 | 120         | 0     | 00:00:00,200         |   |
@@ -641,18 +624,12 @@ add Next Exp cplumn
 | 3       | 60                      | 00:00:00,060 | 00:00:00,040 | 00:00:00,210 | 120         | 0     | 00:00:00,220         |   |
 | 4       | 80                      | 00:00:00,080 | 00:00:00,040 | 00:00:00,212 | 120         | 0     | 00:00:00,240         |   |
 | 9       | 180                     | 00:00:00,180 | 00:00:00,040 | 00:00:00,220 | 120         | 0     | 00:00:00,340         |   |
-| 10      | 200                     | 00:00:00,200 | 00:00:00,040 | 00:00:00,240 | 120         | 0     | 00:00:00,360         |   |
+| 10      | 200                     | 00:00:00,200 | 00:00:00,040 | 00:00:00,240 | 120         | 0     | 00:00:00,360         |   | -->
 
-
-
-
-///
-SRTO_TLPKTDROP: When true (default), it will drop the packets that haven't been retransmitted on time, that is, before the next packet that is already received becomes ready to play. You can turn this off to always ensure a clean delivery. However, a lost packet can simply pause a delivery for some longer, potentially undefined time, and cause even worse tearing for the player. Setting higher latency will help much more in the case when TLPKTDROP causes packet drops too often.
-
-///
+<!-- ???
 NB: The default live mode settings set SRTO_SNDDROPDELAY to 0. The buffer mode settings set SRTO_SNDDROPDELAY to -1.
 
-[SET] - Sets an extra delay before TLPKTDROP is triggered on the data sender. TLPKTDROP discards packets reported as lost if it is already too late to send them (the receiver would discard them even if received). The total delay before TLPKTDROP is triggered consists of the LATENCY (SRTO_PEERLATENCY), plus SRTO_SNDDROPDELAY, plus 2 * the ACK interval (default ACK interval is 10ms). The minimum total delay is 1 second. A value of -1 discards packet drop. SRTO_SNDDROPDELAY extends the tolerance for retransmitting packets at the expense of more likely retransmitting them uselessly. To be effective, it must have a value greater than 1000 - SRTO_PEERLATENCY.
+[SET] - Sets an extra delay before TLPKTDROP is triggered on the data sender. TLPKTDROP discards packets reported as lost if it is already too late to send them (the receiver would discard them even if received). The total delay before TLPKTDROP is triggered consists of the LATENCY (SRTO_PEERLATENCY), plus SRTO_SNDDROPDELAY, plus 2 * the ACK interval (default ACK interval is 10ms). The minimum total delay is 1 second. A value of -1 discards packet drop. SRTO_SNDDROPDELAY extends the tolerance for retransmitting packets at the expense of more likely retransmitting them uselessly. To be effective, it must have a value greater than 1000 - SRTO_PEERLATENCY. -->
 
 ## Packet Acknowledgement (ACKs)
 
