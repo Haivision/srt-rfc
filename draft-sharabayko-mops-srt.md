@@ -484,6 +484,12 @@ Estimated Link Capacity (32 bits):
 Receiving Rate (32 bits):
 : Estimated receiving rate.
 
+The partial information of ACK control packet is acceptable. If the CIF has only
+Last Acknowledged Packet Sequence Number, it is a Lite ACK. The Small ACK has 
+information till Available Buffer Size. Lastly, if the CIF has entire information
+like above diagram, it is a Full ACK. 
+
+
 ### NAK (Loss Report) {#ctrl-pkt-nak}
 
 Negative acknowledgement control packets are used to signal failed
