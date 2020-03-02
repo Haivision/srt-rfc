@@ -33,7 +33,12 @@ informative:
 
 --- abstract
 
-TODO Abstract
+This document specifies Secure Reliable Transport (SRT) protocol. 
+SRT is a user-level protocol over User Datagram Protocol and provides 
+reliability and security optimized for low latency live video streaming, 
+as well as generic bulk data transfer. For this, SRT introduces control
+packet extension, improved flow control, enhanced congestion control
+and a mechanism for data encryption.
 
 --- middle
 
