@@ -46,7 +46,7 @@ and a mechanism for data encryption.
 
 # Introduction
 
-TODO Introduction
+TO DO Introduction
 
 
 # Conventions and Definitions
