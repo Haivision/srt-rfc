@@ -1,5 +1,9 @@
 # Notes - Data Transmission and Control Section
 
+## Timestamp Based Packet Delivery {#tsbpd}
+
+1. Insert link to SRT connection creation time, SRT latency.
+
 #### TSBPD Time Base Calculation {#tsbpd-time-base}
 
 1. Some introductory notes - not necessary to add

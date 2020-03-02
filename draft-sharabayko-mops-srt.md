@@ -461,21 +461,11 @@ during which a number of activities take place.
 
 <!--
 TODO:
-* Introduction
-* Section with notations plus put TsbPD in here, check how to make the first reference: TSBPD, TLPKTDROP, SRT, round-trip time (RTT)
-* Why TsbPD? Why not TSBPD?
-* Encoder/Decoder - not 100% correct terminology here, cause it can be gateway, etc. -> sending/receiving application
+* Notations: TSBPD, TLPKTDROP, SRT, round-trip time (RTT)
 * It's designed and used in live mode
-* SRT connection creation time - there should be some reference
-* This timestamp and the configured latency control - ther should be a reference to latency
 * There should be earlier a section describing which data transmissions methods we have: live, file, message (also file)
 as per https://github.com/Haivision/srt/blob/master/docs/API.md
 * Do not forget about my notes from notebook - 3 main ideas behind TSBPD
-* Renaming: PktTsbpdTime -> PktDeliveryTime, TsbPd -> Tsbpd in all places, TsbpdTimeBase -> TsbpdBaseTime, check everything
-* Variables names: PKT_TIMESTAMP vs PktTimestamp
-* Concept of caller, listener, rendevous
-* Concept of receiver and sender
-* Names for diagrams and tables
 -->
 
 The initial intent of the SRT Timestamp Based Packet Delivery (TSBPD) feature is
@@ -488,8 +478,6 @@ Basically, the sender timestamp in the received packet is adjusted to the receiv
 Packets can be withheld by the SRT receiver for a configured receiver delay.
 Higher delay can accommodate a larger uniform packet drop rate or larger packet burst drop.
 Packets received after their "play time" are dropped if Too-Late Packet Drop feature is enabled (see {{too-late-packet-drop}}).
-
-<!-- TODO: Insert link to SRT connection creation time, SRT latency -->
 
 The packet timestamp (in microseconds) is relative to the SRT connection creation time.
 It is worth mentioning that the use of the packet sending time to stamp the packets is
