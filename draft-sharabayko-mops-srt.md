@@ -364,15 +364,15 @@ SRT Version (32 bits):
 SRT Flags (32 bits):
 : SRT configuration flags.
 
- | Bitfield   | Flag |
+ | Bitmask    | Flag |
  | ---------- | :---------------: |
- | 0xFFFFFFFD | TSBPDSND          |
- | 0xFFFFFFFE | TSBPDRCV          |
- | 0xFFFFFFFF | CRYPT             |
- | 0x00000000 | TLPKTDROP         |
- | 0x00000001 | PERIODICNAK       |
- | 0x00000001 | REXMITFLG         |
- | 0x00000001 | STREAM            |
+ | 0x00000001 | TSBPDSND          |
+ | 0x00000002 | TSBPDRCV          |
+ | 0x00000004 | CRYPT             |
+ | 0x00000008 | TLPKTDROP         |
+ | 0x00000010 | PERIODICNAK       |
+ | 0x00000020 | REXMITFLG         |
+ | 0x00000040 | STREAM            |
 {: #hs-ext-msg-flags title="HS Extension Message Flags"}
 
 Receiver TsbPd Delay (16 bits):
