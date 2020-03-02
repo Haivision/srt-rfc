@@ -93,7 +93,8 @@ The structure of the SRT packet is shown in {{srtpacket}}.
 |                     Destination Socket ID                     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
-+    (Packet contents: depends on the packet type)              +
++                        Packet Contents                        |
+|                  (depends on the packet type)                 +
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
@@ -141,34 +142,36 @@ Packet Sequence Number (31 bits):
 : The sequential number of the data packet.
 
 PP (2 bits):
-: Packet Position Flags. This field indicates the position of the data packet in the message.
-  The value "10b" means the first packet of the message. "00b" indicates a packet in the middle,
-  "01b" is the last packet. If a single data packet forms the whole message,
-  the value is "11b".
+: Packet Position Flag. This field indicates the position of the data packet in the message.
+  The value "10b" (binary) means the first packet of the message. "00b" indicates a packet 
+  in the middle. "01b" designates the last packet. If a single data packet forms the whole 
+  message, the value is "11b".
 
 O (1 bit):
-: Order Flag. Indicates whether the message should be delivered by the receiver
-  in order (1) or not (0). Certain restrictions apply depending on the data transmission mode used ({{data-transmission-mode}}).
+: Order Flag. Indicates whether the message should be delivered by the receiver in order (1) 
+  or not (0). Certain restrictions apply depending on the data transmission mode used 
+  ({{data-transmission-mode}}).
 
 KK (2 bits):
-: Encryption Flag. The flag bits indicate whether or not data is encrypted.
-  The value "00b" means data is not encrypted, "01b" indicates that data is
+: Key-based Encryption Flag. The flag bits indicate whether or not data is encrypted.
+  The value "00b" (binary) means data is not encrypted. "01b" indicates that data is
   encrypted with even key, and "11b" is used for odd key encryption. Refer to {{encryption}}.
 
 R (1 bit):
-: Retransmitted Packet Flag. This flag is clear when a packet is transmitted the very first time.
-  The flag set to "1" means the packet is retransmitted.
+: Retransmitted Packet Flag. This flag is clear when a packet is transmitted the first time.
+  The flag is set to "1" when a packet is retransmitted.
 
 Message Number (26 bits):
-: The sequential number of the message formed by consecutive data packets (see PP field).
+: The sequential number of consecutive data packets that form a message (see PP field).
 
 Data (variable length):
-: The payload of the data packet. The length of the data is the remaining length of the UDP packet.
+: The payload of the data packet. The length of the data is the remaining length of 
+  the UDP packet.
 
 
 ## Control Packets
 
-SRT control packet has the following structure.
+An SRT control packet has the following structure.
 
 ~~~
  0                   1                   2                   3
@@ -194,19 +197,19 @@ Control Type (15 bits):
   by the control packet type definition. See {{srt-ctrl-pkt-type-table}}.
 
 Subtype (16 bits):
-: This field specifies additional subtype of specific packets.
+: This field specifies an additional subtype for specific packets.
   See {{srt-ctrl-pkt-type-table}}.
 
 Type-specific Information (32 bits):
-: The use of this field is defined by the particular control
+: The use of this field depends on the particular control
   packet type. Handshake packets don't use this field.
 
 Control Information Field (variable length):
-: The use of this field is defined by the Control Type field of the control packet.
+: The use of this field is defined by the Control Type field of a control packet.
 
 
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
-The value, "0x7ffff", is reserved for user-defined type.
+The value "0x7ffff" is reserved for a user-defined type.
 
 | ----------------- | ------------ | ------- | -------------------------- |
 | Packet Type       | Control Type | Subtype | Section                    |
@@ -224,10 +227,11 @@ The value, "0x7ffff", is reserved for user-defined type.
 
 ### Handshake {#ctrl-pkt-handshake}
 
-The handshake control packets are used to exchange peer configurations,
-agree on the and connection parameters and establish the connection.
+Handshake control packets (Control Type = 0x0000) are used to exchange peer configurations,
+to agree on connection parameters, and to establish a connection.
 
-The CIF of handshake control packet is shown in {{handshake-packet-structure}}.
+The Control Information Field (CIF) of a handshake control packet is shown 
+in {{handshake-packet-structure}}.
 
 ~~~
  0                   1                   2                   3
@@ -239,7 +243,7 @@ The CIF of handshake control packet is shown in {{handshake-packet-structure}}.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                 Initial Packet Sequence Number                |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                Maximum Transmission Unit Size                 |
+|                 Maximum Transmission Unit Size                |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                    Maximum Flow Window Size                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -268,11 +272,11 @@ The CIF of handshake control packet is shown in {{handshake-packet-structure}}.
 
 Version (32 bits):
 : A base protocol version number. Currently used values are 4 and 5.
-  The value greater than 5 is reserved for future definition.
+  Values greater than 5 are reserved for future use.
 
 Encryption Field (16 bits):
 : Block cipher family and block size. The values of this field are
-  described om {{handshake-encr-fld}}.
+  described in {{handshake-encr-fld}}.
 
  | Value | Cipher family and block size |
  | ----- | :--------------------------: |
@@ -283,27 +287,29 @@ Encryption Field (16 bits):
 {: #handshake-encr-fld title="Handshake Encryption Field Values"}
 
 Extension Field (16 bits):
-: This field is message specific extension related to Handshake Type field.
-  The value must be set to 0 except for the following cases.
-  If the handshake control packet is the INDUCTION message, this field is 
-  sent back by the Listener. In case of the CONCLUSION message, this field value 
-  should contain a combination of Extension Type value. For more details, see
-  {{caller-listener-handshake}}.
+: This field is a message-specific extension related to the Handshake Type field.
+  The value must be set to 0 except in the following cases:
+  
+  (1) If the handshake control packet is the INDUCTION message, this field is 
+  sent back by the Listener. 
+  (2) In the case of a CONCLUSION message, this field value should contain a combination 
+  of Extension Type values. 
+  
+  For more details, see {{caller-listener-handshake}}.
 
 Initial Packet Sequence Number (32 bits):
-: The sequence number for the very first data packet to be sent.
+: The sequence number of the very first data packet to be sent.
 
 Maximum Transmission Unit Size (32 bits):
-: The value is typically 1500 to follow the default size of MTU (Maximum Transmission Unit)
-  in Ethernet, but can be less.
+: This value is typically set to 1500, which is the default Maximum Transmission Unit (MTU) 
+  size for Ethernet, but can be less.
 
 Maximum Flow Window Size (32 bits):
-: The value of this field is the maximum number of data packets allowed
-  to be "in flight" which means the number of sent packets
-  without receiving ACK control packet.
+: The value of this field is the maximum number of data packets allowed to be "in flight"  
+  (i.e. the number of sent packets for which an ACK control packet has not yet been received).
 
 Handshake Type (32 bits):
-: This field indicates the handshake packet types.
+: This field indicates the handshake packet type.
   The possible values are described in {{handshake-type}}.
   For more details refer to {{handshake-messages}}.
 
@@ -312,39 +318,40 @@ Handshake Type (32 bits):
  | 0xFFFFFFFD | DONE                         |
  | 0xFFFFFFFE | AGREEMENT                    |
  | 0xFFFFFFFF | CONCLUSION                   |
- | 0x00000000 | WAVEHAND                     |
+ | 0x00000000 | WAVEAHAND                    |
  | 0x00000001 | INDUCTION                    |
 {: #handshake-type title="Handshake Type"}
 
 SRT Socket ID (32 bits):
-: The field holds the source SRT socket ID from which the handshake packet is issued.
+: This field holds the ID of the source SRT socket from which a handshake packet is issued.
 
 SYN Cookie (32 bits):
-: Randomized value for processing handshake. The value of this field is specified
-  by handshake message type. See {{handshake-messages}}.
+: Randomized value for processing a handshake. The value of this field is specified
+  by the handshake message type. See {{handshake-messages}}.
 
 Peer IP Address (128 bits):
-: The sender's IPv4 or IPv6 IP address. The value consists of four 32-bit fields.
+: The sender's IPv4 or IPv6 address. The value consists of four 32-bit fields. In the case
+  of IPv4 adresses, fields 2, 3 and 4 are padded with zeroes.  <-- **TO BE CONFIRMED**
 
 Extension Type (16 bits):
-: The value of this field is used to process integrated handshake.
-  There are two basic extensions: Handshake Extension Message ({{handshake-extension-msg}})
+: The value of this field is used to process an integrated handshake.
+  There are two extensions: Handshake Extension Message ({{handshake-extension-msg}})
   and Key Material Exchange ({{key-material-exchange}}).
   Each extension can have a pair of request and response types.
 
 Extension Length (16 bits):
-: The length of Extension Contents.
+: The length of the Extension Contents field.
 
 Extension Contents (variable length):
 : The payload of the extension.
 
 #### Handshake Extension Message {#handshake-extension-msg}
 
-In Handshake Extension, the value of the Extension Field of the
-handshake control packet is defined as 1 for Handshake Extension Request,
-and 2 for Handshake Extension Response.
+In a Handshake Extension, the value of the Extension Field of the
+handshake control packet is defined as 1 for a Handshake Extension request,
+and 2 for a Handshake Extension response.
 
-The Extension Contents of the Extension Message is the following.
+The Extension Contents field of a Handshake Extension Message is structured as follows:
 
 ~~~
  0                   1                   2                   3
@@ -363,7 +370,7 @@ SRT Version (32 bits):
 : SRT library version.
 
 SRT Flags (32 bits):
-: SRT configuration flags.
+: SRT configuration flags:
 
  | Bitmask    | Flag |
  | ---------- | :---------------: |
@@ -378,15 +385,15 @@ SRT Flags (32 bits):
 {: #hs-ext-msg-flags title="HS Extension Message Flags"}
 
 Receiver TsbPd Delay (16 bits):
-: TSBPD delay of the receiver. Refer to {{tsbpd}}.
+: TimeStamp-Based Packet Delay (TSBPD) of the receiver. Refer to {{tsbpd}}.
 
 Sender TsbPd Delay (16 bits):
-: TSBPD delay of the sender. Refer to {{tsbpd}}.
+: TSBPD of the sender. Refer to {{tsbpd}}.
 
 #### Key Material Exchange {#key-material-exchange}
 
-The Key Material Exchange has both request and response type extensions.
-The value of request is 3, and the response value is 4.
+The Key Material Exchange portion of a Handshake packet has both request and response type 
+extensions. The value of a request is 3, and the response value is 4.
 
 ~~~
  0                   1                   2                   3
