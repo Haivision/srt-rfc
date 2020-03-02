@@ -30,6 +30,7 @@ normative:
 
 informative:
   RFC8174:
+  I-D.gg-udt:
 
 
 --- abstract
@@ -113,7 +114,7 @@ Destination Socket ID (32 bits):
   The field may have the special value "0" when the packet is a connection request.
 
 
-## Data Packets
+## Data Packets {#data-pkt}
 
 The structure of the SRT data packet is shown in {{srtdatapacket}}.
 
@@ -561,19 +562,61 @@ as specified in this section.
 
 ## Stream Multiplexing
 
+Multiple SRT socket may share one UDP socket and the packets received to this
+UDP socket will be correctly dispatched to the SRT socket to which they are
+currently destined.
+During the handshake, the parties exchange their SRT Socket IDs.
+These IDs are then used in the Destination Socket ID field of every control and data packet.
 
 ## Data Transmission Modes {#data-transmission-mode}
 
-In file transfer mode this a message with O=0 that is sent later 
+In file transfer mode this a message with O=0 that is sent later
 (but reassembled before an earlier message which may be incomplete due to packet loss)
 is allowed to be delivered immediately, without waiting for the earlier message to be completed.
 In Live Transmission Mode the only valid value is "1".
 
-### Message Mode
+### Message Mode {#transmission-mode-msg}
 
-### Live mode
+When the STREAM flag of the handshake Extension Message Flags is set to 0,
+the protocol operates in the message mode.
 
-### Buffer mode
+Every packet has its own Packet Sequence Number.
+One or several consecutive SRT Data packet can form a message.
+In that case all the packets belonging to the same message have similar
+message number set in the Message Number field.
+
+The first packet of the message has the first bit of the Packet Position Flags ({{data-pkt}})
+set to 1. The last packet of the message has the second bit of the Packet Position Flags
+set to 1. Thus, PP equal to "11b" indicates a packet that forms the whole message.
+The PP field equal to "00b" indicates a packet that belongs to the inner part of the message.
+
+The concept of the message in SRT comes from UDT ({{I-D.gg-udt}}).
+In this mode a single sending instruction passes exactly one piece of data
+that has boundaries (a message). This message may span across multiple UDP packets
+(and multiple SRT data packets). The only size limitation is that it shall fit as a whole
+in the buffers of the sender and the receiver.
+Although internally all the operations on data packets (ACK, NAK) are performed independently,
+it is only allowed for an application to send and receive the whole message.
+Until the message is complete (all packets are received) it will not be allowed to read it.
+
+The Order Flag of the Data packet set to 1 restricts the reading order of the messages to be sequential.
+While the Order Flag set to 0 allows to read those messages that are already fully available, before
+preceding messages, that still have some packets missing.
+
+### Live mode {#transmission-mode-live}
+
+Live mode is a special case of the message mode where only data packets
+with PP field set to "11b" are allowed.
+
+Additionally TsbPd ({{tsbpd}}) and TL Packet drop ({{tl-pkt-drop}}) mechanisms are used in this mode.
+
+### Buffer mode {#transmission-mode-buffer}
+
+Buffer mode is negotiated during the Handshake by setting the STREAM flag
+of the handshake Extension Message Flags to 1.
+
+In this mode the consecutive packets form one consecutive stream that can be read with
+the portions of any size.
 
 ## Handshake Messages {#handshake-messages}
 
@@ -732,7 +775,13 @@ is included in the round-trip time).
 
 ### Bidirectional Transmission Queues
 
-### ACKs, ACKACKs & Round Trip Time
+Once an SRT connection is established, both peers can send data packets simultaneously.
+
+### Round Trip Time Estimation
+
+The round-trip time is estimated during the transmission of SRT data packets
+based on the time difference between the ACK packet is sent and the
+corresponding ACKACK is received by the data receiver.
 
 ### Loss List
 
