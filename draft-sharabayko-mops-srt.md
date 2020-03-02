@@ -581,15 +581,20 @@ provided to the SRT sender by an encoder. Basically, the sender timestamp
 in the received packet is adjusted to the receiver’s local time
 (compensating for time drift or different time zone)
 before releasing the packet to the application.
-Packets can be withheld by SRT for a configured receiver delay (ms).
-Higher delay can accommodate a larger uniform packet drop rate or larger packet burst drop.
+Packets can be withheld by SRT for a configured receiver delay in milliseconds.
+Higher delay can accommodate data traffic which could lead to a larger uniform packet drop
+rate or larger packet burst drop.
 Packets received after their “play time” are dropped.
 The packet timestamp (in microseconds) is relative to the SRT connection creation time.
 The origin time (in microseconds) of the packet is already sampled when a packet is first
 submitted by the application to the SRT sender.
 The TsbPD feature uses this time to stamp the packet for first transmission
 and any subsequent re-transmission. This timestamp and the configured latency
-control the recovery buffer size and the instant that packets are delivered at the destination.
+control the recovery buffer size and the instant (aforementioned "play time"
+which is decided by adding timestamp to configured latency) that packets 
+are delivered at the destination.
+Latency is agreed during handshake process as maximum value of Receiver/Sender TsbPd Delay
+from initiator/responder (see section #ctrl-pkt-handshake).  
 
 ## Too-Late-Packet-Drop
 
