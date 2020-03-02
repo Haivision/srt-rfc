@@ -606,19 +606,92 @@ In the receiver, tail packets of a big I-Frame may be quite late and not held by
 They pass through to the application. The receiver buffer depletes and there is no time left
 for retransmission if missing packets are discovered. Missing packets are then skipped by the receiver.
 
-## Packet Acknowledgement (ACKs) {#packet-acks}
+## Acknowledgement and Lost Packet Handling
 
+A receiver sends acknowledgement (ACK) for the received packets so that a sender can drop
+acknowledged packets from a sender buffer and does not have to retransmit those packets.
+Acknowledgement of ACK receipt by the sender is delivered to the receiver by ACKACK control
+packets. For the missed packets, a receiver sends NAK control packet which could be a periodic
+loss list report NAK or a NAK triggered by timer expiry for a specific packet missed.
+The receiver will retransmit packets reported by NAK, as long as it remains in the sender buffer
+(i.e. not already dropped by buffer latency).
 
+### Packet Acknowledgement (ACKs) {#packet-acks}
 
-## Packet Retransmission (NAKs) {#packet-naks}
+At certain intervals (see ACKs, ACKACKs & Round Trip Time), the receiver sends an ACK that
+causes the acknowledged packets to be removed from the sender's buffer, at which point the
+buffer space will be recycled. An ACK contains the sequence number of the packet immediately
+following the latest of the previous packets that have been received. Where no packet loss has
+occurred up to the packet with sequence number n, ACK would include the sequence number n + 1.
+The ACK needs to acknowledged by ACKACK (see ACKACK), and if not the ACK will be retransmitted.
+If the sender doesn't receive an ACK, it doesn‘t stop transmitting. There are two conditions
+for sending an acknowledgement. A full ACK is based 6 on a timer of 10 milliseconds (the ACK period).
+For high bit rate transmissions, a “light ACK7” can be sent, which is an ACK for
+a sequence of packets. In a 10 milliseconds interval, there are often so many packets being sent
+and received that the ACK position on the sender doesn't advance quickly enough.
+To mitigate this, after 64 packets (even if the ACK period has not fully elapsed) the receiver
+sends a light ACK. When a receiver encounters the situation where the next packet to be played was
+not successfully received from the sender, it will “skip” this packet and send a fake ACK. To the
+sender, this fake ACK is a real ACK, and so it just behaves as if the packet had been received.
 
-## Packet Acknowledgment in SRT
+This facilitates the synchronization between sender and receiver. The fact that a packet was
+skipped remains unknown by the sender. Skipped packets are recorded in the statistics on the
+receiver.
 
-## Bidirectional Transmission Queues
+### Packet Retransmission (NAKs) {#packet-naks}
 
-## ACKs, ACKACKs & Round Trip Time
+When a packet is received but the previous packets are not yet arrived in a receiver buffer,
+if a certain amount of time is passed, NAKs for previous packets are sent to the sender.
+If periodic NAK report is enabled in live mode, the lost packets list is sent periodically. 
+The period is 4 * RTT + RTTVar + SYN, but this could be reduced (e.g. by half)
+when a certain condition is met.  
 
-## Loss List
+The sender maintains a list of lost packets (loss list) that is built from NAK reports. When
+scheduling to transmit, it looks to see if a packet in the loss list has priority, and will send it.
+Otherwise, it will send the next packet in the sender buffer. Note that when a packet is transmitted,
+it stays in the buffer in case it is not received.
+NAK packets are processed to fill the loss list. As the latency window advances and packets are
+dropped from the sender buffer, a check is performed to see if any of the dropped or resent
+packets are in the loss list, to determine if they can be removed from there as well so that they
+are not retransmitted unnecessarily.
+
+What the sender sees is the NAKs that it has received. There is a counter for the packets that
+are resent. If there is no ACK for a packet, it will stay in the loss list and can be resent more than
+once. Packets in the loss list are prioritized.
+If packets in the loss list continue to block the send queue, at some point this will cause the
+send queue to fill. When the send queue is full, the sender will begin to drop packets without
+even sending them the first time. An encoder (or other application) may continue to provide
+packets, but there's no place for them, so they will end up being thrown away. SRT is unaware
+of these "unsent packets", and they are not reported in the SRT statistics.
+This condition where packets are unsent doesn't happen often. There is a maximum number of
+packets held in the send buffer based on the configured latency. Older packets that have no
+chance to be retransmitted and played in time are dropped, making room for newer real-time
+packets produced by the sending application. A minimum of one second is applied before
+dropping the packet when low latency is configured. This one-second limit derives from the
+behavior of MPEG I-frames with SRT used as transport. I-frames are very large (typically 8 times
+larger than other packets), and consequently take more time to transmit. They can be too large
+to keep in the latency window, and can cause packets to be dropped from the queue. To
+prevent this, SRT imposes a minimum of one second (or the latency value) before dropping a
+packet. This allows for large I-frames when using small latency values.
+
+### Packet Acknowledgment in SRT
+
+The ACKACK tells the receiver to stop sending the ACK position because the sender already
+knows it. Otherwise, ACKs (with outdated information) would continue to be sent regularly.
+An ACK serves as a ping, with a corresponding ACKACK pong, to measure RTT.
+The time it takes for an ACK to be sent and an ACKACK to be received is the RTT.
+Each ACK has a number. A corresponding ACKACK has that same number.
+The receiver keeps a list of all ACKs in a queue to match them. Unlike a full ACK,
+which contains the current RTT and several other values in the CIF.
+a light ACK just contains the sequence number. All control messages are sent directly and
+processed upon reception, but ACKACK processing time is negligible (the time this takes
+is included in the round-trip time).
+
+### Bidirectional Transmission Queues
+
+### ACKs, ACKACKs & Round Trip Time
+
+### Loss List
 
 
 # Encryption
