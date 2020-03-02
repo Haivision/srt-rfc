@@ -26,6 +26,7 @@ author:
 
 normative:
   RFC2119:
+  RFC0768:
 
 informative:
   RFC8174:
@@ -51,7 +52,7 @@ when, and only when, they appear in all capitals, as shown here.
 
 # Packet Structure
 
-SRT packets are transmitted in UDP packets. Every UDP packet carrying SRT 
+SRT packets are transmitted in UDP packets {{RFC0768}}. Every UDP packet carrying SRT 
 traffic contains an SRT header (immediately after the UDP header).
 
 ~~~
@@ -69,7 +70,7 @@ traffic contains an SRT header (immediately after the UDP header).
 ~~~
 {: #srt-in-udp title="SRT packet as UDP payload"}
 
-SRT has two kinds of packets distinguished by the first bit; 
+SRT has two types of packets distinguished by the Packet Type Flag:
 data packet and conrol packet.
 The structure of the SRT packet is shown in {{srtpacket}}.
 
@@ -93,24 +94,23 @@ The structure of the SRT packet is shown in {{srtpacket}}.
 {: #srtpacket title="SRT packet structure"}
 
 F (1 bit): 
-: Packet Type Flag. The control packet must set this flag as "1".
-  The data packet must set this flag as "0".
+: Packet Type Flag. The control packet has this flag set to "1".
+  The data packet has this flag set to "0".
 
 Timestamp (32 bits):
 : The time stamp of the packet in microseconds.
   The value is relative to the time the SRT connection was established.
-  This is relative time value starting from when the connection is established.
-  Depending on the transmission mode, the field stores the packet sent time or
-  the packet origin time.
+  Depending on the transmission mode {{data-transmission-mode}},
+  the field stores the packet send time or the packet origin time.
 
 Destination Socket ID (32 bits):
-: A fixed-width field providing the socket ID to which a packet should be dispatched.
+: A fixed-width field providing the SRT socket ID to which a packet should be dispatched.
   The field may have the special value "0" when the packet is a connection request.
 
 
 ## Data Packets
 
-The structure of the SRT data packet is the following.
+The structure of the SRT data packet is shown in {{srtdatapacket}}.
 
 ~~~
  0                   1                   2                   3
@@ -118,7 +118,7 @@ The structure of the SRT data packet is the following.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |0|                    Packet Sequence Number                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| PP|O|KK |R|                   Message Number                  |
+|P P|O|K K|R|                   Message Number                  |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -135,15 +135,14 @@ Packet Sequence Number (31 bits):
 : The sequential number of the data packet.
 
 PP (2 bits):
-: Packet Position. This field indicates the position of data packet in the message.
+: Packet Position Flags. This field indicates the position of the data packet in the message.
   The value "10b" means the first packet of the message. "00b" indicates a packet in the middle,
   "01b" is the last packet. If a single data packet forms the whole message,
   the value is "11b".
 
 O (1 bit):
 : Order Flag. Indicates whether the message should be delivered by the receiver
-  in order (1) or not (0). This field is used to determine behaviour of data
-  transmission mode. See in {{data-transmission-mode}}.
+  in order (1) or not (0). Certain restrictions apply depending on the data transmission mode used ({{data-transmission-mode}}).
 
 KK (2 bits):
 : Encryption Flag. The flag bits indicate whether or not data is encrypted.
@@ -200,8 +199,8 @@ Control Information Field (variable length):
 : The use of this field is defined by the Control Type field of the control packet.
 
 
-The types of SRT control packets are shown as following. The value, "0x7ffff", is
-reserved for user-defined type.
+The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
+The value, "0x7ffff", is reserved for user-defined type.
 
 | ----------------- | ------------ | ------- | -------------------------- |
 | Packet Type       | Control Type | Subtype | Section                    |
@@ -219,11 +218,10 @@ reserved for user-defined type.
 
 ### Handshake {#ctrl-pkt-handshake}
 
-The handshake control packet is for exchanging peer configuration
-and implementation information to ensure seamless upgrades while 
-evolving the protocol.
+The handshake control packets are used to exchange peer configurations,
+agree on the and connection parameters and establish the connection.
 
-The CIF of handshake control packet is revealed as the following.
+The CIF of handshake control packet is shown in {{handshake-packet-structure}}.
 
 ~~~
  0                   1                   2                   3
@@ -235,13 +233,13 @@ The CIF of handshake control packet is revealed as the following.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                 Initial Packet Sequence Number                |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                      Maximum Packet Size                      |
+|                Maximum Transmission Unit Size                 |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                    Maximum Flow Window Size                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                        Connection Type                        |
+|                         Handshake Type                        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Socket ID                           |
+|                         SRT Socket ID                         |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           SYN Cookie                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -263,9 +261,8 @@ The CIF of handshake control packet is revealed as the following.
 {: #handshake-packet-structure title="handshake packet structure"}
 
 Version (32 bits):
-: A base protocol version number. It has fixed value as 5.
-  The value greater than 5 is reserved for future definition, but
-  the less than 5 is not used.
+: A base protocol version number. Currently used values are 4 and 5.
+  The value greater than 5 is reserved for future definition.
 
 Encryption Field (16 bits):
 : Block cipher family and block size. The values of this field are
@@ -280,7 +277,7 @@ Encryption Field (16 bits):
 {: #handshake-encr-fld title="Handshake Encryption Field Values"}
 
 Extension Field (16 bits):
-: This field is message specific extension related to Connection Type field.
+: This field is message specific extension related to Handshake Type field.
   The value must be set as 0 except for the following cases.
   If the handshake control packet is a INDUCTION message, this field is 
   sent back by the Listener. In case of CONCLUSION message, this field value 
@@ -288,54 +285,61 @@ Extension Field (16 bits):
   {{caller-listener-handshake}}.
 
 Initial Packet Sequence Number (32 bits):
-: The sequence number for the first data packet.
+: The sequence number for the first data packet to be sent.
 
-Maximum Packet Size (32 bits):
-: The value is typically 1500 to follow default size of MTU(Maximum Transmission Unit)
+Maximum Transmission Unit Size (32 bits):
+: The value is typically 1500 to follow default size of MTU (Maximum Transmission Unit)
   in Ethernet, but can be less.
 
 Maximum Flow Window Size (32 bits):
-: The value of this field is the maximum number of buffers allowed
+: The value of this field is the maximum number of data packets allowed
   to be "in flight" which means that the number of sent packets 
   without receiving ACK control packet.
 
-Connection Type (32 bits):
-: This field indicates the handshake message types and the type is 32 bits
-  signed integer. The value 0 means WAVEHAND message, INDUCTION message has 1. 
-  If the message is CONCLUSION, the value is -1. The value -2 means AGREEMENT.
-  For more details of handshake message type, see in {{handshake-messages}}.
+Handshake Type (32 bits):
+: This field indicates the handshake packet types.
+  The possible values are described in {{handshake-type}}.
+  For more details refer to {{handshake-messages}}.
 
-Socket ID (32 bits):
-: The value of this field has the source socket id from that the message is issued.
-  It is the destination socket id in SRT header.
+ | Value      | Handshake type |
+ | ---------- | :--------------------------: |
+ | 0xFFFFFFFD | DONE                         |
+ | 0xFFFFFFFE | AGREEMENT                    |
+ | 0xFFFFFFFF | CONCLUSION                   |
+ | 0x00000000 | WAVEHAND                     |
+ | 0x00000001 | INDUCTION                    |
+{: #handshake-type title="Handshake Type"}
+
+SRT Socket ID (32 bits):
+: The value of this field has the source SRT socket id from which the handshake packet is issued.
 
 SYN Cookie (32 bits):
 : Randomized value for processing handshake. The value of this field is specified
   by handshake message type. See in {{handshake-messages}}.
 
 Peer IP Address (128 bits):
-: The sender's IPv4 or IPv6 IP address. It consists of four 32-bit field.
+: The sender's IPv4 or IPv6 IP address. The value consists of four 32-bit fields.
 
 Extension Type (16 bits):
 : The value of this field is used for processing integrated handshake.
-  There are two basic extension; Handshake Extension({{handshake-extension}})
-  and Key Material Exchange({{key-material-exchange}}).
+  There are two basic extension; Handshake Extension Message ({{handshake-extension-msg}})
+  and Key Material Exchange ({{key-material-exchange}}).
   Each extension can have a pair of request and response type.  
 
 Extension Length (16 bits):
 : The length of Extension Contents.
 
 Extension Contents (variable length):
-: The payload of the extension type.
+: The payload of the extension.
 
 
-#### Handshake Extension {#handshake-extension}
+#### Handshake Extension Message {#handshake-extension-msg}
 
 In Handshake Extension, the value of the Extension Field of 
 handshake control packet is defined as 1 for Handshake Extension Request, 
 or 2 for Handshake Extension Response.
 
-The Extension Contents is revealed as the following.
+The HS Extension Message Contents is revealed as the following.
 
 ~~~
  0                   1                   2                   3
@@ -348,7 +352,30 @@ The Extension Contents is revealed as the following.
 |      Receiver TsbPd Delay     |       Sender TsbPd Delay      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #handshake-extension-structure title="handshake extension structure"}
+{: #handshake-extension-msg-structure title="Handshake extension message structure"}
+
+SRT Version (32 bits):
+: SRT library version.
+
+SRT Falgs (32 bits):
+: SRT configuration flags.
+
+ | Bitfield   | Flag |
+ | ---------- | :---------------: |
+ | 0xFFFFFFFD | TSBPDSND          |
+ | 0xFFFFFFFE | TSBPDRCV          |
+ | 0xFFFFFFFF | CRYPT             |
+ | 0x00000000 | TLPKTDROP         |
+ | 0x00000001 | PERIODICNAK       |
+ | 0x00000001 | REXMITFLG         |
+ | 0x00000001 | STREAM            |
+{: #hs-ext-msg-flags title="HS Extension Message Flags"}
+
+Receiver TsbPd Delay (16 bits):
+: TSBPD delay of the receiver. Refer to {{tsbpd}}.
+
+Sender TsbPd Delay (16 bits):
+: TSBPD delay of the sender. Refer to {{tsbpd}}.
 
 
 #### Key Material Exchange {#key-material-exchange}
@@ -542,11 +569,11 @@ of packets at high bitrate. Latency can be thought of as a window that slides ov
 during which a number of activities take place, such as report of ACKs({{packet-acks}})
 or NAKs({{packet-naks}}).
 Latency is configured through capability exchange during extended handshake process 
-between initiator and responder. The handshake extension({{handshake-extension}}) has 
+between initiator and responder. The handshake extension({{handshake-extension-msg}}) has 
 receiver and sender TsbPd Delay information in milliseconds. The maximum value of latencies
 from initiator and responder will be established. 
 
-## Timestamp Based Packet Delivery
+## Timestamp Based Packet Delivery {#tsbpd}
 
 This feature uses the timestamp of the SRT data packet header.
 TsbPD allows a receiver to deliver packets to the decoder at the same pace they were
