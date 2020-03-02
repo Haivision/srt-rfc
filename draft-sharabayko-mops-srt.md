@@ -16,7 +16,7 @@ author:
  -
     ins: "M.P. Sharabayko"
     name: "Maxim Sharabayko"
-    organization: "Haivision"
+    organization: "Haivision Network Video, GmbH"
     email: maxsharabayko@haivision.com
  -
     ins: "J. Kim"
@@ -76,7 +76,7 @@ traffic contains an SRT header (immediately after the UDP header).
 {: #srt-in-udp title="SRT packet as UDP payload"}
 
 SRT has two types of packets distinguished by the Packet Type Flag:
-data packet and conrol packet.
+data packet and control packet.
 The structure of the SRT packet is shown in {{srtpacket}}.
 
 ~~~
@@ -105,7 +105,7 @@ F (1 bit):
 Timestamp (32 bits):
 : The time stamp of the packet in microseconds.
   The value is relative to the time the SRT connection was established.
-  Depending on the transmission mode {{data-transmission-mode}},
+  Depending on the transmission mode ({{data-transmission-mode}}),
   the field stores the packet send time or the packet origin time.
 
 Destination Socket ID (32 bits):
@@ -152,7 +152,7 @@ O (1 bit):
 KK (2 bits):
 : Encryption Flag. The flag bits indicate whether or not data is encrypted.
   The value "00b" means data is not encrypted, "01b" indicates that data is
-  encrypted with even key, and "11b" is used for odd key encryption.
+  encrypted with even key, and "11b" is used for odd key encryption. Refer to {{encryption}}.
 
 R (1 bit):
 : Retransmitted Packet Flag. This flag is clear when a packet is transmitted the very first time.
@@ -190,11 +190,11 @@ SRT control packet has the following structure.
 
 Control Type (15 bits):
 : Control Packet Type. The use of these bits is determined
-  by the control packet type definition. See {{srt-ctrl-pkt-type-table}}
+  by the control packet type definition. See {{srt-ctrl-pkt-type-table}}.
 
 Subtype (16 bits):
 : This field specifies additional subtype of specific packets.
-  See {{srt-ctrl-pkt-type-table}}
+  See {{srt-ctrl-pkt-type-table}}.
 
 Type-specific Information (32 bits):
 : The use of this field is defined by the particular control
@@ -271,7 +271,7 @@ Version (32 bits):
 
 Encryption Field (16 bits):
 : Block cipher family and block size. The values of this field are
-  described as the following.
+  described om {{handshake-encr-fld}}.
 
  | Value | Cipher family and block size |
  | ----- | :--------------------------: |
@@ -283,22 +283,22 @@ Encryption Field (16 bits):
 
 Extension Field (16 bits):
 : This field is message specific extension related to Handshake Type field.
-  The value must be set as 0 except for the following cases.
-  If the handshake control packet is a INDUCTION message, this field is 
-  sent back by the Listener. In case of CONCLUSION message, this field value 
-  should contain a combination of Extension Type value. For more details, see in
+  The value must be set to 0 except for the following cases.
+  If the handshake control packet is the INDUCTION message, this field is 
+  sent back by the Listener. In case of the CONCLUSION message, this field value 
+  should contain a combination of Extension Type value. For more details, see
   {{caller-listener-handshake}}.
 
 Initial Packet Sequence Number (32 bits):
-: The sequence number for the first data packet to be sent.
+: The sequence number for the very first data packet to be sent.
 
 Maximum Transmission Unit Size (32 bits):
-: The value is typically 1500 to follow default size of MTU (Maximum Transmission Unit)
+: The value is typically 1500 to follow the default size of MTU (Maximum Transmission Unit)
   in Ethernet, but can be less.
 
 Maximum Flow Window Size (32 bits):
 : The value of this field is the maximum number of data packets allowed
-  to be "in flight" which means that the number of sent packets 
+  to be "in flight" which means the number of sent packets
   without receiving ACK control packet.
 
 Handshake Type (32 bits):
@@ -316,20 +316,20 @@ Handshake Type (32 bits):
 {: #handshake-type title="Handshake Type"}
 
 SRT Socket ID (32 bits):
-: The value of this field has the source SRT socket id from which the handshake packet is issued.
+: The field holds the source SRT socket ID from which the handshake packet is issued.
 
 SYN Cookie (32 bits):
 : Randomized value for processing handshake. The value of this field is specified
-  by handshake message type. See in {{handshake-messages}}.
+  by handshake message type. See {{handshake-messages}}.
 
 Peer IP Address (128 bits):
 : The sender's IPv4 or IPv6 IP address. The value consists of four 32-bit fields.
 
 Extension Type (16 bits):
-: The value of this field is used for processing integrated handshake.
-  There are two basic extension; Handshake Extension Message ({{handshake-extension-msg}})
+: The value of this field is used to process integrated handshake.
+  There are two basic extensions: Handshake Extension Message ({{handshake-extension-msg}})
   and Key Material Exchange ({{key-material-exchange}}).
-  Each extension can have a pair of request and response type.  
+  Each extension can have a pair of request and response types.
 
 Extension Length (16 bits):
 : The length of Extension Contents.
@@ -337,14 +337,13 @@ Extension Length (16 bits):
 Extension Contents (variable length):
 : The payload of the extension.
 
-
 #### Handshake Extension Message {#handshake-extension-msg}
 
-In Handshake Extension, the value of the Extension Field of 
-handshake control packet is defined as 1 for Handshake Extension Request, 
-or 2 for Handshake Extension Response.
+In Handshake Extension, the value of the Extension Field of the
+handshake control packet is defined as 1 for Handshake Extension Request,
+and 2 for Handshake Extension Response.
 
-The HS Extension Message Contents is revealed as the following.
+The Extension Contents of the Extension Message is the following.
 
 ~~~
  0                   1                   2                   3
@@ -357,12 +356,12 @@ The HS Extension Message Contents is revealed as the following.
 |      Receiver TsbPd Delay     |       Sender TsbPd Delay      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #handshake-extension-msg-structure title="Handshake extension message structure"}
+{: #handshake-extension-msg-structure title="Handshake Extension Message structure"}
 
 SRT Version (32 bits):
 : SRT library version.
 
-SRT Falgs (32 bits):
+SRT Flags (32 bits):
 : SRT configuration flags.
 
  | Bitfield   | Flag |
@@ -381,7 +380,6 @@ Receiver TsbPd Delay (16 bits):
 
 Sender TsbPd Delay (16 bits):
 : TSBPD delay of the sender. Refer to {{tsbpd}}.
-
 
 #### Key Material Exchange {#key-material-exchange}
 
@@ -405,7 +403,7 @@ The value of request is 3, and the response value is 4.
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~~
-{: #keymaterial-extension-structure title="key material extension structure"}
+{: #keymaterial-extension-structure title="Key Material Extension structure"}
 
 ~~~
  0                   1                   2                   3
@@ -420,15 +418,17 @@ The value of request is 3, and the response value is 4.
 |                              oSEK                             |
 +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 ~~~
-{: #unwrapped-key-structure title="unwrapped key structure"}
-
-
+{: #unwrapped-key-structure title="Unwrapped key structure"}
 
 
 ### Keep Alive {#ctrl-pkt-keepalive}
 
-Keep-alive control packets are exchaged approximately every 10ms to 
-enable SRT streams to be automatically restored after a connection loss.
+Keep-alive control packets are sent after a certain timeout from the last time
+any packet (Control or Data) was sent. The purpose of this control packet
+is to notify the peer to keep the connection live in case when
+no data exchange is taking place.
+
+The default timeout for keepalive packet to be sent is 1 second.
 
 Control Type: 
 : The type value of keep-alive control packet is "1".
@@ -444,7 +444,7 @@ Control Information Field:
 
 Acknowledgement control packets are used to provide delivery status of data packets.
 These packets may also carry some additional information from the receiver like
-RTT, bandwidth, receiving speed, etc. The CIF of ACK control packet is expanded
+RTT, bandwidth, receiving speed, etc. The CIF of the ACK control packet is expanded
 as the following.
 
 ~~~
@@ -468,6 +468,10 @@ as the following.
 ~~~
 {: #ack-control-packet title="ACK control packet"}
 
+Type-specific Information (32 bits):
+: The time-specific Information ({{controlpacket}}) of the ACK packet stores the
+  sequential number of the full ACK packet starting from 1.
+
 Last Acknowledged Packet Sequence Number (32 bits):
 : The sequence number of the last acknowledged data packet +1.
 
@@ -478,27 +482,35 @@ RTT variance (32 bits):
 : The variance of the RTT estimation.
 
 Available Buffer Size (32 bits):
-: Available size of the receiver's buffer.
+: Available size of the receiver's buffer in packets.
 
 Packets Receiving Rate (32 bits):
 : The receiving rate of the packets in packets / second.
 
 Estimated Link Capacity (32 bits):
-: Estimated bandwidth of the link.
+: Estimated bandwidth of the link in packets per second.
 
 Receiving Rate (32 bits):
-: Estimated receiving rate.
+: Estimated receiving rate in bytes per second.
 
-The partial information of ACK control packet is acceptable. If the CIF has only
-Last Acknowledged Packet Sequence Number, it is a Lite ACK. The Small ACK has 
-information till Available Buffer Size. Lastly, if the CIF has entire information
-like above diagram, it is a Full ACK. 
+There are several types of ACK packets.
+The full ACK control packet is sent every 10 ms and has all the fields of {{ack-control-packet}}.
+The Lite ACK control packet includes only Last Acknowledged Packet Sequence Number field, and
+the Type-specific Information field should be set to 0.
+The Small ACK includes the fields up to and including the Available Buffer Size field.
+The Type-specific Information field should be set to 0.
 
+The sender acknowledges (see ACKACK) only the receival of Full ACK packets.
+
+The Lite ACK and Small packets are used in cases when the receiver should acknowledge
+received data packets more often than every 10 ms. This is usually needed at high data rates.
+It is up to the receiver to decide the condition and the type of ACK packet to send (Lite or Small).
+The recommendation is to send Lite ACK on every 64 received packets.
 
 ### NAK (Loss Report) {#ctrl-pkt-nak}
 
 Negative acknowledgement control packets are used to signal failed
-data packet deliveries. The receiver notifies the sender about the lost packets using the NAK packets.
+data packet deliveries. The receiver notifies the sender about lost data packets sending the NAK packets.
 The NAK packet contains a list of sequence numbers of lost packets.
 
 Control Type: 
@@ -508,7 +520,7 @@ Type-specific Information:
 : This field is reserved for future definition.
 
 Control Information Field:
-: One or list of lost packet sequence number. See packet sequence number coding in
+: A single value or a list of lost packets sequence numbers. See packet sequence number coding in
   {{packet-seq-list-coding}}.
 
 ### Shutdown {#ctrl-pkt-shutdown}
@@ -526,7 +538,7 @@ Control Information Field:
 
 ### ACKACK {#ctrl-pkt-ackack}
 
-ACKACK control packets are used to acknowledge the reception of an ACK.
+ACKACK control packets are used to acknowledge the reception of the Full ACK.
 Furthermore, these packets are used in the calculation of RTT by the receiver.
 
 Control Type: 
@@ -534,7 +546,7 @@ Control Type:
 
 Type-specific Information: 
 : ACK Sequence Number. This field is used for the sequence number of
-  the ACK packet acknowledged.
+  the ACK packet being acknowledged.
 
 Control Information Field:
 : This field must not appear in ACKACK control packets.
@@ -547,16 +559,21 @@ the features of low latency and error recovery provided by SRT, the sender
 and receiver MUST handle control packets, timers and buffers for the connection
 as specified in this section.
 
-## Data Transmission Mode {#data-transmission-mode}
+## Stream Multiplexing
+
+
+## Data Transmission Modes {#data-transmission-mode}
 
 In file transfer mode this a message with O=0 that is sent later 
 (but reassembled before an earlier message which may be incomplete due to packet loss)
 is allowed to be delivered immediately, without waiting for the earlier message to be completed.
 In Live Transmission Mode the only valid value is "1".
 
+### Message Mode
+
 ### Live mode
 
-### File mode
+### Buffer mode
 
 ## Handshake Messages {#handshake-messages}
 
@@ -607,7 +624,7 @@ are delivered at the destination.
 Latency is agreed during handshake process as maximum value of Receiver/Sender TsbPd Delay
 from initiator/responder (see section #ctrl-pkt-handshake).  
 
-## Too-Late-Packet-Drop
+## Too-Late-Packet-Drop {#tl-pkt-drop}
 
 Too-Late-Packet Drop allows the sender to drop packets that have no chance to be delivered in time.
 In the SRT sender, when Too-Late Packet Drop is enabled, and a packet timestamp
@@ -619,25 +636,40 @@ for retransmission if missing packets are discovered. Missing packets are then s
 
 ## Acknowledgement and Lost Packet Handling
 
-A receiver sends acknowledgement (ACK) for the received packets so that a sender can drop
-acknowledged packets from a sender buffer and does not have to retransmit those packets.
-Acknowledgement of ACK receipt by the sender is delivered to the receiver by ACKACK control
-packets. For the missed packets, a receiver sends NAK control packet which could be a periodic
-loss list report NAK or a NAK triggered by timer expiry for a specific packet missed.
-The receiver will retransmit packets reported by NAK, as long as it remains in the sender buffer
-(i.e. not already dropped by buffer latency).
+To enable the Automatic Repeat Request of data packet retransmissions, the sender stores
+all sent data packets in its buffer.
+The data receiver sends acknowledgement (ACK) for the received data packets so that the sender can remove
+acknowledged packets from its buffer. After that retransmission of these acknowledged packets
+are no longer possible and presumably not needed.
+
+The sender should acknowledge the reception of the Full ACK control packet ({{ctrl-pkt-ack}})
+by sending the ACKACK control packet ({{ctrl-pkt-ackack}}) with the sequence number
+of the Full ACK packet being acknowledged.
+
+The receiver sends NAK control packets to notify the sender about the missing packets.
+The NAK packet sending can be triggered immediately after a gap in sequence numbers of
+DATA packets is detected.
+In addition to that, the Periodic NAK report mechanism can be used to send NAK reports periodically.
+The NAK packet in that case will have all the packets that the receiver considers being lost
+at the time of the Periodic NAK report.
+
+Upon reception of the NAK packet, the sender prioritizes retransmissions of lost packets over the regular DATA
+packets to be transmitted for the first time.
+
+The retransmission of the missing packet is repeated until the receiver acknowledges its receival,
+or if both peers agree to drop this packet (see {{tl-pkt-drop}}).
 
 ### Packet Acknowledgement (ACKs) {#packet-acks}
 
 At certain intervals (see ACKs, ACKACKs & Round Trip Time), the receiver sends an ACK that
-causes the acknowledged packets to be removed from the sender's buffer, at which point the
-buffer space will be recycled. An ACK contains the sequence number of the packet immediately
+causes the acknowledged packets to be removed from the sender's buffer.
+An ACK contains the sequence number of the packet immediately
 following the latest of the previous packets that have been received. Where no packet loss has
 occurred up to the packet with sequence number n, ACK would include the sequence number n + 1.
 The ACK needs to acknowledged by ACKACK (see ACKACK), and if not the ACK will be retransmitted.
-If the sender doesn't receive an ACK, it doesn‘t stop transmitting. There are two conditions
-for sending an acknowledgement. A full ACK is based 6 on a timer of 10 milliseconds (the ACK period).
-For high bit rate transmissions, a “light ACK7” can be sent, which is an ACK for
+If the sender doesn't receive an ACK, it doesn't stop transmitting. There are two conditions
+for sending an acknowledgement. A full ACK is based on a timer of 10 milliseconds (the ACK period).
+For high bit rate transmissions, a “light ACK” can be sent, which is an ACK for
 a sequence of packets. In a 10 milliseconds interval, there are often so many packets being sent
 and received that the ACK position on the sender doesn't advance quickly enough.
 To mitigate this, after 64 packets (even if the ACK period has not fully elapsed) the receiver
@@ -672,8 +704,8 @@ once. Packets in the loss list are prioritized.
 If packets in the loss list continue to block the send queue, at some point this will cause the
 send queue to fill. When the send queue is full, the sender will begin to drop packets without
 even sending them the first time. An encoder (or other application) may continue to provide
-packets, but there's no place for them, so they will end up being thrown away. SRT is unaware
-of these "unsent packets", and they are not reported in the SRT statistics.
+packets, but there's no place for them, so they will end up being thrown away.
+
 This condition where packets are unsent doesn't happen often. There is a maximum number of
 packets held in the send buffer based on the configured latency. Older packets that have no
 chance to be retransmitted and played in time are dropped, making room for newer real-time
@@ -693,7 +725,7 @@ An ACK serves as a ping, with a corresponding ACKACK pong, to measure RTT.
 The time it takes for an ACK to be sent and an ACKACK to be received is the RTT.
 Each ACK has a number. A corresponding ACKACK has that same number.
 The receiver keeps a list of all ACKs in a queue to match them. Unlike a full ACK,
-which contains the current RTT and several other values in the CIF.
+which contains the current RTT and several other values in the CIF,
 a light ACK just contains the sequence number. All control messages are sent directly and
 processed upon reception, but ACKACK processing time is negligible (the time this takes
 is included in the round-trip time).
