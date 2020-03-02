@@ -462,7 +462,7 @@ during which a number of activities take place.
 <!--
 TODO:
 * Introduction
-* Section with notations plus put TsbPD in here, check how to make the first reference: TSBPD, TLPKTDROP, SRT
+* Section with notations plus put TsbPD in here, check how to make the first reference: TSBPD, TLPKTDROP, SRT, round-trip time (RTT)
 * Why TsbPD? Why not TSBPD?
 * Encoder/Decoder - not 100% correct terminology here, cause it can be gateway, etc. -> sending/receiving application
 * It's designed and used in live mode
@@ -475,6 +475,7 @@ as per https://github.com/Haivision/srt/blob/master/docs/API.md
 * Variables names: PKT_TIMESTAMP vs PktTimestamp
 * Concept of caller, listener, rendevous
 * Concept of receiver and sender
+* Names for diagrams and tables
 -->
 
 The initial intent of the SRT Timestamp Based Packet Delivery (TsbPD) feature was 
@@ -487,7 +488,7 @@ Basically, the sender timestamp in the received packet is adjusted to the receiv
 (compensating for time drift or different time zone) before releasing the packet to the application.
 Packets can be withheld by the SRT receiver for a configured receiver delay.
 Higher delay can accommodate a larger uniform packet drop rate or larger packet burst drop.
-Packets received after their “play time” are dropped if Too-Late Packet Drop feature is enabled, see Section xx for details. **(!!! link to Too Late Packet Drop section, ? packets are dropped only if the option eneabled).**
+Packets received after their “play time” are dropped if Too-Late Packet Drop feature is enabled, see Section xx for details. **(!!! link to Too Late Packet Drop section, ? packets are dropped only if the option enabled).**
 
 <!-- TODO: Insert link to SRT connection creation time plus what's bold -->
 The packet timestamp (in microseconds) is relative to the SRT connection creation time.
@@ -501,13 +502,37 @@ packet for first transmission and any subsequent retransmission. **This timestam
 configured SRT latency (!!! link)** control the recovery buffer size and **the instant that packets are delivered at
 the destination.**
 
-<!-- TODO -->
-Picture which reflects the idea:
-1. Comment regarding initial RTT and that RTT may vary in time
-2. Comment regarding relatively small sending delay, plus reflect receiving delay
-3. Change SRT documentation in order to reflect the formula.
-4. Under the picture explain all the notations: Packet Time, Packet Sending Time, Packet Receiving Time, Packet Delivery Time
-<!-- TODO ends -->
+The following diagram illustrates the key latency points during the packet transmission with TSBPD feature enabled:
+
+~~~
+                |  Sending  |                   |                         |
+                |   Delay   |      ~RTT/2       |       SRT Latency       |
+                |<--------->|<----------------->|<----------------------->|
+                |           |                   |                         |
+                |           |                   |                         |
+                |           |                   |                         |
+      _____ Ready to       Sent              Received                 Ready to be
+     /      be sent         |                   |                     delivered
+  Packet        |           |                   |                         |
+  State         |           |                   |                         |
+                |           |                   |                         |
+                |           |                   |                         |
+                ----------------------------------------------------------------->
+                                                                                Time
+~~~
+
+where "Ready to be sent" means the packet is commited by the sending application, stamped and ready to be sent;
+"Sent" - the packet is passed to the UDP socket and sent;
+"Received" - the packet is received and read from the UDP socket;
+"Ready to be delivered" - the packet is ready to be delivered to the upstream (receiving) application, delivered and read by the application;
+RTT is the round-trip time of the link;
+<!-- SRT latency is (SRTO_RCVLATENCY) vs TSBPD delay vs additional delay that may be introduced here -->
+<!-- Comment regarding relatively small sending delay, plus reflect receiving delay -->
+
+<!-- ? Inline formula -->
+It is worth mentioning that the round-trip time (RTT) of the link may vary in time, however the actual
+end-to-end latency on the link used in SRT will roughly be equal to `RTT_0/2 + SRT Latency`, where RTT_0 is the initial value of the round-trip time
+obtained during the process of handshakes exchange (the value of the round-trip time once the SRT connection has been established).
 
 ### Packet Delivery Time
 
@@ -519,7 +544,7 @@ Picture which reflects the idea:
 PktTsbpdTime = TsbpdTimeBase + PKT_TIMESTAMP + TsbpdDelay + Drift
 ~~~
 
-**where TsbpdTimeBase is the base time that reflects the time difference between local clock of the receiver, and the clock used by the sender to timestamp packets being sent;** PKT_TIMESTAMP is the data packet timestamp, in microseconds;
+**where TsbpdTimeBase is the base time that reflects the time difference between local clock of the receiver, and the clock used by the sender to timestamp packets being sent, (in microseconds, but ???, 32-integer and for everything else);** PKT_TIMESTAMP is the data packet timestamp, in microseconds;
 **TsbpdDelay is the receiver's buffer delay (?latency or any additional delay as well), in milliseconds (?);**
 **Drift is the time drift used to adjustthe fluctuations in sender and receiver clock.**
 
@@ -538,9 +563,26 @@ where T_NOW is the current time according to the receiver clock; HSREQ_TIMESTAMP
 
 <!-- TODO: This value should roughly correspond to the one-way delay \(**~RTT/2**\). - It's initial RTT -->
 
-<!-- TODO: During the transmission process, the value of TSBPD Base Time may be adjusted due to the following reasons:
-1. 32-bit integer is not enough (link to SRT packet structure).
-2. Drift algorithm. -->
+During the transmission process, the value of TSBPD Base Time may be adjusted in two cases:
+
+<!-- ??? 32 integer - implementation or protocol, if protocol we should specify this for all the values used in formulas -->
+<!-- link to the packet structure -->
+
+1. During TSBPD wrapping period that happens every 01:11:35 hours which corresponds to the maximum timestamp value of a packet (MAX_TIMESTAMP). MAX_TIMESTAMP = 0xFFFFFFFF, or maximum 32-bit unsigned integer value, in microseconds. The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value of a packet MAX_TIMESTAMP and ends (???)
+
+<!-- ??? where to put TsbpdTimeBase here -->
+
+<!-- The value of TsbPdTimeBase can be updated during the TSBPD wrapping period. The period starts 30 seconds before reaching the maximum timestamp value of a packet (CPacket::MAX_TIMESTAMP), and ends whens the timestamp of the received packet is within [30; 60] seconds.
+CPacket::MAX_TIMESTAMP = 0xFFFFFFFF, or maximum 32-bit unsigned integer value. The value is in microseconds, which corresponds to 1 hour 11 minutes and 35 seconds (01:11:35).
+In other words, TSBPD time wrapping happens every 01:11:35.
+
+During this wrapping period, a packet may have a timestamp close to CPacket::MAX_TIMESTAMP, as well as close to 0. Both cases are handled. In the first case, the current value of TsbPdTimeBase is used. In the seconds case, TsbPdTimeBase + CPacket::MAX_TIMESTAMP + 1 is used to calculate TSBPD time of a packet.
+
+The wrapping period ends when the timestamp of the received packet is within the interval [30; 60] seconds. The updated value will be TsbPdTimeBase += CPacket::MAX_TIMESTAMP + 1. -->
+
+2. By Drift Tracer.
+
+<!-- TODO: See section ... -->
 
 
 ## Drift Management (provide formula and leave for later)
