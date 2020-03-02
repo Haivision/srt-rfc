@@ -47,3 +47,25 @@ From API
 NB: The default live mode settings set SRTO_SNDDROPDELAY to 0. The buffer mode settings set SRTO_SNDDROPDELAY to -1.
 
 [SET] - Sets an extra delay before TLPKTDROP is triggered on the data sender. TLPKTDROP discards packets reported as lost if it is already too late to send them (the receiver would discard them even if received). The total delay before TLPKTDROP is triggered consists of the LATENCY (SRTO_PEERLATENCY), plus SRTO_SNDDROPDELAY, plus 2 * the ACK interval (default ACK interval is 10ms). The minimum total delay is 1 second. A value of -1 discards packet drop. SRTO_SNDDROPDELAY extends the tolerance for retransmitting packets at the expense of more likely retransmitting them uselessly. To be effective, it must have a value greater than 1000 - SRTO_PEERLATENCY.
+
+## Drift Management {#drift-management}
+
+1. Add detailed description of the algorithm with pseudo-code.
+https://srtlab.github.io/srt-cookbook/protocol/tsbpd/drift-management/
+
+2. Some parts of the current drift description can be moved into introduction or other sections of TSBPD as the introductory words. Here we can leave only the idea and pseudo-code.
+
+E.g., this part
+
+The receiver uses local time to be able to schedule events — to
+determine, for example, if it's time to deliver a certain packet
+right away. The timestamps in the packets themselves are just
+references to the beginning of the session. When a packet is received
+(with a timestamp from the sender), the receiver makes a reference to
+the beginning of the session to recalculate its timestamp. The start
+time is derived from the local time at the moment that the session is
+connected. A packet timestamp equals "now" minus "StartTime", where
+zthe latter is the point in time when the socket was created.
+
+3. Note regarding drift tracer: The current algorithm does not take into account RTT variations, but we are going to improve this.
+<!-- Assuming that the link latency is constant (RTT=const), the only cause of the drift fluctuations should be clock inaccuracy. -->
