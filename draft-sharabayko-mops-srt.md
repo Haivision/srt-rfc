@@ -620,9 +620,161 @@ the portions of any size.
 
 ## Handshake Messages {#handshake-messages}
 
+SRT is a connection protocol. It embraces the concepts of "connection"
+and "session". The UDP system protocol is used by SRT for sending data
+and control packets.
+
+An SRT connection is characterized by the fact that it is:
+
+- first engaged by a handshake process
+
+- maintained as long as any packets are being exchanged in a timely manner
+
+- considered closed when a party receives the appropriate close command from
+  its peer (connection closed by the foreign host), or when it receives no
+  packets at all for some predefined time (connection broken on timeout).
+
+SRT supports two connection configurations:
+
+1. Caller-Listener, where one side waits for the other to initiate a connection
+2. Rendezvous, where both sides attempt to initiate a connection
+
+The handshake is performed between two parties: "Initiator" and "Responder":
+
+- Initiator starts the extended SRT handshake process and sends appropriate
+  SRT extended handshake requests;
+
+- Responder expects the SRT extended handshake requests to be sent by the
+  Initiator and sends SRT extended handshake responses back.
+
+There are two basic types of SRT handshake extensions that are exchanged
+in the handshake:
+
+- Handhshake Extension Message exchanges the basic SRT information;
+- Key Material Exchange exchanges the wrapped stream encryption key (used only if
+  encryption is requested).
+
+The Initiator and Responder roles are assigned depending on the connection mode.
+
+For Caller-Listener connections: the Caller is the Initiator,
+the Listener is the Responder.
+For Rendezvous connections: the Initiator and Responder roles are assigned
+based on the initial data interchange during the handshake.
+
+The Handshake Type field in the Handshake Structure (see {{handshake-packet-structure}}) 
+indicates the handshake message type.
+
+Caller-Listener handshake exchange has the following order of Handshake Types:
+
+1. Caller to Listener: INDUCTION
+2. Listener to Caller: INDUCTION (reports cookie)
+3. Caller to Listener: CONCLUSION (uses previously returned cookie)
+4. Listener to Caller: CONCLUSION (confirms connection established)
+
+Rendezvous handshake exchange has the following order of Handshake Types:
+
+1. After starting the connection: `URQ_WAVEAHAND`
+2. After receiving the above message from the peer: `URQ_CONCLUSION`
+3. After receiving the above message from the peer: `URQ_AGREEMENT`.
+
+In case when the connection process has failed when the party was about to
+send the CONCLUSION handshake, the Handshake Type field will contain appropriate
+error value. See the list of error codes in {{hs-rej-reason}}.
+
+ | Code | Rejection Reason | Description       |
+ | ---- | :--------------: | :---------------: |
+ | 1000 | REJ_UNKNOWN,     | Unknown reason    |
+ | 1001 | REJ_SYSTEM,      | System function error       |
+ | 1002 | REJ_PEER,        | Rejected by peer            |
+ | 1003 | REJ_RESOURCE,    | Resource allocation problem |
+ | 1004 | REJ_ROGUE,       | incorrect data in handshake |
+ | 1005 | REJ_BACKLOG,     | listener's backlog exceeded |
+ | 1006 | REJ_IPE,         | internal program error |
+ | 1007 | REJ_CLOSE,       | socket is closing |
+ | 1008 | REJ_VERSION,     | peer is older version than agent's minimum set |
+ | 1009 | REJ_RDVCOOKIE,   | rendezvous cookie collision |
+ | 1010 | REJ_BADSECRET,   | wrong password |
+ | 1011 | REJ_UNSECURE,    | password required or unexpected |
+ | 1012 | REJ_MESSAGEAPI,  | Stream flag collision |
+ | 1013 | REJ_CONGESTION,  | incompatible congestion-controller type |
+ | 1014 | REJ_FILTER,      | incompatible packet filter |
+ | 1015 | REJ_GROUP,       | incompatible group |
+{: #hs-rej-reason title="HS Rejection Reason Codes"}
+
+The specification of `PBKEYLEN` is decided by the Sender. When the transmission 
+is bidirectional, this value must be agreed upon at the outset because when both 
+are set, the Responder wins. For Caller-Listener connections it is reasonable to 
+set this value on the Listener only. In the case of Rendezvous the only reasonable 
+approach is to decide upon the correct value from the different sources and to 
+set it on both parties (note that **AES-128** is the default).
+
 ### Caller-Listener Handshake {#caller-listener-handshake}
 
+This section describes the handshaking process where a Listener is
+waiting for an incoming Handshake request on a bound UDP port from a Caller.
+The process has two phases: induction and conclusion.
+
+#### The Induction Phase
+
+The Caller begins by sending an "induction" message, which contains the following
+(significant) fields:
+
+- Version: must always be 4
+- Encryption Field: 0
+- Extension Field: 2
+- Handshake Type: INDUCTION
+- SRT Socket ID: SRT Socket ID of the Caller
+- SYN Cookie: 0
+
+The Destination Socket ID of the SRT packet header in this message is 0, which is
+interpreted as a connection request.
+
+NOTE: The handshake version number is set to 4 in this initial handshake.
+It is due to the initial design of SRT that was to be compliant with the UDT
+protocol ({{I-D.gg-udt}}) it is based on.
+
+NOTE: This phase serves only to set a cookie on the Listener so that it
+doesn't allocate resources, thus mitigating a potential DOS attack that might be
+perpetrated by flooding the Listener with handshake commands.
+
+The Listener responds with the following:
+
+- Version: 5
+- Encryption Field: Advertised cipher family and block size.
+- Extension Field: SRT magic code 0x4A17
+- Handshake Type: INDUCTION
+- ID: Socket ID of the HSv5 Listener
+- SYN Cookie: a cookie that is crafted based on host, port and current time
+  with 1 minute accuracy
+
+NOTE: At this point the Listener still doesn't know if the Caller is SRT or UDT,
+and it responds with the same set of values regardless of whether the Caller is
+SRT or UDT.
+
+If the party is SRT, it does interpret the values in Version and Type.
+If it receives the value 5 in Version, it understands that it comes from an SRT
+party, so it knows that it should prepare the proper handshake messages
+phase. It also checks the following:
+
+- whether the Extension Flags contains the magic value 0x4A17; otherwise the
+  connection is rejected. This is a contingency for the case where someone who,
+  in an attempt to extend UDT independently, increases the Version value to 5
+  and tries to test it against SRT.
+
+- whether the Encryption Flags contain a non-zero
+  value, which is interpreted as an advertised cipher family and block size.
+
+The legacy UDT party completely ignores the values reported in Version and
+Handshake Type.  It is, however, interested in the SYN Cookie value, as this must be
+passed to the next phase. It does interpret these fields, but only in the "conclusion" message.
+
 ### Rendezvous Handshake
+
+Rendezvous handshake exchange has the following order of Handshake Types:
+
+1. After starting the connection: `URQ_WAVEAHAND`
+2. After receiving the above message from the peer: `URQ_CONCLUSION`
+3. After receiving the above message from the peer: `URQ_AGREEMENT`.
 
 ## SRT Buffer Latency
 
