@@ -30,7 +30,18 @@ normative:
 
 informative:
   RFC8174:
-  I-D.gg-udt:
+  GHG04b:
+    title: Experiences in Design and Implementation of a High Performance Transport Protocol
+    author:
+      - 
+        name: Yunhong Gu
+      - 
+        name: Xinwei Hong
+      - 
+        name: Robert L. Grossman, 
+    date: December, 2004
+    seriesinfo:
+      DOI: 10.1109/SC.2004.24
   PNPID:
     target: https://uefi.org/PNP_ACPI_Registry
     title: PNP ID AND ACPI ID REGISTRY
@@ -667,7 +678,7 @@ set to 1. The last packet of the message has the second bit of the Packet Positi
 set to 1. Thus, PP equal to "11b" indicates a packet that forms the whole message.
 The PP field equal to "00b" indicates a packet that belongs to the inner part of the message.
 
-The concept of the message in SRT comes from UDT ({{I-D.gg-udt}}).
+The concept of the message in SRT comes from UDT ({{GHG04b}}).
 In this mode a single sending instruction passes exactly one piece of data
 that has boundaries (a message). This message may span across multiple UDP packets
 (and multiple SRT data packets). The only size limitation is that it shall fit as a whole
@@ -808,7 +819,7 @@ interpreted as a connection request.
 
 NOTE: The handshake version number is set to 4 in this initial handshake.
 It is due to the initial design of SRT that was to be compliant with the UDT
-protocol ({{I-D.gg-udt}}) it is based on.
+protocol ({{GHG04b}}) it is based on.
 
 NOTE: This phase serves only to set a cookie on the Listener so that it
 doesn't allocate resources, thus mitigating a potential DOS attack that might be
