@@ -4,6 +4,11 @@
 
 1. Insert link to SRT connection creation time, SRT latency.
 
+2. Reflect three main ideas of this section:
+    * After handshakes exchange - end-to-end delay is fixed
+    * It's worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent making impossible to retransmit packets endlessly. This is important for live data transmission.
+    * Each packet has timestamp (when it was ready to be sent), receiver uses this timestamp to calculate delivery time: send time + end-to-end delay = read time
+
 #### TSBPD Time Base Calculation {#tsbpd-time-base}
 
 1. Some introductory notes - not necessary to add
