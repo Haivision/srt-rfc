@@ -399,7 +399,7 @@ extensions. The value of a request is 3, and the response value is 4.
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|S|  V  |   PT  |              Sign             |    Rev    | KK|
+|S|  V  |   PT  |              Sign             |    Resv   | KK|
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                              KEKI                             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -414,12 +414,94 @@ extensions. The value of a request is 3, and the response value is 4.
 ~~~~
 {: #keymaterial-extension-structure title="Key Material Extension structure"}
 
+   0 ( ): 1 bit. Value: {0}  
+   This is a fixed-width field that is a remnant from the header of a previous design (VF).
+
+   Version (V): 3 bits. Value: {1}  
+   This is a fixed-width field that indicates the SRT version:
+
+      1: initial version
+
+   Packet Type (PT): 4 bits. Value: {2}  
+   This is a fixed-width field that indicates the Packet Type:
+
+      0: Reserved
+      1: MSmsg
+      2: KMmsg 
+      7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)   
+
+
+   Signature (Sign): 16 bits. Value: {0x2029}  
+   This is a fixed-width field that contains the signature ‘HAI‘ encoded as a PnP Vendor ID 
+   (in big endian order)
+
+   Reserved (Resv): 6 bits. Value: {0}  
+   This is a fixed-width field reserved for flag extension or other usage.
+
+   Key-based Data Encryption (KK): 2 bits.  Value: ???
+   This is a fixed-width field that indicates whether or not data is encrypted:
+
+      00b: not encrypted (data packets only)
+      01b: even key
+      10b: odd key   
+      11b: even and odd keys   
+
+   Key Encryption Key Index (KEKI): 32 bits. Value: {0}  
+   This is a fixed-width field for specifying the KEK index (big endian order)
+
+      0: Default stream associated key (stream/system default)
+      1..255: Reserved for manually indexed keys
+
+   Cipher ( ): 8 bits. Value: {2}  
+   This is a fixed-width field for specifying encryption cipher and mode:
+
+      0: None or KEKI indexed crypto context
+      1: AES-ECB (not supported in SRT)
+      2: AES-CTR [FP800-38A] 
+      x: AES-CCM [RFC3610] if message integrity required (FIPS 140-2 approved)   
+      x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)   
+
+
+   Authentication (Auth): 8 bits. Value: {0}  
+   This is a fixed-width field for specifying a message authentication code algorithm:
+
+      0: None or KEKI indexed crypto context
+
+   Stream Encapsulation (SE): 8 bits. Value: {2}  
+   This is a fixed-width field for describing the stream encapsulation:
+
+      0: Unspecified or KEKI indexed crypto context
+      1: MPEG-TS/UDP
+      2:MPEG-TS/SRT 
+
+   Reserved (Resv1): 8 bits. Value: {0}  
+   This is a fixed-width field reserved for future use.
+
+   Reserved (Resv2): 16 bits. Value: {0}  
+   This is a fixed-width field reserved for future use.
+
+   Slen/4 ( ): 4 bits. Value: {0..255}  
+   This is a fixed-width field for specifying salt length in bytes divided by 4. 
+   Can be zero if no salt/IV present
+
+   Klen/4 ( ): 8 bits. Value: {4,6,8}  
+   This is a fixed-width field for specifying SEK length in bytes divided by 4. 
+   Size of one key even if two keys present.
+
+   Salt[Slen] ( ): Slen*8 bits. Value: { }  
+   This is a variable-width field for specifying a salt key 
+
+   Wrap ( ): [64+n*Klen*8] bits. Value: { }  
+   This is a variable-width field for specifying Wrapped key(s), where n = 1 or 2
+   NOTE 1: n = (KK+1)/2
+   NOTE 2: size in byte = [((KK+1/2)*Klen)+8]
+   
 ~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
-+                              ICV                              +
++                  Integrity Check Vector (ICV)                  +
 |                                                               |
 +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 |                              xSEK                             |
@@ -430,23 +512,27 @@ extensions. The value of a request is 3, and the response value is 4.
 {: #unwrapped-key-structure title="Unwrapped key structure"}
 
 
-### Keep Alive {#ctrl-pkt-keepalive}
+### Keep-Alive {#ctrl-pkt-keepalive}
 
-Keep-alive control packets are sent after a certain timeout from the last time
-any packet (Control or Data) was sent. The purpose of this control packet
-is to notify the peer to keep the connection live in case when
-no data exchange is taking place.
+Keep-Alive control packets are sent after a certain timeout from the last time
+any packet (Control or Data) was sent. The purpose of this control packet is to 
+notify the peer to keep the connection open when no data exchange is taking place.
 
-The default timeout for keepalive packet to be sent is 1 second.
+The default timeout for Keep-Alive packet to be sent is 1 second.
+
+// From Technical Overview:
+// Keep-alive control packets (“packet type” bit = 1) are exchanged
+// approximately every 10 ms to enable SRT streams to be automatically
+// restored after a connection loss.
 
 Control Type: 
-: The type value of keep-alive control packet is "1".
+: The type value of a Keep-Alive control packet is "1".
 
 Type-specific Information: 
 : This field is reserved for future definition.
 
 Control Information Field:
-: This field must not appear in keep-alive control packets.
+: This field must not appear in Keep-Alive control packets.
 
 
 ### ACK (Acknowledgement) {#ctrl-pkt-ack}
@@ -454,7 +540,7 @@ Control Information Field:
 Acknowledgement control packets are used to provide delivery status of data packets.
 These packets may also carry some additional information from the receiver like
 RTT, bandwidth, receiving speed, etc. The CIF of the ACK control packet is expanded
-as the following.
+as follows:
 
 ~~~
  0                   1                   2                   3
