@@ -939,7 +939,7 @@ The main packet states shown at in {{fig-latency-points}} are the following:
 
 It is worth noting that the round-trip time (RTT) of an SRT link may
 vary in time. However the actual end-to-end latency on the link becomes
-fixed and approximately equal to (RTT_0/2 + SRT Latency) once the SRT handshake exchange happens,
+fixed and is approximately equal to (RTT_0/2 + SRT Latency) once the SRT handshake exchange happens,
 where RTT_0 is the actual value of the round-trip time during the SRT handshake
 exchange (the value of the round-trip time once the SRT connection has been established).
 
