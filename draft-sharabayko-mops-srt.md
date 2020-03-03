@@ -250,9 +250,9 @@ The value, "0x7ffff", is reserved for user-defined type.
 ### Handshake {#ctrl-pkt-handshake}
 
 The handshake control packets are used to exchange peer configurations,
-agree on the and connection parameters and establish the connection.
+agree on the connection parameters and establish the connection.
 
-The CIF of handshake control packet is shown in {{handshake-packet-structure}}.
+The CIF of the handshake control packet is shown in {{handshake-packet-structure}}.
 
 ~~~
  0                   1                   2                   3
@@ -297,7 +297,7 @@ Version (32 bits):
 
 Encryption Field (16 bits):
 : Block cipher family and block size. The values of this field are
-  described om {{handshake-encr-fld}}.
+  described in {{handshake-encr-fld}}.
 
  | Value | Cipher family and block size |
  | ----- | :--------------------------: |
@@ -744,9 +744,11 @@ The handshake is performed between two parties: "Initiator" and "Responder":
 There are two basic types of SRT handshake extensions that are exchanged
 in the handshake:
 
-- Handhshake Extension Message exchanges the basic SRT information;
+- Handshake Extension Message exchanges the basic SRT information;
 - Key Material Exchange exchanges the wrapped stream encryption key (used only if
   encryption is requested).
+- Stream ID extension exchanges some stream-specific information that can be used
+  by the application to identify the incoming stream connection.
 
 The Initiator and Responder roles are assigned depending on the connection mode.
 
@@ -767,11 +769,11 @@ Caller-Listener handshake exchange has the following order of Handshake Types:
 
 Rendezvous handshake exchange has the following order of Handshake Types:
 
-1. After starting the connection: `URQ_WAVEAHAND`
-2. After receiving the above message from the peer: `URQ_CONCLUSION`
-3. After receiving the above message from the peer: `URQ_AGREEMENT`.
+1. After starting the connection: WAVEAHAND.
+2. After receiving the above message from the peer: CONCLUSION.
+3. After receiving the above message from the peer: AGREEMENT.
 
-In case when the connection process has failed when the party was about to
+In case the connection process has failed on the stage when the party was about to
 send the CONCLUSION handshake, the Handshake Type field will contain appropriate
 error value. See the list of error codes in {{hs-rej-reason}}.
 
@@ -795,7 +797,7 @@ error value. See the list of error codes in {{hs-rej-reason}}.
  | 1015 | REJ_GROUP        | incompatible group |
 {: #hs-rej-reason title="HS Rejection Reason Codes"}
 
-The specification of `PBKEYLEN` is decided by the Sender. When the transmission 
+The specification of the cipher family and block size is decided by the Sender. When the transmission 
 is bidirectional, this value must be agreed upon at the outset because when both 
 are set, the Responder wins. For Caller-Listener connections it is reasonable to 
 set this value on the Listener only. In the case of Rendezvous the only reasonable 
@@ -810,7 +812,7 @@ The process has two phases: induction and conclusion.
 
 #### The Induction Phase
 
-The Caller begins by sending an "induction" message, which contains the following
+The Caller begins by sending the INDUCTION handshake, which contains the following
 (significant) fields:
 
 - Version: must always be 4
@@ -828,7 +830,7 @@ It is due to the initial design of SRT that was to be compliant with the UDT
 protocol ({{GHG04b}}) it is based on.
 
 NOTE: This phase serves only to set a cookie on the Listener so that it
-doesn't allocate resources, thus mitigating a potential DOS attack that might be
+doesn't allocate resources, thus mitigating a potential DoS attack that might be
 perpetrated by flooding the Listener with handshake commands.
 
 The Listener responds with the following:
@@ -837,7 +839,7 @@ The Listener responds with the following:
 - Encryption Field: Advertised cipher family and block size.
 - Extension Field: SRT magic code 0x4A17
 - Handshake Type: INDUCTION
-- ID: Socket ID of the HSv5 Listener
+- SRT Socket ID: Socket ID of the Listener
 - SYN Cookie: a cookie that is crafted based on host, port and current time
   with 1 minute accuracy
 
@@ -845,7 +847,7 @@ NOTE: At this point the Listener still doesn't know if the Caller is SRT or UDT,
 and it responds with the same set of values regardless of whether the Caller is
 SRT or UDT.
 
-If the party is SRT, it does interpret the values in Version and Type.
+If the party is SRT, it does interpret the values in Version and Extension Field.
 If it receives the value 5 in Version, it understands that it comes from an SRT
 party, so it knows that it should prepare the proper handshake messages
 phase. It also checks the following:
@@ -861,6 +863,45 @@ phase. It also checks the following:
 The legacy UDT party completely ignores the values reported in Version and
 Handshake Type.  It is, however, interested in the SYN Cookie value, as this must be
 passed to the next phase. It does interpret these fields, but only in the "conclusion" message.
+
+#### The Conclusion Phase
+
+Once the Caller gets the SYN cookie from the Listener, it sends the CONCLUSION handshake
+to the Listener.
+
+The following values are set by the compliant caller:
+
+- Version: 5
+- Handshake Type: CONCLUSION
+- SRT Socket ID: Socket ID of the Caller
+- SYN Cookie: the cookie previously received in the induction phase
+
+The Destination Socket ID in this message is the
+socket ID that was previously received in the induction phase in the SRT Socket ID field
+of the handshake structure.
+
+- Encryption Flags: advertised cipher family and block size.
+- Extension Flags: A set of flags that define the extensions provided in the handshake.
+
+| Bitmask    | Flag |
+ | ---------- | :---------------: |
+ | 0x00000001 | HSREQ             |
+ | 0x00000002 | KMREQ             |
+ | 0x00000004 | CONFIG            |
+{: #hs-ext-flags title="HS Extension Flags"}
+
+The Listener responds with the same values shown above, without the cookie (which
+isn't needed here), as well as the extensions for HSv5 (which will probably be
+exactly the same).
+
+IMPORTANT: There isn't any "negotiation" here. If the values passed in the
+handshake are in any way not acceptable by the other side, the connection will
+be rejected. The only case when the Listener can have precedence over the Caller
+is the advertised Cipher Family and Block Size ({{handshake-encr-fld}})
+in the Encryption Field of the Handshake.
+
+The value for latency is always agreed to be the greater of those reported
+by each party.
 
 ### Rendezvous Handshake
 
