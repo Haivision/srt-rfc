@@ -31,8 +31,17 @@ normative:
 informative:
   RFC8174:
   I-D.gg-udt:
-
-
+  PNPID:
+    target: https://uefi.org/PNP_ACPI_Registry
+    title: PNP ID AND ACPI ID REGISTRY
+    date: none
+  SP800-38A:
+    title: Recommendation for Block Cipher Modes of Operation
+    author:
+      name: Morris Dworkin
+      ins: M. Dworkin
+    date: December, 2001
+    
 --- abstract
 
 This document specifies Secure Reliable Transport (SRT) protocol. 
@@ -407,6 +416,63 @@ The value of request is 3, and the response value is 4.
 ~~~~
 {: #keymaterial-extension-structure title="Key Material Extension structure"}
 
+S (1 bit):
+: Start Bit. The value of this field sets to 0.
+
+V (3 bits):
+: SRT Version. The initial version value is 1.
+
+PT (4 bits):
+: Packet Type. The value of this field always sets to 2.
+  The other values are reserved for future definition.
+
+Sign (16 bits):
+: Signature. This field is PnP Vendor ID({{PNPID}}) in big endian order.
+
+Rev (4 bits):
+: Reserved.
+
+KK (2 bits):
+: Encryption Flag. Refer to KK field in {{data-pkt}}.
+
+KEKI (32 bits):
+: Key Encryption Key Index in big endian order. The default stream associated
+  key set to 0. The values from 1 to 255 are reserved for manually indexed keys.
+
+Cipher (8 bits):
+: Encryption Cipher and mode. 
+
+ | Bitmask    | Flag |
+ | ---------- | :---------------: |
+ | 0x00       | None or KEK indexed crypto context |
+ | 0x01       | AES-ECB (potentially for VF 2.0 compatible message) |
+ | 0x02       | AES-CTR ({{SP800-38A}}) |
+{: #hs-km-msg-flags title="HS Key Material Exchange Cipher mode"}
+ 
+Auth (8 bits):
+: Message authentication code algorithm. The default value of this field sets to 0 which
+  means None or KEK indexed crypto context.
+
+SE (8 bits):
+: Stream Encapsulation. The value, 0, of this field means Unspecified or KEK indexed crypto
+  context. If the stream is MPEG-TS over UDP, this field sets to 1. The value, 2, indicates
+  that the stream is encapsulated as MPEG-TS over SRT.
+
+SLen (4 bits):
+: Salt length in bytes divided by 4. The value of this field can be 0 if no salt or initial
+  vector presents.
+
+KLen (4 bits):
+: Stream encrypting key length in bytes divided by 4. The value is the size of one key even
+  if two keys presents.
+
+Salt (32 bits):
+: Salt Key. The length of salt key is SLen * 4 * 8.
+
+Wrapped Key (variable length):
+: The length of this field is 64 + KLen * n * 4 * 8, n is the number of keys; 1 or 2.
+  This field is expanded as the following.
+
 ~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -422,7 +488,17 @@ The value of request is 3, and the response value is 4.
 ~~~
 {: #unwrapped-key-structure title="Unwrapped key structure"}
 
+ICV (64 bits): 
+: 64-bit Integrity Check Vector(AES key wrap integrity).
 
+xSEK (variable length):
+: This field identifies an odd or even SEK. If both keys are present,
+  then this field is eSEK (even key) and the next one is the odd key.
+  The length of this field is calculated by KLen * 4 * 8.
+
+oSEK (variable length):
+: This field is present only when the message carries the two SEKs.
+  
 ### Keep Alive {#ctrl-pkt-keepalive}
 
 Keep-alive control packets are sent after a certain timeout from the last time
