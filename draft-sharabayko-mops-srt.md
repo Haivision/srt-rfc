@@ -83,15 +83,15 @@ The structure of the SRT packet is shown in {{srtpacket}}.
 ~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 |F|        (Field meaning depends on the packet type)           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |          (Field meaning depends on the packet type)           |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ SRT Header
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Destination Socket ID                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 |                                                               |
 +                        Packet Contents                        |
 |                  (depends on the packet type)                 +
@@ -122,15 +122,15 @@ The structure of the SRT data packet is shown in {{srtdatapacket}}.
 ~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 |0|                    Packet Sequence Number                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |P P|O|K K|R|                   Message Number                  |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ SRT Header
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Destination Socket ID                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 |                                                               |
 +                              Data                             +
 |                                                               |
@@ -176,19 +176,19 @@ An SRT control packet has the following structure.
 ~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 |1|         Control Type        |            Subtype            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                   Type-specific Information                   |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ SRT Header
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Destination Socket ID                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 |                                                               |
-+                   Control Information Field                   +
++                   Control Information Field                   + CIF
 |                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 ~~~
 {: #controlpacket title="control packet structure"}
 
@@ -494,7 +494,7 @@ extensions. The value of a request is 3, and the response value is 4.
    Wrap ( ): [64+n*Klen*8] bits. Value: { }  
    This is a variable-width field for specifying Wrapped key(s), where n = 1 or 2
    NOTE 1: n = (KK+1)/2
-   NOTE 2: size in byte = [((KK+1/2)*Klen)+8]
+   NOTE 2: size in bytes = [((KK+1/2)*Klen)+8]
    
 ~~~
  0                   1                   2                   3
@@ -518,20 +518,59 @@ Keep-Alive control packets are sent after a certain timeout from the last time
 any packet (Control or Data) was sent. The purpose of this control packet is to 
 notify the peer to keep the connection open when no data exchange is taking place.
 
-The default timeout for Keep-Alive packet to be sent is 1 second.
+The default timeout for a Keep-Alive packet to be sent is 1 second.
 
-// From Technical Overview:
-// Keep-alive control packets (“packet type” bit = 1) are exchanged
-// approximately every 10 ms to enable SRT streams to be automatically
-// restored after a connection loss.
+An SRT Keep-Alive packet is formatted as follows:
 
-Control Type: 
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|1|         Control Type        |            Reserved           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Type-specific Information                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ SRT Header
+|                           Time Stamp                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|                           CIF (none)                          | CIF
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+
+   where:
+   
+   Packet Type ( ): 1 bit. Value: 0
+   This is a fixed-width field used to distinguish between data (0) and 
+   control (1) packets.
+
+   Type ( ): 15 bits.  Value: KEEPALIVE{1}
+   This is a fixed-width field used to indicate message type 
+
+   Reserved ( ): 16 bits.  Value: ???
+   This is a fixed-width field reserved for future use. 
+
+   Additional info ( ): 32 bits.  Value: {undefined}
+   This is a fixed-width field used in some control messages 
+   as extra space for data. Its interpretation depends on the particular message. 
+
+   Time Stamp (TS): 32 bits.  Value: ???
+   This is a fixed-width field usually containing the time (in microseconds) when a 
+   packet was sent, although the real interpretation may vary depending on the type.
+
+   Destination Socket ID (DestSockID): 32 bits.  Value: ???
+   This is a fixed-width field providing the socket ID to which a packet should be 
+   dispatched, although it may have the special value 0 when the packet is a 
+   connection request.
+   
+   Control Information Field (CIF): n bits. Value: {none}  
+   This field must not appear in Keep-Alive control packets.
+
+Control Packet Type: 
 : The type value of a Keep-Alive control packet is "1".
 
 Type-specific Information: 
 : This field is reserved for future definition.
 
-Control Information Field:
+Control Information Field (CIF):
 : This field must not appear in Keep-Alive control packets.
 
 
@@ -539,27 +578,35 @@ Control Information Field:
 
 Acknowledgement control packets are used to provide delivery status of data packets.
 These packets may also carry some additional information from the receiver like
-RTT, bandwidth, receiving speed, etc. The CIF of the ACK control packet is expanded
-as follows:
+RTT, bandwidth, receiving speed, etc. The CIF portion of the ACK control packet is 
+expanded as follows:
 
 ~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|1|        Control Type         |           Reserved            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Type-specific Information                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ SRT Header
+|                           Time Stamp                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 |            Last Acknowledged Packet Sequence Number           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                              RTT                              |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                          RTT variance                         |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Available Buffer Size                     |
+|                     Available Buffer Size                     | CIF
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Packets Receiving Rate                    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Estimated Link Capacity                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                         Receiving Rate                        |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 ~~~
 {: #ack-control-packet title="ACK control packet"}
 
@@ -571,56 +618,99 @@ Last Acknowledged Packet Sequence Number (32 bits):
 : The sequence number of the last acknowledged data packet +1.
 
 RTT (32 bits):
-: RTT value estimated by the receiver based on the ACK-ACKACK packets exchange.
+: RTT value (in microseconds) estimated by the receiver based on the previous ACK-ACKACK 
+packet exchange.
 
 RTT variance (32 bits):
-: The variance of the RTT estimation.
+: The variance of the RTT estimation (in microseconds).
 
 Available Buffer Size (32 bits):
-: Available size of the receiver's buffer in packets.
+: Available size of the receiver's buffer (in packets).
 
 Packets Receiving Rate (32 bits):
-: The receiving rate of the packets in packets / second.
+: The rate at which packets are being received (in packets per second).
 
 Estimated Link Capacity (32 bits):
-: Estimated bandwidth of the link in packets per second.
+: Estimated bandwidth of the link (in packets per second).
 
 Receiving Rate (32 bits):
-: Estimated receiving rate in bytes per second.
+: Estimated receiving rate (in bytes per second).
 
-There are several types of ACK packets.
-The full ACK control packet is sent every 10 ms and has all the fields of {{ack-control-packet}}.
-The Lite ACK control packet includes only Last Acknowledged Packet Sequence Number field, and
-the Type-specific Information field should be set to 0.
-The Small ACK includes the fields up to and including the Available Buffer Size field.
-The Type-specific Information field should be set to 0.
+There are several types of ACK packets:
 
-The sender acknowledges (see ACKACK) only the receival of Full ACK packets.
+    - A Full ACK control packet is sent every 10 ms and has all the fields 
+      of {{ack-control-packet}}.
+    - A Lite ACK control packet includes only the Last Acknowledged Packet Sequence Number 
+      field. The Type-specific Information field should be set to 0.
+    - A Small ACK includes the fields up to and including the Available Buffer Size field. 
+      The Type-specific Information field should be set to 0.
 
-The Lite ACK and Small packets are used in cases when the receiver should acknowledge
+The sender only acknowledges only the receipt of Full ACK packets (see ACKACK).
+
+The Lite ACK and Small ACK packets are used in cases when the receiver should acknowledge
 received data packets more often than every 10 ms. This is usually needed at high data rates.
 It is up to the receiver to decide the condition and the type of ACK packet to send (Lite or Small).
-The recommendation is to send Lite ACK on every 64 received packets.
+The recommendation is to send a Lite ACK for every 64 packets received.
+
 
 ### NAK (Loss Report) {#ctrl-pkt-nak}
 
-Negative acknowledgement control packets are used to signal failed
-data packet deliveries. The receiver notifies the sender about lost data packets sending the NAK packets.
-The NAK packet contains a list of sequence numbers of lost packets.
+Negative acknowledgement (NAK) control packets are used to signal failed data packet 
+deliveries. The receiver notifies the sender about lost data packets by sending a NAK 
+packet that contains a list of sequence numbers for those lost packets.
+
+An SRT NAK packet is formatted as follows:
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|1|        Control Type         |           Reserved            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Type-specific Information                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ SRT Header
+|                           Time Stamp                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|0|                 Lost packet sequence number                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|1|                    List of lost packets                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ CIF (Loss List)
+|0|                            Up to                            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|0|                 Lost packet sequence number                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 
 Control Type: 
-: The type value of NAK control packet is "3".
+: The type value of a NAK control packet is "3".
 
 Type-specific Information: 
 : This field is reserved for future definition.
 
-Control Information Field:
-: A single value or a list of lost packets sequence numbers. See packet sequence number coding in
-  {{packet-seq-list-coding}}.
+Control Information Field (CIF):
+: A single value or a list of lost packets sequence numbers. See packet sequence number 
+coding in {{packet-seq-list-coding}}.
+
 
 ### Shutdown {#ctrl-pkt-shutdown}
 
 Shutdown control packets are used to initiate the closing of an SRT connection.
+
+An SRT SHUTDOWN Control packet is formatted as follows:
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|1|        Control Type         |           Reserved            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Type-specific Information                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ SRT Header
+|                           Time Stamp                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|                              None                             | CIF
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 
 Control Type: 
 : The type value of Shutdown control packet is "5".
@@ -631,10 +721,27 @@ Type-specific Information:
 Control Information Field:
 : This field must not appear in shutdown control packets.
 
+
 ### ACKACK {#ctrl-pkt-ackack}
 
-ACKACK control packets are used to acknowledge the reception of the Full ACK.
-Furthermore, these packets are used in the calculation of RTT by the receiver.
+ACKACK control packets are sent to acknowledge the reception of a Full ACK, and are used 
+in the calculation of RTT by the receiver.
+
+An SRT ACKACK Control packet is formatted as follows:
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|1|        Control Type         |           Reserved            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Type-specific Information                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ SRT Header
+|                           Time Stamp                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
+|                              None                             | CIF
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
 
 Control Type: 
 : The type value of ACKACK control packet is "6".
@@ -646,71 +753,79 @@ Type-specific Information:
 Control Information Field:
 : This field must not appear in ACKACK control packets.
 
+
 # SRT Data Transmission and Control
 
-After handshakes and exchanges of capability information, packet data 
+After the handshake and exchange of capabilities is completed, packet data 
 can be sent and received over the established connection. To fully utilize 
 the features of low latency and error recovery provided by SRT, the sender 
-and receiver MUST handle control packets, timers and buffers for the connection
+and receiver MUST handle control packets, timers, and buffers for the connection
 as specified in this section.
 
-## Stream Multiplexing
-
-Multiple SRT socket may share one UDP socket and the packets received to this
-UDP socket will be correctly dispatched to the SRT socket to which they are
-currently destined.
-During the handshake, the parties exchange their SRT Socket IDs.
-These IDs are then used in the Destination Socket ID field of every control and data packet.
 
 ## Data Transmission Modes {#data-transmission-mode}
 
-In file transfer mode this a message with O=0 that is sent later
-(but reassembled before an earlier message which may be incomplete due to packet loss)
-is allowed to be delivered immediately, without waiting for the earlier message to be completed.
-In Live Transmission Mode the only valid value is "1".
+> SM (2020-03-03): The note below is not clear to me, and should be moved to a more appropriate location.
+
+NOTE: In file transfer mode, a message with Order Flag (O) = 0 that is sent later (but 
+reassembled before an earlier message, which may be incomplete due to packet loss) is 
+allowed to be delivered immediately, without waiting for the earlier message to be completed. 
+In Live Transmission Mode the only valid value for the Order Flag is "1".
+
 
 ### Message Mode {#transmission-mode-msg}
 
-When the STREAM flag of the handshake Extension Message Flags is set to 0,
-the protocol operates in the message mode.
+When the STREAM flag of the handshake Extension Message {#handshake-extension-msg} is set 
+to 0, the protocol operates in Message mode, characterized as follows:
 
-Every packet has its own Packet Sequence Number.
-One or several consecutive SRT Data packet can form a message.
-In that case all the packets belonging to the same message have similar
-message number set in the Message Number field.
+    - Every packet has its own Packet Sequence Number.
+    - One or several consecutive SRT Data packets can form a message.
+    - All the packets belonging to the same message have a similar message number set 
+      in the Message Number field.
 
-The first packet of the message has the first bit of the Packet Position Flags ({{data-pkt}})
+The first packet of a message has the first bit of the Packet Position Flags ({{data-pkt}})
 set to 1. The last packet of the message has the second bit of the Packet Position Flags
-set to 1. Thus, PP equal to "11b" indicates a packet that forms the whole message.
-The PP field equal to "00b" indicates a packet that belongs to the inner part of the message.
+set to 1. Thus, a PP equal to "11b" indicates a packet that forms the whole message.
+A PP equal to "00b" indicates a packet that belongs to the inner part of the message.
 
-The concept of the message in SRT comes from UDT ({{I-D.gg-udt}}).
-In this mode a single sending instruction passes exactly one piece of data
-that has boundaries (a message). This message may span across multiple UDP packets
-(and multiple SRT data packets). The only size limitation is that it shall fit as a whole
-in the buffers of the sender and the receiver.
-Although internally all the operations on data packets (ACK, NAK) are performed independently,
-it is only allowed for an application to send and receive the whole message.
-Until the message is complete (all packets are received) it will not be allowed to read it.
+The concept of the message in SRT comes from UDT ({{I-D.gg-udt}}). In this mode a single 
+sending instruction passes exactly one piece of data that has boundaries (a message). 
+This message may span across multiple UDP packets (and multiple SRT data packets). The 
+only size limitation is that it shall fit as a whole in the buffers of the sender and the 
+receiver. Although internally all operations (e.g. ACK, NAK) on data packets are performed 
+independently, an application MUST send and receive the whole message. Until the message 
+is complete (all packets are received) the application will not be allowed to read it.
 
-The Order Flag of the Data packet set to 1 restricts the reading order of the messages to be sequential.
-While the Order Flag set to 0 allows to read those messages that are already fully available, before
-preceding messages, that still have some packets missing.
+When the Order Flag of a Data packet is set to 1, this imposes a sequential reading order
+on messages. An Order Flag set to 0 allows an application to read messages that are 
+already fully available, before any preceding messages that may have some packets missing.
+
 
 ### Live mode {#transmission-mode-live}
 
-Live mode is a special case of the message mode where only data packets
-with PP field set to "11b" are allowed.
+Live mode is a special type of message mode where only data packets
+with their PP field set to "11b" are allowed.
 
-Additionally TsbPd ({{tsbpd}}) and TL Packet drop ({{tl-pkt-drop}}) mechanisms are used in this mode.
+Additionally, TsbPd ({{tsbpd}}) and TL Packet drop ({{tl-pkt-drop}}) mechanisms are used 
+in this mode.
+
 
 ### Buffer mode {#transmission-mode-buffer}
 
 Buffer mode is negotiated during the Handshake by setting the STREAM flag
 of the handshake Extension Message Flags to 1.
 
-In this mode the consecutive packets form one consecutive stream that can be read with
-the portions of any size.
+In this mode consecutive packets form one continuous stream that can be read, with 
+portions of any size.
+
+
+## Stream Multiplexing
+
+Multiple SRT sockets may share one UDP socket, and the packets received on this
+UDP socket will be correctly dispatched to the SRT socket to which they are currently 
+destined. The parties exchange their SRT Socket IDs during the handshake. These IDs are 
+then used in the Destination Socket ID field of every control and data packet.
+
 
 ## Handshake Messages {#handshake-messages}
 
@@ -720,9 +835,9 @@ and control packets.
 
 An SRT connection is characterized by the fact that it is:
 
-- first engaged by a handshake process
+- first engaged by a handshake process;
 
-- maintained as long as any packets are being exchanged in a timely manner
+- maintained as long as any packets are being exchanged in a timely manner;
 
 - considered closed when a party receives the appropriate close command from
   its peer (connection closed by the foreign host), or when it receives no
@@ -736,7 +851,7 @@ SRT supports two connection configurations:
 The handshake is performed between two parties: "Initiator" and "Responder":
 
 - Initiator starts the extended SRT handshake process and sends appropriate
-  SRT extended handshake requests;
+  SRT extended handshake requests.
 
 - Responder expects the SRT extended handshake requests to be sent by the
   Initiator and sends SRT extended handshake responses back.
@@ -771,33 +886,34 @@ Rendezvous handshake exchange has the following order of Handshake Types:
 2. After receiving the above message from the peer: `URQ_CONCLUSION`
 3. After receiving the above message from the peer: `URQ_AGREEMENT`.
 
-In case when the connection process has failed when the party was about to
-send the CONCLUSION handshake, the Handshake Type field will contain appropriate
-error value. See the list of error codes in {{hs-rej-reason}}.
+When a connection process has failed before either party can send the CONCLUSION handshake, 
+the Handshake Type field will contain the appropriate error value for the rejected 
+connection. See the list of error codes in {{hs-rej-reason}}.
 
- | Code | Rejection Reason | Description       |
- | ---- | :--------------: | :---------------: |
- | 1000 | REJ_UNKNOWN      | Unknown reason    |
- | 1001 | REJ_SYSTEM       | System function error       |
- | 1002 | REJ_PEER         | Rejected by peer            |
- | 1003 | REJ_RESOURCE     | Resource allocation problem |
- | 1004 | REJ_ROGUE        | incorrect data in handshake |
- | 1005 | REJ_BACKLOG      | listener's backlog exceeded |
- | 1006 | REJ_IPE          | internal program error |
- | 1007 | REJ_CLOSE        | socket is closing |
+ | Code | Error            | Description                                    |
+ | ---- | ---------------- | ---------------------------------------------- |
+ | 1000 | REJ_UNKNOWN      | Unknown reason                                 |
+ | 1001 | REJ_SYSTEM       | System function error                          |
+ | 1002 | REJ_PEER         | Rejected by peer                               |
+ | 1003 | REJ_RESOURCE     | Resource allocation problem                    |
+ | 1004 | REJ_ROGUE        | incorrect data in handshake                    |
+ | 1005 | REJ_BACKLOG      | listener's backlog exceeded                    |
+ | 1006 | REJ_IPE          | internal program error                         |
+ | 1007 | REJ_CLOSE        | socket is closing                              |
  | 1008 | REJ_VERSION      | peer is older version than agent's minimum set |
- | 1009 | REJ_RDVCOOKIE    | rendezvous cookie collision |
- | 1010 | REJ_BADSECRET    | wrong password |
- | 1011 | REJ_UNSECURE     | password required or unexpected |
- | 1012 | REJ_MESSAGEAPI   | Stream flag collision |
- | 1013 | REJ_CONGESTION   | incompatible congestion-controller type |
- | 1014 | REJ_FILTER       | incompatible packet filter |
- | 1015 | REJ_GROUP        | incompatible group |
+ | 1009 | REJ_RDVCOOKIE    | rendezvous cookie collision                    |
+ | 1010 | REJ_BADSECRET    | wrong password                                 |
+ | 1011 | REJ_UNSECURE     | password required or unexpected                |
+ | 1012 | REJ_MESSAGEAPI   | Stream flag collision                          |
+ | 1013 | REJ_CONGESTION   | incompatible congestion-controller type        |
+ | 1014 | REJ_FILTER       | incompatible packet filter                     |
+ | 1015 | REJ_GROUP        | incompatible group                             |
+
 {: #hs-rej-reason title="HS Rejection Reason Codes"}
 
 The specification of `PBKEYLEN` is decided by the Sender. When the transmission 
 is bidirectional, this value must be agreed upon at the outset because when both 
-are set, the Responder wins. For Caller-Listener connections it is reasonable to 
+are set the Responder wins. For Caller-Listener connections it is reasonable to 
 set this value on the Listener only. In the case of Rendezvous the only reasonable 
 approach is to decide upon the correct value from the different sources and to 
 set it on both parties (note that **AES-128** is the default).
@@ -824,11 +940,11 @@ The Destination Socket ID of the SRT packet header in this message is 0, which i
 interpreted as a connection request.
 
 NOTE: The handshake version number is set to 4 in this initial handshake.
-It is due to the initial design of SRT that was to be compliant with the UDT
-protocol ({{I-D.gg-udt}}) it is based on.
+This is due to the initial design of SRT that was to be compliant with the UDT
+protocol ({{I-D.gg-udt}}) on which it is based.
 
 NOTE: This phase serves only to set a cookie on the Listener so that it
-doesn't allocate resources, thus mitigating a potential DOS attack that might be
+doesn't allocate resources, thus mitigating a potential DoS attack that might be
 perpetrated by flooding the Listener with handshake commands.
 
 The Listener responds with the following:
@@ -858,176 +974,203 @@ phase. It also checks the following:
 - whether the Encryption Flags contain a non-zero
   value, which is interpreted as an advertised cipher family and block size.
 
-The legacy UDT party completely ignores the values reported in Version and
-Handshake Type.  It is, however, interested in the SYN Cookie value, as this must be
-passed to the next phase. It does interpret these fields, but only in the "conclusion" message.
+A legacy UDT party completely ignores the values reported in Version and Handshake Type.  
+It is, however, interested in the SYN Cookie value, as this must be passed to the next 
+phase. It does interpret these fields, but only in the "conclusion" message.
+
 
 ### Rendezvous Handshake
 
-Rendezvous handshake exchange has the following order of Handshake Types:
+The Rendezvous handshake exchange has the following order of Handshake Types:
 
 1. After starting the connection: `URQ_WAVEAHAND`
 2. After receiving the above message from the peer: `URQ_CONCLUSION`
-3. After receiving the above message from the peer: `URQ_AGREEMENT`.
+3. After receiving the above message from the peer: `URQ_AGREEMENT`
+
 
 ## SRT Buffer Latency
 
 The sender and receiver have buffers to store packets.
+
 On the sender, latency is the time that SRT holds a packet to give it a chance to be
 delivered successfully while maintaining the rate of the sender at the receiver.
-If an ACK is missing or late for the configured latency, the packet is dropped
-from the sender buffer. The packet can be retransmitted, while the packet exists
-in the buffer for the latency window. On the receiver, a packet delivered to an 
-application from a buffer after latency time passed, to recover from a potential
-packet loss. 
+If an ACK is missing or late for more than the configured latency, the packet is dropped
+from the sender buffer. A packet can be retransmitted as long as it remains
+in the buffer for the duration of the latency window. 
 
-Latency is a value specified in milliseconds, which can cover hundreds or even thousands
-of packets at high bitrate. Latency can be thought of as a window that slides over time,
-during which a number of activities take place, such as report of ACKs({{packet-acks}})
-or NAKs({{packet-naks}}).
-Latency is configured through capability exchange during extended handshake process 
-between initiator and responder. The handshake extension({{handshake-extension-msg}}) has 
-receiver and sender TsbPd Delay information in milliseconds. The maximum value of latencies
-from initiator and responder will be established. 
+> SM (2020-03-03): The following sentence needs clarification:
 
-## Timestamp Based Packet Delivery {#tsbpd}
+On the receiver, a packet delivered to an application from a buffer after latency time 
+passed, to recover from a potential packet loss. 
 
-This feature uses the timestamp of the SRT data packet header.
-TsbPD allows a receiver to deliver packets to the decoder at the same pace they were
-provided to the SRT sender by an encoder. Basically, the sender timestamp
-in the received packet is adjusted to the receiver’s local time
-(compensating for time drift or different time zone)
-before releasing the packet to the application.
-Packets can be withheld by SRT for a configured receiver delay in milliseconds.
-Higher delay can accommodate data traffic which could lead to a larger uniform packet drop
-rate or larger packet burst drop.
+Latency is a value (specified in milliseconds) that can cover the time to transmit 
+hundreds or even thousands of packets at high bitrate. Latency can be thought of as a 
+window that slides over time, during which a number of activities take place, such as 
+the reporting of ACKs({{packet-acks}}) or NAKs({{packet-naks}}).
+
+Latency is configured through the exchange of capabilities during the extended handshake 
+process between initiator and responder. The handshake extension({{handshake-extension-msg}}) 
+contains `TsbPd Delay` information (in milliseconds) from the receiver and sender. The 
+latency for a connection will be established as the maximum value of latencies proposed 
+by the initiator and responder. 
+
+
+## Timestamp-based Packet Delivery {#tsbpd}
+
+This feature uses the timestamp contained in an SRT data packet header.
+
+TsbPD allows a receiver to deliver packets to a decoder at the same pace they were 
+provided to the SRT sender by an encoder. Basically, the sender timestamp in the 
+received packet is adjusted to the receiver’s local time (compensating for time drift 
+or different time zone) before releasing the packet to the application.
+
+Packets can be held by SRT for a configured receiver delay (in milliseconds). 
+A higher delay can accommodate a larger uniform packet drop rate or larger packet burst 
+drop associated with heavy data traffic.
+
 Packets received after their “play time” are dropped.
+
 The packet timestamp (in microseconds) is relative to the SRT connection creation time.
 The origin time (in microseconds) of the packet is already sampled when a packet is first
-submitted by the application to the SRT sender.
-The TsbPD feature uses this time to stamp the packet for first transmission
-and any subsequent re-transmission. This timestamp and the configured latency
-control the recovery buffer size and the instant (aforementioned "play time"
-which is decided by adding timestamp to configured latency) that packets 
-are delivered at the destination.
-Latency is agreed during handshake process as maximum value of Receiver/Sender TsbPd Delay
-from initiator/responder (see section #ctrl-pkt-handshake).  
+submitted by the application to the SRT sender. The TsbPD feature uses this time to 
+stamp the packet for first transmission and any subsequent re-transmission. This timestamp 
+and the configured latency control the recovery buffer size and the instant that packets 
+are delivered at the destination (the aforementioned "play time" which is decided by 
+adding the timestamp to the configured latency).
+
+Latency is set during the handshake process as the maximum value of Receiver/Sender 
+TsbPd Delay proposed by the initiator and responder (see section #ctrl-pkt-handshake).  
+
 
 ## Too-Late-Packet-Drop {#tl-pkt-drop}
 
-Too-Late-Packet Drop allows the sender to drop packets that have no chance to be delivered in time.
-In the SRT sender, when Too-Late Packet Drop is enabled, and a packet timestamp
-is older than 125% of the SRT latency, it is considered too late to be delivered and may be dropped
-by the sender. Packets of an IFrame tail can then be dropped before being delivered.
-In the receiver, tail packets of a big I-Frame may be quite late and not held by the SRT receive buffer.
-They pass through to the application. The receiver buffer depletes and there is no time left
-for retransmission if missing packets are discovered. Missing packets are then skipped by the receiver.
+Too-Late-Packet Drop allows the sender to drop packets that have no chance to be delivered 
+in time.
+
+In the SRT sender, when Too-Late Packet Drop is enabled, and a packet timestamp is older 
+than 125% of the SRT latency, it is considered too late to be delivered and may be dropped
+by the sender. Packets of an IFrame tail, for example, can then be dropped before being 
+delivered. In the receiver, tail packets of a big I-Frame may be quite late and not held 
+by the SRT receive buffer. They pass through to the application. The receiver buffer 
+depletes and there is no time left for retransmission if missing packets are discovered. 
+Missing packets are then skipped by the receiver.
+
 
 ## Acknowledgement and Lost Packet Handling
 
-To enable the Automatic Repeat Request of data packet retransmissions, the sender stores
-all sent data packets in its buffer.
-The data receiver sends acknowledgement (ACK) for the received data packets so that the sender can remove
-acknowledged packets from its buffer. After that retransmission of these acknowledged packets
-are no longer possible and presumably not needed.
+To enable the Automatic Repeat reQuest of data packet retransmissions, a sender stores
+all sent data packets in its buffer. The data receiver sends an acknowledgement (ACK) for 
+the received data packets so that the sender can remove acknowledged packets from its 
+buffer. After that retransmission of these acknowledged packets is no longer possible, 
+and presumably not needed.
 
-The sender should acknowledge the reception of the Full ACK control packet ({{ctrl-pkt-ack}})
-by sending the ACKACK control packet ({{ctrl-pkt-ackack}}) with the sequence number
+The sender should acknowledge the reception of a Full ACK control packet ({{ctrl-pkt-ack}})
+by sending an ACKACK control packet ({{ctrl-pkt-ackack}}) with the sequence number
 of the Full ACK packet being acknowledged.
 
-The receiver sends NAK control packets to notify the sender about the missing packets.
-The NAK packet sending can be triggered immediately after a gap in sequence numbers of
-DATA packets is detected.
-In addition to that, the Periodic NAK report mechanism can be used to send NAK reports periodically.
-The NAK packet in that case will have all the packets that the receiver considers being lost
-at the time of the Periodic NAK report.
+A receiver sends NAK control packets to notify the sender about any missing packets.
+The sending of a NAK packet can be triggered immediately after a gap in sequence numbers 
+of DATA packets is detected. In addition, a Periodic NAK report mechanism can be used to 
+send NAK reports periodically. The NAK packet in that case will list all the packets that 
+the receiver considers being lost up to the moment the Periodic NAK report is sent.
 
-Upon reception of the NAK packet, the sender prioritizes retransmissions of lost packets over the regular DATA
-packets to be transmitted for the first time.
+Upon reception of a NAK packet, the sender prioritizes retransmissions of lost packets 
+over the regular DATA packets to be transmitted for the first time.
 
-The retransmission of the missing packet is repeated until the receiver acknowledges its receival,
-or if both peers agree to drop this packet (see {{tl-pkt-drop}}).
+The retransmission of a missing packet is repeated until the receiver acknowledges its 
+receipt, or both peers agree to drop this packet (see {{tl-pkt-drop}}).
+
 
 ### Packet Acknowledgement (ACKs) {#packet-acks}
 
 At certain intervals (see ACKs, ACKACKs & Round Trip Time), the receiver sends an ACK that
-causes the acknowledged packets to be removed from the sender's buffer.
-An ACK contains the sequence number of the packet immediately
-following the latest of the previous packets that have been received. Where no packet loss has
-occurred up to the packet with sequence number n, ACK would include the sequence number n + 1.
-The ACK needs to acknowledged by ACKACK (see ACKACK), and if not the ACK will be retransmitted.
-If the sender doesn't receive an ACK, it doesn't stop transmitting. There are two conditions
-for sending an acknowledgement. A full ACK is based on a timer of 10 milliseconds (the ACK period).
-For high bit rate transmissions, a “light ACK” can be sent, which is an ACK for
-a sequence of packets. In a 10 milliseconds interval, there are often so many packets being sent
-and received that the ACK position on the sender doesn't advance quickly enough.
-To mitigate this, after 64 packets (even if the ACK period has not fully elapsed) the receiver
-sends a light ACK. When a receiver encounters the situation where the next packet to be played was
-not successfully received from the sender, it will “skip” this packet and send a fake ACK. To the
-sender, this fake ACK is a real ACK, and so it just behaves as if the packet had been received.
+causes any acknowledged packets to be removed from the sender's buffer.
 
-This facilitates the synchronization between sender and receiver. The fact that a packet was
-skipped remains unknown by the sender. Skipped packets are recorded in the statistics on the
-receiver.
+An ACK contains the sequence number of the packet immediately following the latest of the 
+previous packets that have been received. Where no packet loss has occurred up to the 
+packet with sequence number n, ACK would include the sequence number n + 1.
+
+If an ACK is not acknowledged by an ACKACK (see ACKACK) it will be retransmitted.
+If the sender doesn't receive an ACK, it continues transmitting. 
+
+There are two conditions for sending an acknowledgement. A full ACK is based on a timer 
+of 10 milliseconds (the ACK period). For high bit rate transmissions, a “light ACK” can 
+be sent, which is an ACK for a sequence of packets. In a 10 milliseconds interval, there 
+are often so many packets being sent and received that the ACK position on the sender 
+doesn't advance quickly enough. To mitigate this, after 64 packets (even if the ACK period 
+has not fully elapsed) the receiver sends a light ACK. When a receiver encounters the 
+situation where the next packet to be played was not successfully received from the sender, 
+it will “skip” this packet and send a fake ACK. To the sender, this fake ACK is a real ACK, 
+and so it just behaves as if the packet had been received.
+
+This facilitates the synchronization between sender and receiver. The fact that a packet 
+was skipped remains unknown by the sender. Skipped packets are recorded in the statistics 
+on the receiver.
+
 
 ### Packet Retransmission (NAKs) {#packet-naks}
 
-When a packet is received but the previous packets are not yet arrived in a receiver buffer,
-if a certain amount of time is passed, NAKs for previous packets are sent to the sender.
-If periodic NAK report is enabled in live mode, the lost packets list is sent periodically. 
-The period is 4 * RTT + RTTVar + SYN, but this could be reduced (e.g. by half)
-when a certain condition is met.  
+When a packet is received but the previous packets have not yet arrived in a receiver's 
+buffer, and if a certain amount of time is passed, NAKs for previous packets are sent to 
+the sender. If Periodic NAK Reports are enabled in live mode, the lost packets list is 
+sent periodically. By default, the period is 4 * RTT + RTTVar + SYN, but this could be 
+reduced (e.g. by half) when a certain condition is met.  
 
-The sender maintains a list of lost packets (loss list) that is built from NAK reports. When
-scheduling to transmit, it looks to see if a packet in the loss list has priority, and will send it.
-Otherwise, it will send the next packet in the sender buffer. Note that when a packet is transmitted,
-it stays in the buffer in case it is not received.
-NAK packets are processed to fill the loss list. As the latency window advances and packets are
-dropped from the sender buffer, a check is performed to see if any of the dropped or resent
-packets are in the loss list, to determine if they can be removed from there as well so that they
-are not retransmitted unnecessarily.
+The sender maintains a list of lost packets (loss list) that is built from NAK reports. 
+When scheduling to transmit, it looks to see if a packet in the loss list has priority, 
+and will send it. Otherwise, it will send the next packet in the sender buffer. Note that 
+when a packet is transmitted, it stays in the buffer in case it is not received.
 
-What the sender sees is the NAKs that it has received. There is a counter for the packets that
-are resent. If there is no ACK for a packet, it will stay in the loss list and can be resent more than
-once. Packets in the loss list are prioritized.
-If packets in the loss list continue to block the send queue, at some point this will cause the
-send queue to fill. When the send queue is full, the sender will begin to drop packets without
-even sending them the first time. An encoder (or other application) may continue to provide
-packets, but there's no place for them, so they will end up being thrown away.
+NAK packets are processed to fill the loss list. As the latency window advances and 
+packets are dropped from the sender buffer, a check is performed to see if any of the 
+dropped or resent packets are in the loss list, to determine if they can be removed from 
+there as well so that they are not retransmitted unnecessarily.
+
+What the sender sees is the NAKs that it has received. There is a counter for the packets 
+that are resent. If there is no ACK for a packet, it will stay in the loss list and can be 
+resent more than once. Packets in the loss list are prioritized. If packets in the loss 
+list continue to block the send queue, at some point this will cause the send queue to fill. 
+When the send queue is full, the sender will begin to drop packets without even sending 
+them the first time. An encoder (or other application) may continue to provide packets, 
+but there's no place for them, so they will end up being thrown away.
 
 This condition where packets are unsent doesn't happen often. There is a maximum number of
 packets held in the send buffer based on the configured latency. Older packets that have no
 chance to be retransmitted and played in time are dropped, making room for newer real-time
 packets produced by the sending application. A minimum of one second is applied before
 dropping the packet when low latency is configured. This one-second limit derives from the
-behavior of MPEG I-frames with SRT used as transport. I-frames are very large (typically 8 times
-larger than other packets), and consequently take more time to transmit. They can be too large
-to keep in the latency window, and can cause packets to be dropped from the queue. To
-prevent this, SRT imposes a minimum of one second (or the latency value) before dropping a
-packet. This allows for large I-frames when using small latency values.
+behavior of MPEG I-frames with SRT used as transport. I-frames are very large (typically 
+8 times larger than other packets), and consequently take more time to transmit. They can 
+be too large to keep in the latency window, and can cause packets to be dropped from the 
+queue. To prevent this, SRT imposes a minimum of one second (or the latency value) before 
+dropping a packet. This allows for large I-frames when using small latency values.
+
 
 ### Packet Acknowledgment in SRT
 
-The ACKACK tells the receiver to stop sending the ACK position because the sender already
+An ACKACK tells the receiver to stop sending the ACK position because the sender already
 knows it. Otherwise, ACKs (with outdated information) would continue to be sent regularly.
-An ACK serves as a ping, with a corresponding ACKACK pong, to measure RTT.
-The time it takes for an ACK to be sent and an ACKACK to be received is the RTT.
-Each ACK has a number. A corresponding ACKACK has that same number.
-The receiver keeps a list of all ACKs in a queue to match them. Unlike a full ACK,
-which contains the current RTT and several other values in the CIF,
-a light ACK just contains the sequence number. All control messages are sent directly and
-processed upon reception, but ACKACK processing time is negligible (the time this takes
-is included in the round-trip time).
+
+An ACK serves as a ping, with a corresponding ACKACK pong, to measure RTT. The time it 
+takes for an ACK to be sent and an ACKACK to be received is the RTT. Each ACK has a number. 
+A corresponding ACKACK has that same number. The receiver keeps a list of all ACKs in a 
+queue to match them. Unlike a full ACK, which contains the current RTT and several other 
+values in the CIF, a light ACK just contains the sequence number. All control messages 
+are sent directly and processed upon reception, but ACKACK processing time is negligible 
+(the time this takes is included in the round-trip time).
+
 
 ### Bidirectional Transmission Queues
 
 Once an SRT connection is established, both peers can send data packets simultaneously.
+
 
 ### Round Trip Time Estimation
 
 The round-trip time is estimated during the transmission of SRT data packets
 based on the time difference between the ACK packet is sent and the
 corresponding ACKACK is received by the data receiver.
+
 
 ### Loss List
 
