@@ -76,7 +76,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 document are to be interpreted as described in BCP 14 {{RFC2119}} {{RFC8174}}
 when, and only when, they appear in all capitals, as shown here.
 
-# Packet Structure
+# Packet Structure {#packet-structure}
 
 SRT packets are transmitted in UDP packets {{RFC0768}}. Every UDP packet carrying SRT 
 traffic contains an SRT header (immediately after the UDP header).
@@ -374,7 +374,7 @@ The Extension Contents of the Extension Message is the following.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           SRT Flags                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      Receiver TsbPd Delay     |       Sender TsbPd Delay      |
+|      Receiver TSBPD Delay     |       Sender TSBPD Delay      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #handshake-extension-msg-structure title="Handshake Extension Message structure"}
@@ -397,10 +397,10 @@ SRT Flags (32 bits):
  | 0x00000080 | PACKET_FILTER     |
 {: #hs-ext-msg-flags title="HS Extension Message Flags"}
 
-Receiver TsbPd Delay (16 bits):
+Receiver TSBPD Delay (16 bits):
 : TSBPD delay of the receiver. Refer to {{tsbpd}}.
 
-Sender TsbPd Delay (16 bits):
+Sender TSBPD Delay (16 bits):
 : TSBPD delay of the sender. Refer to {{tsbpd}}.
 
 #### Key Material Exchange {#key-material-exchange}
@@ -696,7 +696,8 @@ preceding messages, that still have some packets missing.
 Live mode is a special case of the message mode where only data packets
 with PP field set to "11b" are allowed.
 
-Additionally TsbPd ({{tsbpd}}) and TL Packet drop ({{tl-pkt-drop}}) mechanisms are used in this mode.
+Additionally Timestamp Based Packet Delivery (TSBPD) ({{tsbpd}}) and
+Too-Late Packet Drop ({{too-late-packet-drop}}) mechanisms are used in this mode.
 
 ### Buffer mode {#transmission-mode-buffer}
 
@@ -880,22 +881,15 @@ of packets at high bitrate. Latency can be thought of as a window that slides ov
 during which a number of activities take place, such as report of ACKs({{packet-acks}})
 or NAKs({{packet-naks}}).
 Latency is configured through capability exchange during extended handshake process 
-between initiator and responder. The handshake extension({{handshake-extension-msg}}) has 
-receiver and sender TsbPd Delay information in milliseconds. The maximum value of latencies
+between initiator and responder. The handshake extension ({{handshake-extension-msg}}) has 
+receiver and sender TSBPD delay information in milliseconds ({{tsbpd}}). The maximum value of latencies
 from initiator and responder will be established. 
 
 ## Timestamp Based Packet Delivery {#tsbpd}
 
-<!--
-TODO:
-* It's designed and used in live mode
-* There should be earlier a section describing which data transmissions methods we have: live, file, message (also file)
-as per https://github.com/Haivision/srt/blob/master/docs/API.md
-* Do not forget about my notes from notebook - 3 main ideas behind TSBPD
--->
-
 The initial intent of the SRT Timestamp Based Packet Delivery (TSBPD) feature is
-to reproduce the output of the sending application at the input of the receiving one.
+to reproduce the output of the sending application at the input of the receiving one
+in live data transmission  mode (see {{data-transmission-mode}}).
 
 It is designed in a way that SRT receiver, using the timestamp of the SRT data packet header,
 delivers packets to a receiving application at the same pace they were provided to the SRT sender by a sending applicaton.
@@ -943,8 +937,9 @@ The main packet states shown at in {{fig-latency-points}} are the following:
 - "Ready to be delivered": the packet is ready to be delivered to the upstream (receiving) application,
   delivered and read by the application (see {{packet-delivery-time}}).
 
-It is worth noting that the round-trip time (RTT) of an SRT link may vary in time. However the actual
-end-to-end latency on the link will be approximately equal to (RTT_0/2 + SRT Latency),
+It is worth noting that the round-trip time (RTT) of an SRT link may
+vary in time. However the actual end-to-end latency on the link becomes
+fixed and approximately equal to (RTT_0/2 + SRT Latency) once the SRT handshake exchange happens,
 where RTT_0 is the actual value of the round-trip time during the SRT handshake
 exchange (the value of the round-trip time once the SRT connection has been established).
 
@@ -976,6 +971,9 @@ extended RTT time, and the time needed to retransmit the lost packet. The value 
 is negotiated during the SRT handshake exchange and is equal to 120 milliseconds. The recommended
 value of TsbpdDelay is 3-4 times RTT.
 
+It's worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent
+making impossible to retransmit packets endlessly. This is important for live data transmission.
+
 #### TSBPD Time Base Calculation {#tsbpd-time-base}
 
 The initial value of TSBPD time base (TsbpdTimeBase) is calculated at the moment of
@@ -998,7 +996,7 @@ During the transmission process, the value of TSBPD time base may be adjusted in
 
 The TSBPD wrapping period happens every 01:11:35 hours. This time corresponds
 to the maximum timestamp value of a packet (MAX_TIMESTAMP). MAX_TIMESTAMP is equal
-to 0xFFFFFFFF, or the maximum value of 32-bit unsigned integer, in microseconds (TODO: see Link).
+to 0xFFFFFFFF, or the maximum value of 32-bit unsigned integer, in microseconds ({{packet-structure}}).
 The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value
 of a packet and ends once the packet with timestamp within [30, 60] seconds interval
 is delivered (read from the buffer). The updated value of TsbpdTimeBase will be recalculated as follows:
@@ -1006,8 +1004,6 @@ is delivered (read from the buffer). The updated value of TsbpdTimeBase will be 
 ~~~
 TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
 ~~~
-
-<!-- TODO: Link to the packet structure to Packet Timestamp field -->
 
 2. By drift tracer. See {{drift-management}} for details.
 
@@ -1136,7 +1132,7 @@ Upon reception of the NAK packet, the sender prioritizes retransmissions of lost
 packets to be transmitted for the first time.
 
 The retransmission of the missing packet is repeated until the receiver acknowledges its receival,
-or if both peers agree to drop this packet (see {{tl-pkt-drop}}).
+or if both peers agree to drop this packet (see {{too-late-packet-drop}}).
 
 ### Packet Acknowledgement (ACKs) {#packet-acks}
 
@@ -1294,5 +1290,3 @@ the first bit of a to "1".
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #list-sequence-numbers title="list of sequence numbers coding"}
-
-
