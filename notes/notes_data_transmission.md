@@ -52,6 +52,9 @@ NB: The default live mode settings set SRTO_SNDDROPDELAY to 0. The buffer mode s
 
 [SET] - Sets an extra delay before TLPKTDROP is triggered on the data sender. TLPKTDROP discards packets reported as lost if it is already too late to send them (the receiver would discard them even if received). The total delay before TLPKTDROP is triggered consists of the LATENCY (SRTO_PEERLATENCY), plus SRTO_SNDDROPDELAY, plus 2 * the ACK interval (default ACK interval is 10ms). The minimum total delay is 1 second. A value of -1 discards packet drop. SRTO_SNDDROPDELAY extends the tolerance for retransmitting packets at the expense of more likely retransmitting them uselessly. To be effective, it must have a value greater than 1000 - SRTO_PEERLATENCY.
 
+4. Note regarding acknowledgment process for dropped packets.
+<!-- TODO: It also sends a fake ACK message to the sender. - Should we write about this? -->
+
 ## Drift Management {#drift-management}
 
 1. Add detailed description of the algorithm with pseudo-code.
