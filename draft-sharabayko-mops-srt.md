@@ -461,7 +461,6 @@ during which a number of activities take place.
 
 <!--
 TODO:
-* Notations: TSBPD, TLPKTDROP, SRT, round-trip time (RTT)
 * It's designed and used in live mode
 * There should be earlier a section describing which data transmissions methods we have: live, file, message (also file)
 as per https://github.com/Haivision/srt/blob/master/docs/API.md
@@ -519,7 +518,7 @@ The main packet states shown at in {{fig-latency-points}} are the following:
 
 It is worth noting that the round-trip time (RTT) of an SRT link may vary in time. However the actual
 end-to-end latency on the link will be approximately equal to (RTT_0/2 + SRT Latency),
-where RTT_0 is the initial value of the round-trip time obtained during the SRT handshake
+where RTT_0 is the actual value of the round-trip time during the SRT handshake
 exchange (the value of the round-trip time once the SRT connection has been established).
 
 The value of the sending delay is relatively small and evaluated in microseconds,
@@ -562,32 +561,31 @@ TsbpdTimeBase = T_NOW - HSREQ_TIMESTAMP
 where T_NOW is the current time according to the receiver clock;
 HSREQ_TIMESTAMP is the handshake packet timestamp, in microseconds.
 
-<!-- TODO: RTT_O - right? -->
 The value of TsbpdTimeBase is approximately equal to the initial one-way delay of the link RTT_0/2,
-where RTT_0 is the value of the round-trip time once the SRT connection has been established.
+where RTT_0 is the actual value of the round-trip time during the SRT handshake
+exchange.
 
 During the transmission process, the value of TSBPD time base may be adjusted in two cases:
 
-1. During the TSBPD wrapping period that happens every 01:11:35 hours. This time corresponds
+1. During the TSBPD wrapping period.
+
+The TSBPD wrapping period happens every 01:11:35 hours. This time corresponds
 to the maximum timestamp value of a packet (MAX_TIMESTAMP). MAX_TIMESTAMP is equal
-to 0xFFFFFFFF, or maximum 32-bit unsigned integer value, in microseconds (TODO: see Link).
+to 0xFFFFFFFF, or the maximum value of 32-bit unsigned integer, in microseconds (TODO: see Link).
 The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value
 of a packet and ends once the packet with timestamp within [30, 60] seconds interval
-is received. The updated value of TsbpdTimeBase will be recalculated as follows:
+is delivered (read from the buffer). The updated value of TsbpdTimeBase will be recalculated as follows:
 
 ~~~
 TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
 ~~~
 
 <!-- TODO: Link to the packet structure to Packet Timestamp field -->
-<!-- TODO: Check the sentense with starting and ending period of TSBPD wrapping period -->
 
 2. By drift tracer. See {{drift-management}} for details.
 
 
 ## Drift Management {#drift-management}
-
-<!-- TODO: Resolved questions -->
 
 When the sender enters "connected" status it tells the application
 there is a socket interface that is transmitter-ready. At this point
@@ -597,9 +595,9 @@ transmitted to the receiver at scheduled times.
 
 A synchronized time is required to keep proper sender/receiver buffer
 levels, taking into account the time zone and round-trip time (up to
-2 seconds for satellite links). **Considering addition/subtraction
+2 seconds for satellite links). Considering addition/subtraction
 round-off, and possibly unsynchronized system times, an agreed-upon
-time base drifts by a few microseconds every minute.** The drift may
+time base drifts by a few microseconds every minute. The drift may
 accumulate over many days to a point where the sender or receiver
 buffers will overflow or deplete, seriously affecting the quality
 of the video. SRT has a time management mechanism to compensate
@@ -610,8 +608,9 @@ time it was expected and its timestamp. The timestamp is calculated on
 the receiver side. The RTT tells the receiver how much time it was
 supposed to take. SRT maintains a reference between the time at the
 leading edge of the send buffer's latency window and the corresponding
-time on the receiver (the present time). **This allows conversion to real
-time to be able to schedule events, based on a local time reference.**
+time on the receiver (the present time). This allows to convert packet
+timestamp to the local receiver time. Based on this time, various
+events (packet delivery, etc.) can be scheduled.
 
 The receiver samples time drift data and periodically calculates a
 packet timestamp correction factor, which is applied to each data
@@ -626,8 +625,8 @@ It is worth noting that the period of sampling time drift data is based
 on a number of packets rather than time duration to ensure enough
 samples, independently of the media stream packet rate. The effect of
 network jitter on the estimated time drift is attenuated by using a
-large number of samples. **The time drift being very slow (affecting a
-stream only after many hours), a fast reaction is not necessary.**
+large number of samples. The actual time drift being very slow (affecting a
+stream only after many hours) does not require a fast reaction.
 
 The receiver uses local time to be able to schedule events — to
 determine, for example, if it's time to deliver a certain packet
@@ -656,8 +655,6 @@ SRT latency is less than 1 second).
 When enabled on the receiver, the receiver drops packets that have not
 been delivered or retransmitted in time and delivers the subsequent
 packets to the application when their time-to-play has come.
-
-<!-- TODO: It also sends a fake ACK message to the sender. - Should we write about this? -->
 
 In pseudo-code, the algorithm of reading from the receiver buffer is
 the following:
