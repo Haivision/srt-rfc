@@ -19,6 +19,11 @@ author:
     organization: "Haivision Network Video, GmbH"
     email: maxsharabayko@haivision.com
  -
+    ins: "M.A. Sharabayko"
+    name: "Maria Sharabayko"
+    organization: "Haivision Network Video, GmbH"
+    email: msharabayko@haivision.com
+ -
     ins: "J. Kim"
     name: "Jeongseok Kim"
     organization: "SK Telecom Co., Ltd."
