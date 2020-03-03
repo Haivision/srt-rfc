@@ -887,17 +887,26 @@ from initiator and responder will be established.
 
 ## Timestamp Based Packet Delivery {#tsbpd}
 
-The initial intent of the SRT Timestamp Based Packet Delivery (TSBPD) feature is
-to reproduce the output of the sending application at the input of the receiving one
-in live data transmission  mode (see {{data-transmission-mode}}).
+The goal of the SRT Timestamp Based Packet Delivery (TSBPD) mechanism
+is to reproduce the output of the sending application (e.g., encoder)
+at the input of the receiving one (e.g., decoder) in live data
+transmission mode (see {{data-transmission-mode}}). In terms of SRT,
+it means to reproduce the timing of packets commited by the sending
+application to the SRT sender at the timing packets are scheduled
+for the delivery by the SRT receiver and ready to be read by the
+receiving application (see {{fig-latency-points}}).
 
-It is designed in a way that SRT receiver, using the timestamp of the SRT data packet header,
-delivers packets to a receiving application at the same pace they were provided to the SRT sender by a sending applicaton.
-Basically, the sender timestamp in the received packet is adjusted to the receiver’s local time
-(compensating for the time drift or different time zone) before releasing the packet to the application.
-Packets can be withheld by the SRT receiver for a configured receiver delay.
-Higher delay can accommodate a larger uniform packet drop rate or larger packet burst drop.
-Packets received after their "play time" are dropped if Too-Late Packet Drop feature is enabled (see {{too-late-packet-drop}}).
+The SRT receiver, using the timestamp of the SRT data packet header,
+delivers packets to a receiving application with a fixed minimum
+delay from the time the packet was scheduled for sending on the SRT
+sender side. Basically, the sender timestamp in the received packet
+is adjusted to the receiver’s local (compensating for the time drift
+or different time zone) before releasing the packet to the application.
+Packets can be withheld by the SRT receiver for a configured receiver
+delay. Higher delay can accommodate a larger uniform packet drop rate
+or larger packet burst drop. Packets received after their "play time"
+are dropped if Too-Late Packet Drop feature is enabled
+(see {{too-late-packet-drop}}).
 
 The packet timestamp (in microseconds) is relative to the SRT connection creation time.
 It is worth mentioning that the use of the packet sending time to stamp the packets is
@@ -912,20 +921,20 @@ are delivered at the destination.
 {{fig-latency-points}} illustrates the key latency points during the packet transmission with TSBPD feature enabled.
 
 ~~~
-                |  Sending  |                   |                         |
-                |   Delay   |      ~RTT/2       |       SRT Latency       |
-                |<--------->|<----------------->|<----------------------->|
-                |           |                   |                         |
-                |           |                   |                         |
-                |           |                   |                         |
-      _____ Ready to       Sent              Received                 Ready to be
-     /      be sent         |                   |                     delivered
-  Packet        |           |                   |                         |
-  State         |           |                   |                         |
-                |           |                   |                         |
-                |           |                   |                         |
-                ----------------------------------------------------------------->
-                                                                                Time
+              |  Sending  |              |                   |
+              |   Delay   |    ~RTT/2    |    SRT Latency    |
+              |<--------->|<------------>|<----------------->|
+              |           |              |                   |
+              |           |              |                   |
+              |           |              |                   |
+    ___ Scheduled       Sent         Received           Scheduled
+   /    for sending       |              |              for delivery
+Packet        |           |              |                   |
+State         |           |              |                   |
+              |           |              |                   |
+              |           |              |                   |
+              ----------------------------------------------------->
+                                                                Time
 ~~~
 {: #fig-latency-points title="Key Latency Points during the Packet Transmission"}
 
@@ -934,8 +943,8 @@ The main packet states shown at in {{fig-latency-points}} are the following:
 - "Scheduled for sending": the packet is committed by the sending application, stamped and ready to be sent;
 - "Sent": the packet is passed to the UDP socket and sent;
 - "Received": the packet is received and read from the UDP socket;
-- "Ready to be delivered": the packet is ready to be delivered to the upstream (receiving) application,
-  delivered and read by the application (see {{packet-delivery-time}}).
+- "Scheduled for delivery": the packet is scheduled for the delivery
+  and ready to be read by the receiving application.
 
 It is worth noting that the round-trip time (RTT) of an SRT link may
 vary in time. However the actual end-to-end latency on the link becomes
@@ -943,8 +952,9 @@ fixed and is approximately equal to (RTT_0/2 + SRT Latency) once the SRT handsha
 where RTT_0 is the actual value of the round-trip time during the SRT handshake
 exchange (the value of the round-trip time once the SRT connection has been established).
 
-The value of the sending delay is relatively small and evaluated in microseconds,
-in contrast to RTT/2 and SRT latency which are usually measured in milliseconds.
+The value of sending delay depends on the hardware performance. Usually
+it is relatively small (several microseconds) in contrast to RTT_0/2
+and SRT latency which are measured in milliseconds.
 
 ### Packet Delivery Time {#packet-delivery-time}
 
@@ -1066,7 +1076,9 @@ zthe latter is the point in time when the socket was created.
 
 Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop
 packets that have no chance to be delivered in time and the receiver
-to skip missing packets that have not been delivered in time.
+to skip missing packets that have not been delivered in time. The
+timeout of dropping a packet is based on the TSBPD mechanism
+(see {{tsbpd}}).
 
 In the SRT sender, when Too-Late Packet Drop is enabled, a packet is
 considered too late to be delivered and may be dropped by the sending
