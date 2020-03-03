@@ -21,6 +21,33 @@ time zone and drift caused by the sum of truncated nanoseconds and other measure
 
 2. TSBPD wrapping period: add pseudo-code.
 
+3. Deleted
+It is designed in a way that SRT receiver, using the timestamp of the SRT data packet header,
+delivers packets to a receiving application at the same pace they were provided to the SRT sender by a sending applicaton.
+
+4. Rewrite introduction
+
+This
+The goal of the SRT Timestamp Based Packet Delivery (TSBPD) mechanism
+is to reproduce the output of the sending application (e.g., encoder)
+at the input of the receiving one (e.g., decoder) in live data
+transmission mode (see {{data-transmission-mode}}). In terms of SRT,
+it means to reproduce the timing of packets commited by the sending
+application to the SRT sender at the timing packets are scheduled
+for the delivery by the SRT receiver and ready to be read by the
+receiving application (see {{fig-latency-points}}).
+
+This
+The packet timestamp (in microseconds) is relative to the SRT connection creation time.
+**It is worth mentioning that the use of the packet sending time to stamp the packets is
+inappropriate for TSBPD feature since a new time (current sending time) is used for retransmitted packets,
+putting them out of order when inserted at their proper place in the stream. Packets are
+inserted based on the sequence number in the header field.** The origin time (in microseconds)
+of the packet is already sampled when a packet is first submitted by the application to the SRT sender.
+The TSBPD feature uses this time to stamp the packet for first transmission and any subsequent retransmission.
+This timestamp and the configured SRT latency control the recovery buffer size and the instant that packets
+are delivered at the destination.
+
 ## Too-Late Packet Drop {#too-late-packet-drop}
 
 1. Rephrase this part
