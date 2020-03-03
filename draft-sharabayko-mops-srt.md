@@ -1048,7 +1048,7 @@ are described in {{encryption}}.
 
 # IANA Considerations
 
-TODO IANA
+This document makes no requests of the IANA.
 
 # Acknowledgments
 {:numbered="false"}
