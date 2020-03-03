@@ -931,7 +931,7 @@ are delivered at the destination.
 
 The main packet states shown at in {{fig-latency-points}} are the following:
 
-- "Ready to be sent": the packet is commited by the sending application, stamped and ready to be sent;
+- "Scheduled for sending": the packet is committed by the sending application, stamped and ready to be sent;
 - "Sent": the packet is passed to the UDP socket and sent;
 - "Received": the packet is received and read from the UDP socket;
 - "Ready to be delivered": the packet is ready to be delivered to the upstream (receiving) application,
