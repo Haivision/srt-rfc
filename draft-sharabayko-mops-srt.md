@@ -938,6 +938,25 @@ corresponding ACKACK is received by the data receiver.
 
 ### Loss List
 
+## Congestion Control
+
+SRT Congestion control provides different options, including the integration of
+user defined algorithms.
+
+For live video transmission, SRT adds similar functionality, while for file transfer,
+UDT congestion control mechanism is used. In UDT, when congestion occurred the sender
+algorithm could block the application, preferring to transmit the packets in the loss
+list, so that new video frames could not be processed. Real-time video cannot be
+suspended, so packets would be dropped by the application.
+
+The UDT congestion control factory checks the round-trip time, looks at its statistics,
+and then slows down the output of packets as needed by adjusting the packet period.
+In periods of congestion, it might completely stop sending. If the number of lost
+packets becomes significant, it can block the main stream and focus on the lost packets.
+This is not suitable for real-time transmission, where it is better to drop packets or
+frames than to try to get the queue back to a reliable state. SRT shares the available
+bandwidth between real-time and retransmitted packets, losing or dropping older packets
+instead of newer.
 
 # Encryption {#encryption}
 
