@@ -24,10 +24,15 @@ author:
     organization: "Haivision Network Video, GmbH"
     email: msharabayko@haivision.com
  -
-    ins: "J. Kim"
+    ins: "JS. Kim"
     name: "Jeongseok Kim"
     organization: "SK Telecom Co., Ltd."
     email: jeongseok.kim@sk.com
+ -
+    ins: "JW. Kim"
+    name: "Joonwoong Kim"
+    organization: "SK Telecom Co., Ltd."
+    email: joonwoong.kim@sk.com
 
 normative:
   RFC2119:
