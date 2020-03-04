@@ -647,22 +647,35 @@ Control Information Field:
 
 # SRT Data Transmission and Control
 
-After handshakes and exchanges of capability information, packet data 
-can be sent and received over the established connection. To fully utilize 
-the features of low latency and error recovery provided by SRT, the sender 
-and receiver MUST handle control packets, timers and buffers for the connection
-as specified in this section.
+This section describes key concepts related to the handling of control
+and data packets during the transmission process.
+
+After handshake and capability information exchange, packet data can
+be sent and received over the established SRT connection. To fully
+utilize the feature of low latency transmission and error recovery
+mechanisms provided by SRT, both SRT sender and receiver MUST handle
+control packets, timers and buffers for the connection as specified
+in this section.
+
+<!-- TODO: Insert here or in the Appendix the diagram from SRT data exchange section -->
 
 ## Stream Multiplexing
 
-Multiple SRT socket may share one UDP socket and the packets received to this
-UDP socket will be correctly dispatched to the SRT socket to which they are
-currently destined.
+<!-- TODO: Maybe better to put this section a bit later -->
+
+Multiple SRT sockets may share the same UDP socket so that the packets
+received to this UDP socket will be correctly dispatched to the
+SRT socket they are currently destined.
+
 During the handshake, the parties exchange their SRT Socket IDs.
-These IDs are then used in the Destination Socket ID field of every control and data packet.
+These IDs are then used in the Destination Socket ID field of
+every control and data packet (see {{packet-structure}}).
 
 ## Data Transmission Modes {#data-transmission-mode}
 
+<!-- TODO: Better to write some intro words here -->
+
+<!-- TODO: From which place this sentense? -->
 In file transfer mode this a message with O=0 that is sent later
 (but reassembled before an earlier message which may be incomplete due to packet loss)
 is allowed to be delivered immediately, without waiting for the earlier message to be completed.
@@ -696,7 +709,7 @@ The Order Flag of the Data packet set to 1 restricts the reading order of the me
 While the Order Flag set to 0 allows to read those messages that are already fully available, before
 preceding messages, that still have some packets missing.
 
-### Live mode {#transmission-mode-live}
+### Live Mode {#transmission-mode-live}
 
 Live mode is a special case of the message mode where only data packets
 with PP field set to "11b" are allowed.
@@ -704,7 +717,7 @@ with PP field set to "11b" are allowed.
 Additionally Timestamp Based Packet Delivery (TSBPD) ({{tsbpd}}) and
 Too-Late Packet Drop ({{too-late-packet-drop}}) mechanisms are used in this mode.
 
-### Buffer mode {#transmission-mode-buffer}
+### Buffer Mode {#transmission-mode-buffer}
 
 Buffer mode is negotiated during the Handshake by setting the STREAM flag
 of the handshake Extension Message Flags to 1.
