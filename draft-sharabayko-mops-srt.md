@@ -657,11 +657,9 @@ mechanisms provided by SRT, both SRT sender and receiver MUST handle
 control packets, timers and buffers for the connection as specified
 in this section.
 
-<!-- TODO: Insert here or in the Appendix the diagram from SRT data exchange section -->
 
 ## Stream Multiplexing
 
-<!-- TODO: Maybe better to put this section a bit later -->
 
 Multiple SRT sockets may share the same UDP socket so that the packets
 received to this UDP socket will be correctly dispatched to the
@@ -673,12 +671,6 @@ every control and data packet (see {{packet-structure}}).
 
 ## Data Transmission Modes {#data-transmission-mode}
 
-<!-- TODO: Better to write some intro words here -->
-
-<!-- TODO: From which place this sentense? -->
-In file transfer mode this a message with O=0 that is sent later
-(but reassembled before an earlier message which may be incomplete due to packet loss)
-is allowed to be delivered immediately, without waiting for the earlier message to be completed.
 In Live Transmission Mode the only valid value is "1".
 
 ### Message Mode {#transmission-mode-msg}
@@ -941,9 +933,8 @@ of packets at high bitrate. Latency can be thought of as a window that slides ov
 during which a number of activities take place, such as report of acknowledged ({{packet-acks}})
 and not acknowledged packets ({{packet-naks}}).
 
-<!-- TODO: Look through and correct this part -->
 Latency is configured through the capability exchange during the extended handshake process 
-between initiator and responder. The handshake extension ({{handshake-extension-msg}}) has 
+between initiator and responder. The Handshake Extension Message ({{handshake-extension-msg}}) has 
 SRT receiver and sender TSBPD delay information in milliseconds. The maximum value of latencies
 from initiator and responder will be established. 
 
@@ -1186,13 +1177,10 @@ zthe latter is the point in time when the socket was created.
 
 ## Acknowledgement and Lost Packet Handling
 
-<!-- TODO: Name of the section ? -->
 
-<!-- TODO: Rephrase this -->
 To enable an Automatic Repeat Request (ARQ) of data packets
 retransmission, the SRT sender stores all sent data packets in its buffer.
 
-<!-- TODO: There are several acknowledgement packet types ...  -->
 
 The SRT receiver periodically sends acknowledgements (ACKs) for the
 received data packets so that the SRT sender can remove the
@@ -1220,7 +1208,6 @@ or if both peers agree to drop this packet (see {{too-late-packet-drop}}).
 At certain intervals (see below), the SRT receiver sends an acknowledgement (ACK) that
 causes the acknowledged packets to be removed from the SRT sender's buffer.
 
-<!-- TODO: rephrase -->
 An ACK control packet contains the sequence number of the packet immediately
 following the latest packet from the list of received ones. Where no packet loss has
 occurred up to the packet with sequence number n, ACK would include the sequence number (n + 1).
@@ -1238,7 +1225,6 @@ received that the ACK position on the sender doesn't advance quickly enough. To 
 after 64 packets (even if the ACK period has not fully elapsed) the receiver sends a light ACK.
 A light ACK is a shorter ACK (header + 1 x 32-bit field). It does not trigger an ACKACK.
 
-<!-- TODO: Comment about the data which is in full Ack: like bw, rtt estimation -->
 
 When a receiver encounters the situation where the next packet to be played was not
 successfully received from the sender, it will "skip" this packet (see {{too-late-packet-drop}})
@@ -1253,9 +1239,6 @@ The SRT receiver sends NAK control packets to notify the sender about the missin
 The NAK packet sending can be triggered immediately after a gap in sequence numbers of
 data packets is detected. 
 
-<!-- In addition to that, the Periodic NAK report mechanism can be used to send NAK reports periodically.
-The NAK packet in that case will have all the packets that the receiver considers being lost
-at the time of sending the Periodic NAK report. -->
 
 Upon reception of the NAK packet, the SRT sender prioritizes retransmissions of lost packets over the regular data
 packets to be transmitted for the first time.
@@ -1289,9 +1272,6 @@ The NAK packet in that case will have all the packets that the receiver consider
 at the time of sending the Periodic NAK report.
 
 
-<!-- TODO: I propose to delete these sections for now, it tells honestly nothing,
-RTT should be described togeteher with bw, rcv speed and other estimation which are 
-transmitted in ack-s when we will rework this section -->
 
 ## Bidirectional Transmission Queues
 
