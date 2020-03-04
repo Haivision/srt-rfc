@@ -924,24 +924,27 @@ Rendezvous handshake exchange has the following order of Handshake Types:
 2. After receiving the above message from the peer: `URQ_CONCLUSION`
 3. After receiving the above message from the peer: `URQ_AGREEMENT`.
 
-## SRT Buffer Latency
+## SRT Buffer Latency {#srt-latency}
 
-The sender and receiver have buffers to store packets.
+The SRT sender and receiver have buffers to store packets.
+
 On the sender, latency is the time that SRT holds a packet to give it a chance to be
 delivered successfully while maintaining the rate of the sender at the receiver.
 If an ACK is missing or late for the configured latency, the packet is dropped
 from the sender buffer. The packet can be retransmitted, while the packet exists
-in the buffer for the latency window. On the receiver, a packet delivered to an 
-application from a buffer after latency time passed, to recover from a potential
-packet loss. 
+in the buffer for the latency window. On the receiver, a packet is delivered to an 
+application from a buffer after latency time is passed, to recover from a potential
+packet loss. See sections {{tsbpd}}, {{too-late-packet-drop}} for details.
 
 Latency is a value specified in milliseconds, which can cover hundreds or even thousands
 of packets at high bitrate. Latency can be thought of as a window that slides over time,
-during which a number of activities take place, such as report of ACKs({{packet-acks}})
-or NAKs({{packet-naks}}).
-Latency is configured through capability exchange during extended handshake process 
+during which a number of activities take place, such as report of ACKs ({{packet-acks}})
+or NAKs ({{packet-naks}}).
+
+<!-- TODO: Look through and correct this part -->
+Latency is configured through the capability exchange during the extended handshake process 
 between initiator and responder. The handshake extension ({{handshake-extension-msg}}) has 
-receiver and sender TSBPD delay information in milliseconds ({{tsbpd}}). The maximum value of latencies
+SRT receiver and sender TSBPD delay information in milliseconds. The maximum value of latencies
 from initiator and responder will be established. 
 
 ## Timestamp Based Packet Delivery {#tsbpd}
@@ -974,7 +977,7 @@ putting them out of order when inserted at their proper place in the stream. Pac
 inserted based on the sequence number in the header field. The origin time (in microseconds)
 of the packet is already sampled when a packet is first submitted by the application to the SRT sender.
 The TSBPD feature uses this time to stamp the packet for first transmission and any subsequent retransmission.
-This timestamp and the configured SRT latency control the recovery buffer size and the instant that packets
+This timestamp and the configured SRT latency ({{srt-latency}}) control the recovery buffer size and the instant that packets
 are delivered at the destination.
 
 {{fig-latency-points}} illustrates the key latency points during the packet transmission with TSBPD feature enabled.
