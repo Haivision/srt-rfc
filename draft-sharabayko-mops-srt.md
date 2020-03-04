@@ -947,6 +947,7 @@ between initiator and responder. The handshake extension ({{handshake-extension-
 SRT receiver and sender TSBPD delay information in milliseconds. The maximum value of latencies
 from initiator and responder will be established. 
 
+
 ## Timestamp Based Packet Delivery {#tsbpd}
 
 The goal of the SRT Timestamp Based Packet Delivery (TSBPD) mechanism
@@ -1080,6 +1081,55 @@ TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
 2. By drift tracer. See {{drift-management}} for details.
 
 
+## Too-Late Packet Drop {#too-late-packet-drop}
+
+Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop
+packets that have no chance to be delivered in time and the receiver
+to skip missing packets that have not been delivered in time. The
+timeout of dropping a packet is based on the TSBPD mechanism
+(see {{tsbpd}}).
+
+In the SRT sender, when Too-Late Packet Drop is enabled, a packet is
+considered too late to be delivered and may be dropped by the sending
+application if its timestamp is older than 125% of the SRT latency.
+However, the sender keeps packets for at least 1 second in case the
+SRT latency is not enough for a large RTT (that is, if 125% of the
+SRT latency is less than 1 second).
+
+When enabled on the receiver, the receiver drops packets that have not
+been delivered or retransmitted in time and delivers the subsequent
+packets to the application when their time-to-play has come.
+
+In pseudo-code, the algorithm of reading from the receiver buffer is
+the following:
+
+    pos = 0;  /* Current receiver buffer position */
+    i = 0;    /* Position of the next available in the receiver buffer 
+                 packet relatively to the current buffer position pos */
+
+    while(True) {
+        Get the position of the next available in receiver buffer packet i;
+        Calculate packet delivery time for the next available packet PktTsbpdTime;
+
+        if T_NOW < PktTsbpdTime:
+            continue;
+
+        Drop packets which buffer position number is less than i;
+
+        Deliver packet with the buffer position i;
+
+        pos = i + 1;
+    }
+
+where T_NOW is the current time according to the receiver clock.
+
+The TLPKTDROP mechanism can be turned off to always ensure a clean
+delivery. However, a lost packet can simply pause a delivery for some
+longer, potentially undefined time, and cause even worse tearing
+for the player. Setting higher SRT latency will help much more in the
+case when TLPKTDROP causes packet drops too often.
+
+
 ## Drift Management {#drift-management}
 
 When the sender enters "connected" status it tells the application
@@ -1132,55 +1182,6 @@ the beginning of the session to recalculate its timestamp. The start
 time is derived from the local time at the moment that the session is
 connected. A packet timestamp equals "now" minus "StartTime", where
 zthe latter is the point in time when the socket was created.
-
-
-## Too-Late Packet Drop {#too-late-packet-drop}
-
-Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop
-packets that have no chance to be delivered in time and the receiver
-to skip missing packets that have not been delivered in time. The
-timeout of dropping a packet is based on the TSBPD mechanism
-(see {{tsbpd}}).
-
-In the SRT sender, when Too-Late Packet Drop is enabled, a packet is
-considered too late to be delivered and may be dropped by the sending
-application if its timestamp is older than 125% of the SRT latency.
-However, the sender keeps packets for at least 1 second in case the
-SRT latency is not enough for a large RTT (that is, if 125% of the
-SRT latency is less than 1 second).
-
-When enabled on the receiver, the receiver drops packets that have not
-been delivered or retransmitted in time and delivers the subsequent
-packets to the application when their time-to-play has come.
-
-In pseudo-code, the algorithm of reading from the receiver buffer is
-the following:
-
-    pos = 0;  /* Current receiver buffer position */
-    i = 0;    /* Position of the next available in the receiver buffer 
-                 packet relatively to the current buffer position pos */
-
-    while(True) {
-        Get the position of the next available in receiver buffer packet i;
-        Calculate packet delivery time for the next available packet PktTsbpdTime;
-
-        if T_NOW < PktTsbpdTime:
-            continue;
-
-        Drop packets which buffer position number is less than i;
-
-        Deliver packet with the buffer position i;
-
-        pos = i + 1;
-    }
-
-where T_NOW is the current time according to the receiver clock.
-
-The TLPKTDROP mechanism can be turned off to always ensure a clean
-delivery. However, a lost packet can simply pause a delivery for some
-longer, potentially undefined time, and cause even worse tearing
-for the player. Setting higher SRT latency will help much more in the
-case when TLPKTDROP causes packet drops too often.
 
 
 ## Acknowledgement and Lost Packet Handling
