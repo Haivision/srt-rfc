@@ -19,6 +19,11 @@ author:
     organization: "Haivision Network Video, GmbH"
     email: maxsharabayko@haivision.com
  -
+    ins: "M.A. Sharabayko"
+    name: "Maria Sharabayko"
+    organization: "Haivision Network Video, GmbH"
+    email: msharabayko@haivision.com
+ -
     ins: "J. Kim"
     name: "Jeongseok Kim"
     organization: "SK Telecom Co., Ltd."
@@ -76,7 +81,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 document are to be interpreted as described in BCP 14 {{RFC2119}} {{RFC8174}}
 when, and only when, they appear in all capitals, as shown here.
 
-# Packet Structure
+# Packet Structure {#packet-structure}
 
 SRT packets are transmitted in UDP packets {{RFC0768}}. Every UDP packet carrying SRT 
 traffic contains an SRT header (immediately after the UDP header).
@@ -374,7 +379,7 @@ The Extension Contents of the Extension Message is the following.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           SRT Flags                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      Receiver TsbPd Delay     |       Sender TsbPd Delay      |
+|      Receiver TSBPD Delay     |       Sender TSBPD Delay      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #handshake-extension-msg-structure title="Handshake Extension Message structure"}
@@ -397,10 +402,10 @@ SRT Flags (32 bits):
  | 0x00000080 | PACKET_FILTER     |
 {: #hs-ext-msg-flags title="HS Extension Message Flags"}
 
-Receiver TsbPd Delay (16 bits):
+Receiver TSBPD Delay (16 bits):
 : TSBPD delay of the receiver. Refer to {{tsbpd}}.
 
-Sender TsbPd Delay (16 bits):
+Sender TSBPD Delay (16 bits):
 : TSBPD delay of the sender. Refer to {{tsbpd}}.
 
 #### Key Material Exchange {#key-material-exchange}
@@ -696,7 +701,8 @@ preceding messages, that still have some packets missing.
 Live mode is a special case of the message mode where only data packets
 with PP field set to "11b" are allowed.
 
-Additionally TsbPd ({{tsbpd}}) and TL Packet drop ({{tl-pkt-drop}}) mechanisms are used in this mode.
+Additionally Timestamp Based Packet Delivery (TSBPD) ({{tsbpd}}) and
+Too-Late Packet Drop ({{too-late-packet-drop}}) mechanisms are used in this mode.
 
 ### Buffer mode {#transmission-mode-buffer}
 
@@ -880,42 +886,245 @@ of packets at high bitrate. Latency can be thought of as a window that slides ov
 during which a number of activities take place, such as report of ACKs({{packet-acks}})
 or NAKs({{packet-naks}}).
 Latency is configured through capability exchange during extended handshake process 
-between initiator and responder. The handshake extension({{handshake-extension-msg}}) has 
-receiver and sender TsbPd Delay information in milliseconds. The maximum value of latencies
+between initiator and responder. The handshake extension ({{handshake-extension-msg}}) has 
+receiver and sender TSBPD delay information in milliseconds ({{tsbpd}}). The maximum value of latencies
 from initiator and responder will be established. 
 
 ## Timestamp Based Packet Delivery {#tsbpd}
 
-This feature uses the timestamp of the SRT data packet header.
-TsbPD allows a receiver to deliver packets to the decoder at the same pace they were
-provided to the SRT sender by an encoder. Basically, the sender timestamp
-in the received packet is adjusted to the receiver’s local time
-(compensating for time drift or different time zone)
-before releasing the packet to the application.
-Packets can be withheld by SRT for a configured receiver delay in milliseconds.
-Higher delay can accommodate data traffic which could lead to a larger uniform packet drop
-rate or larger packet burst drop.
-Packets received after their “play time” are dropped.
+The goal of the SRT Timestamp Based Packet Delivery (TSBPD) mechanism
+is to reproduce the output of the sending application (e.g., encoder)
+at the input of the receiving one (e.g., decoder) in live data
+transmission mode (see {{data-transmission-mode}}). In terms of SRT,
+it means to reproduce the timing of packets commited by the sending
+application to the SRT sender at the timing packets are scheduled
+for the delivery by the SRT receiver and ready to be read by the
+receiving application (see {{fig-latency-points}}).
+
+The SRT receiver, using the timestamp of the SRT data packet header,
+delivers packets to a receiving application with a fixed minimum
+delay from the time the packet was scheduled for sending on the SRT
+sender side. Basically, the sender timestamp in the received packet
+is adjusted to the receiver’s local (compensating for the time drift
+or different time zone) before releasing the packet to the application.
+Packets can be withheld by the SRT receiver for a configured receiver
+delay. Higher delay can accommodate a larger uniform packet drop rate
+or larger packet burst drop. Packets received after their "play time"
+are dropped if Too-Late Packet Drop feature is enabled
+(see {{too-late-packet-drop}}).
+
 The packet timestamp (in microseconds) is relative to the SRT connection creation time.
-The origin time (in microseconds) of the packet is already sampled when a packet is first
-submitted by the application to the SRT sender.
-The TsbPD feature uses this time to stamp the packet for first transmission
-and any subsequent re-transmission. This timestamp and the configured latency
-control the recovery buffer size and the instant (aforementioned "play time"
-which is decided by adding timestamp to configured latency) that packets 
+It is worth mentioning that the use of the packet sending time to stamp the packets is
+inappropriate for TSBPD feature since a new time (current sending time) is used for retransmitted packets,
+putting them out of order when inserted at their proper place in the stream. Packets are
+inserted based on the sequence number in the header field. The origin time (in microseconds)
+of the packet is already sampled when a packet is first submitted by the application to the SRT sender.
+The TSBPD feature uses this time to stamp the packet for first transmission and any subsequent retransmission.
+This timestamp and the configured SRT latency control the recovery buffer size and the instant that packets
 are delivered at the destination.
-Latency is agreed during handshake process as maximum value of Receiver/Sender TsbPd Delay
-from initiator/responder (see section #ctrl-pkt-handshake).  
 
-## Too-Late-Packet-Drop {#tl-pkt-drop}
+{{fig-latency-points}} illustrates the key latency points during the packet transmission with TSBPD feature enabled.
 
-Too-Late-Packet Drop allows the sender to drop packets that have no chance to be delivered in time.
-In the SRT sender, when Too-Late Packet Drop is enabled, and a packet timestamp
-is older than 125% of the SRT latency, it is considered too late to be delivered and may be dropped
-by the sender. Packets of an IFrame tail can then be dropped before being delivered.
-In the receiver, tail packets of a big I-Frame may be quite late and not held by the SRT receive buffer.
-They pass through to the application. The receiver buffer depletes and there is no time left
-for retransmission if missing packets are discovered. Missing packets are then skipped by the receiver.
+~~~
+              |  Sending  |              |                   |
+              |   Delay   |    ~RTT/2    |    SRT Latency    |
+              |<--------->|<------------>|<----------------->|
+              |           |              |                   |
+              |           |              |                   |
+              |           |              |                   |
+    ___ Scheduled       Sent         Received           Scheduled
+   /    for sending       |              |              for delivery
+Packet        |           |              |                   |
+State         |           |              |                   |
+              |           |              |                   |
+              |           |              |                   |
+              ----------------------------------------------------->
+                                                                Time
+~~~
+{: #fig-latency-points title="Key Latency Points during the Packet Transmission"}
+
+The main packet states shown at in {{fig-latency-points}} are the following:
+
+- "Scheduled for sending": the packet is committed by the sending application, stamped and ready to be sent;
+- "Sent": the packet is passed to the UDP socket and sent;
+- "Received": the packet is received and read from the UDP socket;
+- "Scheduled for delivery": the packet is scheduled for the delivery
+  and ready to be read by the receiving application.
+
+It is worth noting that the round-trip time (RTT) of an SRT link may
+vary in time. However the actual end-to-end latency on the link becomes
+fixed and is approximately equal to (RTT_0/2 + SRT Latency) once the SRT handshake exchange happens,
+where RTT_0 is the actual value of the round-trip time during the SRT handshake
+exchange (the value of the round-trip time once the SRT connection has been established).
+
+The value of sending delay depends on the hardware performance. Usually
+it is relatively small (several microseconds) in contrast to RTT_0/2
+and SRT latency which are measured in milliseconds.
+
+### Packet Delivery Time {#packet-delivery-time}
+
+Packet delivery time is the moment, estimated by the receiver, when a packet should be delivered
+to the upstream application. The calculation of packet delivery time (PktTsbpdTime) is performed
+upon receiving a data packet according to the following formula:
+
+~~~
+PktTsbpdTime = TsbpdTimeBase + PKT_TIMESTAMP + TsbpdDelay + Drift
+~~~
+
+where
+
+- TsbpdTimeBase is the time base that reflects the time difference between local clock of the receiver
+  and the clock used by the sender to timestamp packets being sent (see {{tsbpd-time-base}});
+- PKT_TIMESTAMP is the data packet timestamp, in microseconds;
+- TsbpdDelay is the receiver’s buffer delay (or receiver’s buffer latency, or SRT Latency).
+  This is the time, in milliseconds, that SRT holds a packet from the moment it has been received till the time it
+  should be delivered to the upstream application;
+- Drift is the time drift used to adjust the fluctuations between sender and receiver clock, in microseconds.
+
+SRT Latency (TsbpdDelay) should be a buffer time large enough to cover the unexpectedly
+extended RTT time, and the time needed to retransmit the lost packet. The value of minimum TsbpdDelay
+is negotiated during the SRT handshake exchange and is equal to 120 milliseconds. The recommended
+value of TsbpdDelay is 3-4 times RTT.
+
+It's worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent
+making impossible to retransmit packets endlessly. This is important for live data transmission.
+
+#### TSBPD Time Base Calculation {#tsbpd-time-base}
+
+The initial value of TSBPD time base (TsbpdTimeBase) is calculated at the moment of
+the second handshake request is received as follows:
+
+~~~
+TsbpdTimeBase = T_NOW - HSREQ_TIMESTAMP
+~~~
+
+where T_NOW is the current time according to the receiver clock;
+HSREQ_TIMESTAMP is the handshake packet timestamp, in microseconds.
+
+The value of TsbpdTimeBase is approximately equal to the initial one-way delay of the link RTT_0/2,
+where RTT_0 is the actual value of the round-trip time during the SRT handshake
+exchange.
+
+During the transmission process, the value of TSBPD time base may be adjusted in two cases:
+
+1. During the TSBPD wrapping period.
+
+The TSBPD wrapping period happens every 01:11:35 hours. This time corresponds
+to the maximum timestamp value of a packet (MAX_TIMESTAMP). MAX_TIMESTAMP is equal
+to 0xFFFFFFFF, or the maximum value of 32-bit unsigned integer, in microseconds ({{packet-structure}}).
+The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value
+of a packet and ends once the packet with timestamp within [30, 60] seconds interval
+is delivered (read from the buffer). The updated value of TsbpdTimeBase will be recalculated as follows:
+
+~~~
+TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
+~~~
+
+2. By drift tracer. See {{drift-management}} for details.
+
+
+## Drift Management {#drift-management}
+
+When the sender enters "connected" status it tells the application
+there is a socket interface that is transmitter-ready. At this point
+the application can start sending data packets. It adds packets to
+the SRT sender's buffer at a certain input rate, from which they are
+transmitted to the receiver at scheduled times.
+
+A synchronized time is required to keep proper sender/receiver buffer
+levels, taking into account the time zone and round-trip time (up to
+2 seconds for satellite links). Considering addition/subtraction
+round-off, and possibly unsynchronized system times, an agreed-upon
+time base drifts by a few microseconds every minute. The drift may
+accumulate over many days to a point where the sender or receiver
+buffers will overflow or deplete, seriously affecting the quality
+of the video. SRT has a time management mechanism to compensate
+for this drift.
+
+When a packet is received, SRT determines the difference between the
+time it was expected and its timestamp. The timestamp is calculated on
+the receiver side. The RTT tells the receiver how much time it was
+supposed to take. SRT maintains a reference between the time at the
+leading edge of the send buffer's latency window and the corresponding
+time on the receiver (the present time). This allows to convert packet
+timestamp to the local receiver time. Based on this time, various
+events (packet delivery, etc.) can be scheduled.
+
+The receiver samples time drift data and periodically calculates a
+packet timestamp correction factor, which is applied to each data
+packet received by adjusting the inter-packet interval. When a
+packet is received it isn't given right away to the application.
+As time advances, the receiver knows the expected time for any
+missing or dropped packet, and can use this information to fill
+any "holes" in the receive queue with another packet
+(see {{tsbpd}}).
+
+It is worth noting that the period of sampling time drift data is based
+on a number of packets rather than time duration to ensure enough
+samples, independently of the media stream packet rate. The effect of
+network jitter on the estimated time drift is attenuated by using a
+large number of samples. The actual time drift being very slow (affecting a
+stream only after many hours) does not require a fast reaction.
+
+The receiver uses local time to be able to schedule events — to
+determine, for example, if it's time to deliver a certain packet
+right away. The timestamps in the packets themselves are just
+references to the beginning of the session. When a packet is received
+(with a timestamp from the sender), the receiver makes a reference to
+the beginning of the session to recalculate its timestamp. The start
+time is derived from the local time at the moment that the session is
+connected. A packet timestamp equals "now" minus "StartTime", where
+zthe latter is the point in time when the socket was created.
+
+
+## Too-Late Packet Drop {#too-late-packet-drop}
+
+Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop
+packets that have no chance to be delivered in time and the receiver
+to skip missing packets that have not been delivered in time. The
+timeout of dropping a packet is based on the TSBPD mechanism
+(see {{tsbpd}}).
+
+In the SRT sender, when Too-Late Packet Drop is enabled, a packet is
+considered too late to be delivered and may be dropped by the sending
+application if its timestamp is older than 125% of the SRT latency.
+However, the sender keeps packets for at least 1 second in case the
+SRT latency is not enough for a large RTT (that is, if 125% of the
+SRT latency is less than 1 second).
+
+When enabled on the receiver, the receiver drops packets that have not
+been delivered or retransmitted in time and delivers the subsequent
+packets to the application when their time-to-play has come.
+
+In pseudo-code, the algorithm of reading from the receiver buffer is
+the following:
+
+    pos = 0;  /* Current receiver buffer position */
+    i = 0;    /* Position of the next available in the receiver buffer 
+                 packet relatively to the current buffer position pos */
+
+    while(True) {
+        Get the position of the next available in receiver buffer packet i;
+        Calculate packet delivery time for the next available packet PktTsbpdTime;
+
+        if T_NOW < PktTsbpdTime:
+            continue;
+
+        Drop packets which buffer position number is less than i;
+
+        Deliver packet with the buffer position i;
+
+        pos = i + 1;
+    }
+
+where T_NOW is the current time according to the receiver clock.
+
+The TLPKTDROP mechanism can be turned off to always ensure a clean
+delivery. However, a lost packet can simply pause a delivery for some
+longer, potentially undefined time, and cause even worse tearing
+for the player. Setting higher SRT latency will help much more in the
+case when TLPKTDROP causes packet drops too often.
+
 
 ## Acknowledgement and Lost Packet Handling
 
@@ -940,7 +1149,7 @@ Upon reception of the NAK packet, the sender prioritizes retransmissions of lost
 packets to be transmitted for the first time.
 
 The retransmission of the missing packet is repeated until the receiver acknowledges its receival,
-or if both peers agree to drop this packet (see {{tl-pkt-drop}}).
+or if both peers agree to drop this packet (see {{too-late-packet-drop}}).
 
 ### Packet Acknowledgement (ACKs) {#packet-acks}
 
@@ -1098,5 +1307,3 @@ the first bit of a to "1".
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #list-sequence-numbers title="list of sequence numbers coding"}
-
-
