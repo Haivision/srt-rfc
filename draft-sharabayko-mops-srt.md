@@ -6,7 +6,7 @@ category: std
 
 ipr: trust200902
 area: opsarea
-workgroup: mops
+workgroup: MOPS
 keyword: Internet-Draft
 
 stand_alone: yes
@@ -310,10 +310,19 @@ Encryption Field (16 bits):
 Extension Field (16 bits):
 : This field is message specific extension related to Handshake Type field.
   The value must be set to 0 except for the following cases.
-  If the handshake control packet is the INDUCTION message, this field is 
-  sent back by the Listener. In case of the CONCLUSION message, this field value 
-  should contain a combination of Extension Type value. For more details, see
-  {{caller-listener-handshake}}.
+  If the Handshake Type is INDUCTION, this field is
+  copied by the Listener from the received INDUCTION from the caller and used in the
+  INDUCTION handshake response of the Listener.
+  If the Handshake Type is CONCLUSION, this field value
+  should contain a combination of the HS Extension Flags shown in {{hs-ext-flags}}.
+  For more details, see {{caller-listener-handshake}}.
+
+ | Bitmask    | Flag |
+ | ---------- | :---------------: |
+ | 0x00000001 | HSREQ             |
+ | 0x00000002 | KMREQ             |
+ | 0x00000004 | CONFIG            |
+{: #hs-ext-flags title="HS Extension Flags"}
 
 Initial Packet Sequence Number (32 bits):
 : The sequence number for the very first data packet to be sent.
@@ -356,6 +365,18 @@ Extension Type (16 bits):
   There are two basic extensions: Handshake Extension Message ({{handshake-extension-msg}})
   and Key Material Exchange ({{key-material-exchange}}).
   Each extension can have a pair of request and response types.
+
+ | Value   | Extension Type       | HS Extension Flag |
+ | ------- | :------------------: | :---------------: |
+ |       1 | SRT_CMD_HSREQ        | HSREQ             |
+ |       2 | SRT_CMD_HSRSP        | HSREQ             |
+ |       3 | SRT_CMD_KMREQ        | KMREQ             |
+ |       4 | SRT_CMD_KMRSP        | KMREQ             |
+ |       5 | SRT_CMD_SID          | CONFIG            |
+ |       6 | SRT_CMD_CONGESTION   | CONFIG            |
+ |       7 | SRT_CMD_FILTER       | CONFIG            |
+ |       8 | SRT_CMD_GROUP        | CONFIG            |
+{: #handshake-ext-type title="Handshake Extension Type values"}
 
 Extension Length (16 bits):
 : The length of Extension Contents.
@@ -635,7 +656,7 @@ Control Information Field:
 ACKACK control packets are used to acknowledge the reception of the Full ACK.
 Furthermore, these packets are used in the calculation of RTT by the receiver.
 
-Control Type: 
+Control Type:
 : The type value of ACKACK control packet is "6".
 
 Type-specific Information: 
@@ -888,13 +909,6 @@ of the handshake structure.
 - Encryption Flags: advertised cipher family and block size.
 - Extension Flags: A set of flags that define the extensions provided in the handshake.
 
-| Bitmask    | Flag |
- | ---------- | :---------------: |
- | 0x00000001 | HSREQ             |
- | 0x00000002 | KMREQ             |
- | 0x00000004 | CONFIG            |
-{: #hs-ext-flags title="HS Extension Flags"}
-
 The Listener responds with the same values shown above, without the cookie (which
 isn't needed here), as well as the extensions for HSv5 (which will probably be
 exactly the same).
@@ -910,11 +924,227 @@ by each party.
 
 ### Rendezvous Handshake
 
-Rendezvous handshake exchange has the following order of Handshake Types:
+The Rendezvous process uses a state machine. It is slightly
+different from UDT Rendezvous handshake {{GHG04b}},
+although it is still based on the same message request types.
 
-1. After starting the connection: `URQ_WAVEAHAND`
-2. After receiving the above message from the peer: `URQ_CONCLUSION`
-3. After receiving the above message from the peer: `URQ_AGREEMENT`.
+Both parties start with WAVEAHAND and use the Version value of 5.
+Legacy Version 4 clients do not look at the Version value,
+whereas Version 5 clients can detect version 5.
+The parties only continue with the Version 5 Rendezvous process when Version is set to 5
+for both. Otherwise the process continues exclusively according to Version 4 rules {{GHG04b}}.
+
+With Version 5 Rendezvous, both parties create a cookie for a process called the
+"cookie contest". This is necessary for the assignment of Initiator and Responder
+roles. Each party generates a cookie value (a 32-bit number) based on the host,
+port, and current time with 1 minute accuracy. This value is scrambled using
+an MD5 sum calculation. The cookie values are then compared with one another.
+
+Since it is impossible to have two sockets on the same machine bound to the same NIC
+and port and operating independently, it's virtually impossible that the
+parties will generate identical cookies. However, this situation may occur if an
+application tries to "connect to itself" - that is, either connects to a local
+IP address, when the socket is bound to INADDR_ANY, or to the same IP address to
+which the socket was bound. If the cookies are identical (for any reason), the
+connection will not be made until new, unique cookies are generated (after a
+delay of up to one minute). In the case of an application "connecting to itself",
+the cookies will always be identical, and so the connection will never be established.
+
+When one party's cookie value is greater than its peer's, it wins the cookie
+contest and becomes Initiator (the other party becomes the Responder).
+
+At this point there are two possible "handshake flows":
+*serial*  and *parallel*.
+
+#### Serial Handshake Flow
+
+In the serial handshake flow, one party is always first, and the other follows.
+That is, while both parties are repeatedly sending WAVEAHAND messages, at
+some point one party - let's say Alice - will find she has received a
+WAVEAHAND message before she can send her next one, so she sends a
+CONCLUSION message in response. Meantime, Bob (Alice's peer) has missed
+Alice's WAVEAHAND messages, so that Alice's CONCLUSION is the first message
+Bob has received from her.
+
+This process can be described easily as a series of exchanges between the first
+and following parties (Alice and Bob, respectively):
+
+1. Initially, both parties are in the *waving* state. Alice sends a handshake
+   message to Bob:
+   - Version: 5
+   - Type: Extension field: 0, Encryption field: advertised `PBKEYLEN`.
+   - Handshake Type: WAVEAHAND
+   - SRT Socket ID: Alice's socket ID
+   - SYN Cookie: Created based on host/port and current time.
+
+While Alice doesn't yet know if she is sending this message to
+a Version 4 or Version 5 peer, the values from these fields would not be interpreted by
+the Version 4 peer when the Handshake Type is WAVEAHAND.
+
+2. Bob receives Alice's WAVEAHAND message, switches to the "attention"
+   state. Since Bob now knows Alice's cookie, he performs a "cookie contest"
+   (compares both cookie values). If Bob's cookie is greater than Alice's, he will
+   become the Initiator. Otherwise, he will become the Responder.
+
+IMPORTANT: The resolution of the Handshake Role
+(Initiator or Responder) is essential for further processing.
+
+Then Bob responds:
+
+- Version: 5
+- Extension field: appropriate flags if Initiator, otherwise 0
+- Encryption field: advertised PBKEYLEN
+- Handshake Type: CONCLUSION
+
+NOTE: If Bob is the Initiator and encryption is on, he will use either his
+own cipher family and block size or the one received from Alice (if she has advertised
+those values).
+
+3. Alice receives Bob's CONCLUSION message. While at this point she also
+   performs the "cookie contest", the outcome will be the same. She switches to the
+   "fine" state, and sends:
+
+   - Version: 5
+   - Appropriate extension flags and encryption flags
+   - Handshake Type: CONCLUSION
+
+NOTE: Both parties always send extension flags at this point, which will
+contain HSREQ if the message comes from an Initiator, or
+HSRSP if it comes from a Responder. If the Initiator has received a
+previous message from the Responder containing an advertised cipher family and block size in the
+encryption flags field, it will be used as the key length
+for key generation sent next in the KMREQ extension.
+
+4. Bob receives Alice's CONCLUSION message, and then does one of the
+   following (depending on Bob's role):
+
+   - If Bob is the Initiator (Alice's message contains HSRSP), he:
+     - switches to the "*connected" state
+     - sends Alice a message with Handshake Type AGREEMENT, but containing
+       no SRT extensions (Extension Flags field should be 0)
+
+   - If Bob is the Responder (Alice's message contains HSREQ), he:
+     - switches to "initiated" state
+     - sends Alice a message with Handshake Type CONCLUSION that also contains
+       extensions with HSRSP
+        - awaits a confirmation from Alice that she is also connected (preferably
+          by AGREEMENT message)
+
+5. Alice receives the above message, enters into the "connected" state, and
+   then does one of the following (depending on Alice's role):
+
+    - If Alice is the Initiator (received CONCLUSION with HSRSP),
+      she sends Bob a message with Handshake Type = URQ_AGREEMENT.
+
+    - If Alice is the Responder, the received message has Handshake Type AGREEMENT
+      and in response she does nothing.
+
+6. At this point, if Bob was Initiator, he is connected already. If he was a
+   Responder, he should receive the above AGREEMENT message, after which he
+   switches to the "connected" state. In the case where the UDP packet with the
+   agreement message gets lost, Bob will still enter the *connected* state once
+   he receives anything else from Alice. If Bob is going to send, however, he
+   has to continue sending the same CONCLUSION until he gets the confirmation
+   from Alice.
+
+#### Parallel Handshake Flow
+
+The chances of the parallel handshake flow are very low, but still it may
+occur if the handshake messages with WAVEAHAND are sent and received by both peers
+at precisely the same time.
+
+The resulting flow is very much like Bob's behavior in the serial handshake flow,
+but for both parties. Alice and Bob will go through the same state transitions:
+
+    Waving -> Attention -> Initiated -> Connected
+
+In the Attention state they know each other's cookies, so they can assign
+roles. In contrast to serial flows,
+which are mostly based on request-response cycles, here everything
+happens completely asynchronously: the state switches upon reception
+of a particular handshake message with appropriate contents (the
+Initiator must attach the HSREQ extension, and Responder must attach the
+`HSRSP` extension).
+
+Here's how the parallel handshake flow works, based on roles:
+
+Initiator:
+
+1. Waving
+   - Receives WAVEAHAND message
+   - Switches to Attention
+   - Sends CONCLUSION + HSREQ
+2. Attention
+   - Receives CONCLUSION message, which:
+     - contains no extensions:
+       - switches to Initiated, still sends URQ_CONCLUSION + HSREQ
+     - contains `HSRSP` extension:
+       - switches to Connected, sends AGREEMENT
+3. Initiated
+   - Receives CONCLUSION message, which:
+     - Contains no extensions:
+       - REMAINS IN THIS STATE, still sends URQ_CONCLUSION + HSREQ
+     - contains `HSRSP` extension:
+       - switches to Connected, sends AGREEMENT
+4. Connected
+   - May receive CONCLUSION and respond with AGREEMENT, but normally
+     by now it should already have received payload packets.
+
+Responder:
+
+1. Waving
+   - Receives WAVEAHAND message
+   - Switches to Attention
+   - Sends CONCLUSION message (with no extensions)
+2. Attention
+   - Receives CONCLUSION message with HSREQ
+     NOTE: This message might contain no extensions, in which case the party 
+     shall simply send the empty CONCLUSION message, as before, and remain 
+     in this state.
+   - Switches to Initiated and sends CONCLUSION message with HSRSP
+3. Initiated
+   - Receives:
+     - CONCLUSION message with HSREQ
+       - responds with CONCLUSION with HSRSP and remains in this state
+     - AGREEMENT message
+       - responds with AGREEMENT and switches to Connected
+     - Payload packet
+       - responds with AGREEMENT and switches to Connected
+4. Connected
+   - Is not expecting to receive any handshake messages anymore. The
+     AGREEMENT message is always sent only once or per every final
+     CONCLUSION message.
+
+Note that any of these packets may be missing, and the sending party will
+never become aware. The missing packet problem is resolved this way:
+
+1. If the Responder misses the CONCLUSION + HSREQ message, it simply
+   continues sending empty CONCLUSION messages. Only upon reception of
+   CONCLUSION + HSREQ does it respond with CONCLUSION + HSRSP.
+
+2. If the Initiator misses the CONCLUSION + HSRSP response from the
+   Responder, it continues sending CONCLUSION + HSREQ. The Responder must
+   always respond with CONCLUSION + HSRSP when the Initiator sends
+   CONCLUSION + HSREQ, even if it has already received and interpreted it.
+
+3. When the Initiator switches to the Connected state it responds with a
+   AGREEMENT message, which may be missed by the Responder. Nonetheless, the
+   Initiator may start sending data packets because it considers itself connected
+
+- it doesn't know that the Responder has not yet switched to the Connected state.
+  Therefore it is exceptionally allowed that when the Responder is in the Initiated
+  state and receives a data packet (or any control packet that is normally sent only
+  between connected parties) over this connection, it may switch to the Connected
+  state just as if it had received a AGREEMENT message.
+
+4. If the the Initiator has already switched to the Connected state it will not
+   bother the Responder with any more handshake messages. But the Responder may be
+   completely unaware of that (having missed the AGREEMENT message from the
+   Initiator). Therefore it doesn't exit the connecting state, which means that it
+   continues sending CONCLUSION + HSRSP messages until it receives any
+   packet that will make it switch to the Connected state (normally
+   AGREEMENT). Only then does it exit the connecting state and the
+   application can start transmission.
 
 ## SRT Buffer Latency {#srt-latency}
 
@@ -936,7 +1166,7 @@ and not acknowledged packets ({{packet-naks}}).
 Latency is configured through the capability exchange during the extended handshake process 
 between initiator and responder. The Handshake Extension Message ({{handshake-extension-msg}}) has 
 SRT receiver and sender TSBPD delay information in milliseconds. The maximum value of latencies
-from initiator and responder will be established. 
+from initiator and responder will be established.
 
 
 ## Timestamp Based Packet Delivery {#tsbpd}
@@ -945,7 +1175,7 @@ The goal of the SRT Timestamp Based Packet Delivery (TSBPD) mechanism
 is to reproduce the output of the sending application (e.g., encoder)
 at the input of the receiving one (e.g., decoder) in live data
 transmission mode (see {{data-transmission-mode}}). In terms of SRT,
-it means to reproduce the timing of packets commited by the sending
+it means to reproduce the timing of packets committed by the sending
 application to the SRT sender at the timing packets are scheduled
 for the delivery by the SRT receiver and ready to be read by the
 receiving application (see {{fig-latency-points}}).
