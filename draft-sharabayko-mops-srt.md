@@ -1314,60 +1314,62 @@ never become aware. The missing packet problem is resolved this way:
 
 The SRT sender and receiver have buffers to store packets.
 
-
 On the sender, latency is the time that SRT holds a packet to give it a chance to be
-delivered successfully while maintaining the rate of the sender at the receiver.
-If an acknowledgement (ACK) is missing or late for the configured latency, the packet is dropped
-from the sender buffer. The packet can be retransmitted, while the packet exists
-in the buffer for the latency window. On the receiver, a packet is delivered to an 
-application from a buffer after latency time is passed, to recover from a potential
-packet loss. See sections {{tsbpd}}, {{too-late-packet-drop}} for details.
+delivered successfully while maintaining the rate of the sender at the receiver. If an 
+acknowledgement (ACK) is missing or late for more than the configured latency, the packet 
+is dropped from the sender buffer. A packet can be retransmitted as long as it remains
+in the buffer for the duration of the latency window. On the receiver, packets are 
+delivered to an application from a buffer after the latency interval has passed. This 
+helps to recover from potential packet losses. See sections {{tsbpd}}, 
+{{too-late-packet-drop}} for details.
 
-Latency is a value specified in milliseconds, which can cover hundreds or even thousands
-of packets at high bitrate. Latency can be thought of as a window that slides over time,
-during which a number of activities take place, such as report of acknowledged ({{packet-acks}})
-and not acknowledged packets ({{packet-naks}}).
+Latency is a value (specified in milliseconds) that can cover the time to transmit 
+hundreds or even thousands of packets at high bitrate. Latency can be thought of as a 
+window that slides over time, during which a number of activities take place, such as 
+the reporting of acknowledged packets (ACKs) ({{packet-acks}}) and unacknowledged 
+packets (NAKs)({{packet-naks}}).
 
-Latency is configured through the capability exchange during the extended handshake process 
-between initiator and responder. The Handshake Extension Message ({{handshake-extension-msg}}) has 
-SRT receiver and sender TSBPD delay information in milliseconds. The maximum value of latencies
-from initiator and responder will be established.
-
+Latency is configured through the exchange of capabilities during the extended handshake 
+process between initiator and responder. The Handshake Extension Message ({{handshake-extension-msg}}) 
+has TSBPD delay information (in milliseconds) from the SRT receiver and sender. The 
+latency for a connection will be established as the maximum value of latencies proposed 
+by the initiator and responder.
 
 ## Timestamp Based Packet Delivery {#tsbpd}
 
-The goal of the SRT Timestamp Based Packet Delivery (TSBPD) mechanism
-is to reproduce the output of the sending application (e.g., encoder)
-at the input of the receiving one (e.g., decoder) in live data
-transmission mode (see {{data-transmission-mode}}). In terms of SRT,
-it means to reproduce the timing of packets committed by the sending
-application to the SRT sender at the timing packets are scheduled
-for the delivery by the SRT receiver and ready to be read by the
-receiving application (see {{fig-latency-points}}).
+The goal of the SRT Timestamp Based Packet Delivery (TSBPD) mechanism is to reproduce 
+the output of the sending application (e.g., encoder) at the input of the receiving 
+application (e.g., decoder) in live data transmission mode (see {{data-transmission-mode}}). 
+It attempts to reproduce the timing of packets committed by the sending application to 
+the SRT sender. This allows packets to be scheduled for delivery by the SRT receiver, 
+making them ready to be read by the receiving application (see {{fig-latency-points}}).
 
-The SRT receiver, using the timestamp of the SRT data packet header,
-delivers packets to a receiving application with a fixed minimum
-delay from the time the packet was scheduled for sending on the SRT
-sender side. Basically, the sender timestamp in the received packet
-is adjusted to the receiver’s local (compensating for the time drift
-or different time zone) before releasing the packet to the application.
-Packets can be withheld by the SRT receiver for a configured receiver
-delay. Higher delay can accommodate a larger uniform packet drop rate
-or larger packet burst drop. Packets received after their "play time"
-are dropped if Too-Late Packet Drop feature is enabled
+The SRT receiver, using the timestamp of the SRT data packet header, delivers packets to 
+a receiving application with a fixed minimum delay from the time the packet was scheduled 
+for sending on the SRT sender side. Basically, the sender timestamp in the received packet
+is adjusted to the receiver’s local time (compensating for the time drift or different 
+time zones) before releasing the packet to the application. Packets can be withheld by 
+the SRT receiver for a configured receiver delay. A higher delay can accommodate a larger 
+uniform packet drop rate, or a larger packet burst drop. Packets received after their 
+"play time" are dropped if the Too-Late Packet Drop feature is enabled 
 (see {{too-late-packet-drop}}).
 
-The packet timestamp (in microseconds) is relative to the SRT connection creation time.
-It is worth mentioning that the use of the packet sending time to stamp the packets is
-inappropriate for TSBPD feature since a new time (current sending time) is used for retransmitted packets,
-putting them out of order when inserted at their proper place in the stream. Packets are
-inserted based on the sequence number in the header field. The origin time (in microseconds)
-of the packet is already sampled when a packet is first submitted by the application to the SRT sender.
-The TSBPD feature uses this time to stamp the packet for first transmission and any subsequent retransmission.
-This timestamp and the configured SRT latency ({{srt-latency}}) control the recovery buffer size and the instant that packets
-are delivered at the destination.
+The packet timestamp (in microseconds) is relative to the SRT connection creation time. 
+Packets are inserted based on the sequence number in the header field. The origin time 
+(in microseconds) of the packet is already sampled when a packet is first submitted by 
+the application to the SRT sender. The TSBPD feature uses this time to stamp the packet 
+for first transmission and any subsequent retransmission. This timestamp and the 
+configured SRT latency ({{srt-latency}}) control the recovery buffer size and the 
+instant that packets are delivered at the destination (the aforementioned "play time" 
+which is decided by adding the timestamp to the configured latency).
 
-{{fig-latency-points}} illustrates the key latency points during the packet transmission with TSBPD feature enabled.
+It is worth mentioning that the use of the packet sending time to stamp the packets is
+inappropriate for the TSBPD feature, since a new time (current sending time) is used for 
+retransmitted packets, putting them out of order when inserted at their proper place 
+in the stream. 
+
+{{fig-latency-points}} illustrates the key latency points during the packet transmission 
+with the TSBPD feature enabled.
 
 ~~~
               |  Sending  |              |                   |
@@ -1387,7 +1389,7 @@ State         |           |              |                   |
 ~~~
 {: #fig-latency-points title="Key Latency Points during the Packet Transmission"}
 
-The main packet states shown at in {{fig-latency-points}} are the following:
+The main packet states shown in {{fig-latency-points}} are the following:
 
 - "Scheduled for sending": the packet is committed by the sending application, stamped and ready to be sent;
 - "Sent": the packet is passed to the UDP socket and sent;
@@ -1469,22 +1471,20 @@ TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
 
 ## Too-Late Packet Drop {#too-late-packet-drop}
 
-Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop
-packets that have no chance to be delivered in time and the receiver
-to skip missing packets that have not been delivered in time. The
-timeout of dropping a packet is based on the TSBPD mechanism
-(see {{tsbpd}}).
+The Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop packets that 
+have no chance to be delivered in time, and allows the receiver to skip missing packets 
+that have not been delivered in time. The timeout of dropping a packet is based on the 
+TSBPD mechanism (see {{tsbpd}}).
 
-In the SRT sender, when Too-Late Packet Drop is enabled, a packet is
-considered too late to be delivered and may be dropped by the sending
-application if its timestamp is older than 125% of the SRT latency.
-However, the sender keeps packets for at least 1 second in case the
-SRT latency is not enough for a large RTT (that is, if 125% of the
-SRT latency is less than 1 second).
+In the SRT, when Too-Late Packet Drop is enabled, and a packet timestamp is older than 
+125% of the SRT latency, it is considered too late to be delivered and may be dropped
+by the sender. However, the sender keeps packets for at least 1 second in case the
+SRT latency is not enough for a large RTT (that is, if 125% of the SRT latency is less 
+than 1 second).
 
-When enabled on the receiver, the receiver drops packets that have not
-been delivered or retransmitted in time and delivers the subsequent
-packets to the application when their time-to-play has come.
+When enabled on the receiver, the receiver drops packets that have not been delivered 
+or retransmitted in time, and delivers the subsequent packets to the application when 
+it is their time to play.
 
 In pseudo-code, the algorithm of reading from the receiver buffer is
 the following:
@@ -1574,9 +1574,8 @@ zthe latter is the point in time when the socket was created.
 ## Acknowledgement and Lost Packet Handling
 
 
-To enable an Automatic Repeat Request (ARQ) of data packets
-retransmission, the SRT sender stores all sent data packets in its buffer.
-
+To enable the Automatic Repeat reQuest of data packet retransmissions, a sender stores
+all sent data packets in its buffer. 
 
 The SRT receiver periodically sends acknowledgements (ACKs) for the
 received data packets so that the SRT sender can remove the
@@ -1584,20 +1583,21 @@ acknowledged packets from its buffer ({{packet-acks}}). Once the acknowledged pa
 removed, their retransmission is no longer possible and presumably not needed.
 
 Upon receiving the full acknowledgement (ACK) control packet, the SRT sender should acknowledge
-its reception to the receiver by sending the ACKACK control packet with the sequence number
+its reception to the receiver by sending an ACKACK control packet with the sequence number
 of the full ACK packet being acknowledged.
 
-The SRT receiver sends also NAK control packets to notify the sender about the missing packets ({{packet-naks}}).
-The NAK packet sending can be triggered immediately after a gap in sequence numbers of
-data packets is detected. In addition to that, the Periodic NAK report mechanism can be used to send NAK reports periodically.
-The NAK packet in that case will have all the packets that the receiver considers being lost
-at the time of sending the Periodic NAK report.
+The SRT receiver also sends NAK control packets to notify the sender about the missing packets ({{packet-naks}}).
+The sending of a NAK packet can be triggered immediately after a gap in sequence numbers of
+data packets is detected. In addition, a Periodic NAK report mechanism can be used to 
+send NAK reports periodically. The NAK packet in that case will list all the packets that 
+the receiver considers being lost up to the moment the Periodic NAK report is sent.
 
 Upon reception of the NAK packet, the SRT sender prioritizes retransmissions of lost packets over the regular data
 packets to be transmitted for the first time.
 
-The retransmission of the missing packet is repeated until the receiver acknowledges its receival,
+The retransmission of the missing packet is repeated until the receiver acknowledges its receipt,
 or if both peers agree to drop this packet (see {{too-late-packet-drop}}).
+
 
 ### Packet Acknowledgement (ACKs, ACKACKs) {#packet-acks}
 
@@ -1605,8 +1605,8 @@ At certain intervals (see below), the SRT receiver sends an acknowledgement (ACK
 causes the acknowledged packets to be removed from the SRT sender's buffer.
 
 An ACK control packet contains the sequence number of the packet immediately
-following the latest packet from the list of received ones. Where no packet loss has
-occurred up to the packet with sequence number n, ACK would include the sequence number (n + 1).
+following the latest in the list of received packets. Where no packet loss has
+occurred up to the packet with sequence number n, an ACK would include the sequence number (n + 1).
 
 An ACK (from a receiver) will trigger the transmission of an ACKACK (by the sender), with almost no delay.
 The time it takes for an ACK to be sent and an ACKACK to be received is the RTT.
