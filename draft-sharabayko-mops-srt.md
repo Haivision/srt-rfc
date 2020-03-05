@@ -554,10 +554,10 @@ extensions. The value of a request is 3, and the response value is 4.
    Salt[Slen] ( ): Slen*8 bits. Value: { }  
    This is a variable-width field for specifying a salt key 
 
-   Wrap ( ): [64+n * Klen * 8] bits. Value: { }  
+   Wrap ( ): (64+n * Klen * 8) bits. Value: { }  
    This is a variable-width field for specifying Wrapped key(s), where n = 1 or 2
    NOTE 1: n = (KK + 1)/2
-   NOTE 2: size in bytes = [((KK+1/2) * Klen) + 8]   
+   NOTE 2: size in bytes = (((KK+1/2) * Klen) + 8)   
 
 ~~~
  0                   1                   2                   3
