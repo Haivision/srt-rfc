@@ -183,7 +183,8 @@ O (1 bit):
 KK (2 bits):
 : Encryption Flag. The flag bits indicate whether or not data is encrypted.
   The value "00b" means data is not encrypted, "01b" indicates that data is
-  encrypted with even key, and "11b" is used for odd key encryption.
+  encrypted with even key, and "10b" is used for odd key encryption.
+  The value "11b" is only used in control packets.
 
 R (1 bit):
 : Retransmitted Packet Flag. This flag is clear when a packet is transmitted the very first time.
@@ -233,6 +234,12 @@ Type-specific Information (32 bits):
 
 Control Information Field (variable length):
 : The use of this field is defined by the Control Type field of the control packet.
+
+KK (2 bits):
+: Encryption Flag. The flag bits indicate whether or not data is encrypted.
+  The value "00b" means data is not encrypted, "01b" indicates that data is
+  encrypted with even key, and "10b" is used for odd key encryption.
+  The value "11b" is is used to carry both keys in single message.
 
 
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
