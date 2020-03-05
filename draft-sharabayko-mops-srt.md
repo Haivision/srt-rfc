@@ -1153,7 +1153,6 @@ those values).
 3. Alice receives Bob's CONCLUSION message. While at this point she also
    performs the "cookie contest", the outcome will be the same. She switches to the
    "fine" state, and sends:
-
    - Version: 5
    - Appropriate extension flags and encryption flags
    - Handshake Type: CONCLUSION
@@ -1167,7 +1166,6 @@ for key generation sent next in the KMREQ extension.
 
 4. Bob receives Alice's CONCLUSION message, and then does one of the
    following (depending on Bob's role):
-
    - If Bob is the Initiator (Alice's message contains HSRSP), he:
      - switches to the "*connected" state
      - sends Alice a message with Handshake Type AGREEMENT, but containing
@@ -1182,10 +1180,8 @@ for key generation sent next in the KMREQ extension.
 
 5. Alice receives the above message, enters into the "connected" state, and
    then does one of the following (depending on Alice's role):
-
     - If Alice is the Initiator (received CONCLUSION with HSRSP),
       she sends Bob a message with Handshake Type = URQ_AGREEMENT.
-
     - If Alice is the Responder, the received message has Handshake Type AGREEMENT
       and in response she does nothing.
 
@@ -1280,7 +1276,6 @@ never become aware. The missing packet problem is resolved this way:
 3. When the Initiator switches to the Connected state it responds with a
    AGREEMENT message, which may be missed by the Responder. Nonetheless, the
    Initiator may start sending data packets because it considers itself connected
-
 - it doesn't know that the Responder has not yet switched to the Connected state.
   Therefore it is exceptionally allowed that when the Responder is in the Initiated
   state and receives a data packet (or any control packet that is normally sent only
