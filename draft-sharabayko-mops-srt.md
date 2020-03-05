@@ -158,7 +158,6 @@ Destination Socket ID (32 bits):
 : A fixed-width field providing the SRT socket ID to which a packet should be dispatched.
   The field may have the special value "0" when the packet is a connection request.
 
-
 ## Data Packets {#data-pkt}
 
 The structure of the SRT data packet is shown in {{srtdatapacket}}.
@@ -251,7 +250,6 @@ Type-specific Information (32 bits):
 Control Information Field (variable length):
 : The use of this field is defined by the Control Type field of a control packet.
 
-
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
 The value "0x7ffff" is reserved for a user-defined type.
 
@@ -267,7 +265,6 @@ The value "0x7ffff" is reserved for a user-defined type.
 | User-Defined Type |  0x7FFF      |    -    | N/A                        |
 | ----------------- | ------------ | ------- | -------------------------- |
 {: #srt-ctrl-pkt-type-table title="SRT Control Packet Types"}
-
 
 ### Handshake {#ctrl-pkt-handshake}
 
@@ -477,87 +474,86 @@ extensions. The value of a request is 3, and the response value is 4.
 ~~~~
 {: #keymaterial-extension-structure title="Key Material Extension structure"}
 
-   0 ( ): 1 bit. Value: {0}  
-   This is a fixed-width field that is a remnant from the header of a previous design (VF).
+0 ( ): 1 bit. Value: {0}  
+: This is a fixed-width field that is a remnant from the header of a previous design (VF).
 
-   Version (V): 3 bits. Value: {1}  
-   This is a fixed-width field that indicates the SRT version:
+Version (V): 3 bits. Value: {1}  
+: This is a fixed-width field that indicates the SRT version:
 
-      1: initial version
+- 1: initial version
 
-   Packet Type (PT): 4 bits. Value: {2}  
-   This is a fixed-width field that indicates the Packet Type:
+Packet Type (PT): 4 bits. Value: {2}  
+: This is a fixed-width field that indicates the Packet Type:
 
-      0: Reserved
-      1: MSmsg
-      2: KMmsg 
-      7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)   
+- 0: Reserved
+- 1: MSmsg
+- 2: KMmsg 
+- 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)   
 
 
-   Signature (Sign): 16 bits. Value: {0x2029}  
-   This is a fixed-width field that contains the signature ‘HAI‘ encoded as a PnP Vendor ID 
+Signature (Sign): 16 bits. Value: {0x2029}  
+: This is a fixed-width field that contains the signature ‘HAI‘ encoded as a PnP Vendor ID 
    (in big endian order)
 
-   Reserved (Resv): 6 bits. Value: {0}  
-   This is a fixed-width field reserved for flag extension or other usage.
+Reserved (Resv): 6 bits. Value: {0}  
+: This is a fixed-width field reserved for flag extension or other usage.
 
-   Key-based Data Encryption (KK): 2 bits.  Value: ???
-   This is a fixed-width field that indicates whether or not data is encrypted:
+Key-based Data Encryption (KK): 2 bits.  Value: ???
+: This is a fixed-width field that indicates whether or not data is encrypted:
 
-      00b: not encrypted (data packets only)
-      01b: even key
-      10b: odd key   
-      11b: even and odd keys   
+- 00b: not encrypted (data packets only)
+- 01b: even key
+- 10b: odd key   
+- 11b: even and odd keys   
 
-   Key Encryption Key Index (KEKI): 32 bits. Value: {0}  
-   This is a fixed-width field for specifying the KEK index (big endian order)
+Key Encryption Key Index (KEKI): 32 bits. Value: {0}  
+: This is a fixed-width field for specifying the KEK index (big endian order)
 
-      0: Default stream associated key (stream/system default)
-      1..255: Reserved for manually indexed keys
+- 0: Default stream associated key (stream/system default)
+- 1..255: Reserved for manually indexed keys
 
-   Cipher ( ): 8 bits. Value: {2}  
-   This is a fixed-width field for specifying encryption cipher and mode:
+Cipher ( ): 8 bits. Value: {2}  
+: This is a fixed-width field for specifying encryption cipher and mode:
 
-      0: None or KEKI indexed crypto context
-      1: AES-ECB (not supported in SRT)
-      2: AES-CTR [FP800-38A] 
-      x: AES-CCM [RFC3610] if message integrity required (FIPS 140-2 approved)   
-      x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)   
+- 0: None or KEKI indexed crypto context
+- 1: AES-ECB (not supported in SRT)
+- 2: AES-CTR [FP800-38A] 
+- x: AES-CCM [RFC3610] if message integrity required (FIPS 140-2 approved)   
+- x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)   
 
+Authentication (Auth): 8 bits. Value: {0}  
+: This is a fixed-width field for specifying a message authentication code algorithm:
 
-   Authentication (Auth): 8 bits. Value: {0}  
-   This is a fixed-width field for specifying a message authentication code algorithm:
+- 0: None or KEKI indexed crypto context
 
-      0: None or KEKI indexed crypto context
+Stream Encapsulation (SE): 8 bits. Value: {2}  
+: This is a fixed-width field for describing the stream encapsulation:
 
-   Stream Encapsulation (SE): 8 bits. Value: {2}  
-   This is a fixed-width field for describing the stream encapsulation:
+- 0: Unspecified or KEKI indexed crypto context
+- 1: MPEG-TS/UDP
+- :MPEG-TS/SRT 
 
-      0: Unspecified or KEKI indexed crypto context
-      1: MPEG-TS/UDP
-      2:MPEG-TS/SRT 
+Reserved (Resv1): 8 bits. Value: {0}  
+: This is a fixed-width field reserved for future use.
 
-   Reserved (Resv1): 8 bits. Value: {0}  
-   This is a fixed-width field reserved for future use.
+Reserved (Resv2): 16 bits. Value: {0}  
+: This is a fixed-width field reserved for future use.
 
-   Reserved (Resv2): 16 bits. Value: {0}  
-   This is a fixed-width field reserved for future use.
+Slen/4 ( ): 4 bits. Value: {0..255}  
+: This is a fixed-width field for specifying salt length in bytes divided by 4. 
+  Can be zero if no salt/IV present
 
-   Slen/4 ( ): 4 bits. Value: {0..255}  
-   This is a fixed-width field for specifying salt length in bytes divided by 4. 
-   Can be zero if no salt/IV present
+Klen/4 ( ): 8 bits. Value: {4,6,8}  
+: This is a fixed-width field for specifying SEK length in bytes divided by 4. 
+  Size of one key even if two keys present.
 
-   Klen/4 ( ): 8 bits. Value: {4,6,8}  
-   This is a fixed-width field for specifying SEK length in bytes divided by 4. 
-   Size of one key even if two keys present.
+Salt (Slen): Slen*8 bits. Value: { }  
+: This is a variable-width field for specifying a salt key 
 
-   Salt (Slen): Slen*8 bits. Value: { }  
-   This is a variable-width field for specifying a salt key 
-
-   Wrap ( ): (64+n * Klen * 8) bits. Value: { }  
-   This is a variable-width field for specifying Wrapped key(s), where n = 1 or 2
-   NOTE 1: n = (KK + 1)/2
-   NOTE 2: size in bytes = (((KK+1/2) * Klen) + 8)   
+Wrap ( ): (64+n * Klen * 8) bits. Value: { }  
+: This is a variable-width field for specifying Wrapped key(s), where n = 1 or 2
+  NOTE 1: n = (KK + 1)/2
+  NOTE 2: size in bytes = (((KK+1/2) * Klen) + 8)   
 
 ~~~
  0                   1                   2                   3
@@ -582,7 +578,6 @@ xSEK (variable length):
   then this field is eSEK (even key) and the next one is the odd key.
   The length of this field is calculated by KLen * 4 * 8.
 
-
 oSEK (variable length):
 : This field is present only when the message carries the two SEKs.
   
@@ -596,6 +591,7 @@ The default timeout for a Keep-Alive packet to be sent is 1 second.
 
 An SRT Keep-Alive packet is formatted as follows:
 
+~~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -609,44 +605,32 @@ An SRT Keep-Alive packet is formatted as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+- CIF -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           CIF (none)                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~~
+{: #keepalive-structure title="Keep-Alive structure"}
 
-   where:
-   
-   Packet Type ( ): 1 bit. Value: 0
-   This is a fixed-width field used to distinguish between data (0) and 
-   control (1) packets.
-
-   Type ( ): 15 bits.  Value: KEEPALIVE{1}
-   This is a fixed-width field used to indicate message type 
-
-   Reserved ( ): 16 bits.  Value: ???
-   This is a fixed-width field reserved for future use. 
-
-   Additional info ( ): 32 bits.  Value: {undefined}
-   This is a fixed-width field used in some control messages 
-   as extra space for data. Its interpretation depends on the particular message. 
-
-   Time Stamp (TS): 32 bits.  Value: ???
-   This is a fixed-width field usually containing the time (in microseconds) when a 
-   packet was sent, although the real interpretation may vary depending on the type.
-
-   Destination Socket ID (DestSockID): 32 bits.  Value: ???
-   This is a fixed-width field providing the socket ID to which a packet should be 
-   dispatched, although it may have the special value 0 when the packet is a 
-   connection request.
-   
-   Control Information Field (CIF): n bits. Value: {none}  
-   This field must not appear in Keep-Alive control packets.
-
-Control Packet Type: 
+Packet Type ( ): 1 bit. Value: 1
 : The type value of a Keep-Alive control packet is "1".
+
+Control Type ( ): 15 bits.  Value: KEEPALIVE{1}
+: This is a fixed-width field used to indicate message type 
+
+Reserved ( ): 16 bits.  Value: ???
+: This is a fixed-width field reserved for future use. 
 
 Type-specific Information: 
 : This field is reserved for future definition.
 
-Control Information Field (CIF):
-: This field must not appear in Keep-Alive control packets.
+Time Stamp (TS): 32 bits.  Value: ???
+: This is a fixed-width field usually containing the time (in microseconds) when a 
+   packet was sent, although the real interpretation may vary depending on the type.
 
+Destination Socket ID (DestSockID): 32 bits.  Value: ???
+: This is a fixed-width field providing the socket ID to which a packet should be 
+   dispatched, although it may have the special value 0 when the packet is a 
+   connection request.
+   
+Control Information Field (CIF): n bits. Value: {none}  
+: This field must not appear in Keep-Alive control packets.
 
 ### ACK (Acknowledgement) {#ctrl-pkt-ack}
 
@@ -726,7 +710,6 @@ received data packets more often than every 10 ms. This is usually needed at hig
 It is up to the receiver to decide the condition and the type of ACK packet to send (Lite or Small).
 The recommendation is to send a Lite ACK for every 64 packets received.
 
-
 ### NAK (Loss Report) {#ctrl-pkt-nak}
 
 Negative acknowledgement (NAK) control packets are used to signal failed data packet 
@@ -735,6 +718,7 @@ packet that contains a list of sequence numbers for those lost packets.
 
 An SRT NAK packet is formatted as follows:
 
+~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -745,15 +729,17 @@ An SRT NAK packet is formatted as follows:
 |                           Time Stamp                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Destination Socket ID                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |0|                 Lost packet sequence number                 |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |1|                    List of lost packets                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ CIF (Loss List)
++-+-+-+-+-+-+-+-+-+-+-+- CIF (Loss List) -+-+-+-+-+-+-+-+-+-+-+-+ 
 |0|                            Up to                            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |0|                 Lost packet sequence number                 |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #nak-control-packet title="NAK control packet"}
 
 Control Type: 
 : The type value of a NAK control packet is "3".
@@ -765,13 +751,13 @@ Control Information Field (CIF):
 : A single value or a list of lost packets sequence numbers. See packet sequence number 
 coding in {{packet-seq-list-coding}}.
 
-
 ### Shutdown {#ctrl-pkt-shutdown}
 
 Shutdown control packets are used to initiate the closing of an SRT connection.
 
 An SRT SHUTDOWN Control packet is formatted as follows:
 
+~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -785,6 +771,8 @@ An SRT SHUTDOWN Control packet is formatted as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+- CIF -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                              None                             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #shutdown-control-packet title="SHUTDOWN control packet"}
 
 Control Type: 
 : The type value of Shutdown control packet is "5".
@@ -802,6 +790,7 @@ in the calculation of RTT by the receiver.
 
 An SRT ACKACK Control packet is formatted as follows:
 
+~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -815,6 +804,8 @@ An SRT ACKACK Control packet is formatted as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+- CIF -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                              None                             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #ackack-control-packet title="ACKACK control packet"}
 
 Control Type:
 : The type value of ACKACK control packet is "6".
@@ -837,10 +828,7 @@ the features of low latency and error recovery provided by SRT, the sender
 and receiver MUST handle control packets, timers, and buffers for the connection
 as specified in this section.
 
-
-
 ## Stream Multiplexing
-
 
 Multiple SRT sockets may share the same UDP socket so that the packets
 received to this UDP socket will be correctly dispatched to the
@@ -859,9 +847,9 @@ In Live Transmission Mode the only valid value is "1".
 When the STREAM flag of the handshake Extension Message {#handshake-extension-msg} is set 
 to 0, the protocol operates in Message mode, characterized as follows:
 
-    - Every packet has its own Packet Sequence Number.
-    - One or several consecutive SRT Data packets can form a message.
-    - All the packets belonging to the same message have a similar message number set 
+- Every packet has its own Packet Sequence Number.
+- One or several consecutive SRT Data packets can form a message.
+- All the packets belonging to the same message have a similar message number set 
       in the Message Number field.
 
 The first packet of a message has the first bit of the Packet Position Flags ({{data-pkt}})
@@ -881,7 +869,6 @@ When the Order Flag of a Data packet is set to 1, this imposes a sequential read
 on messages. An Order Flag set to 0 allows an application to read messages that are 
 already fully available, before any preceding messages that may have some packets missing.
 
-
 ### Live Mode {#transmission-mode-live}
 
 Live mode is a special type of message mode where only data packets
@@ -889,7 +876,6 @@ with their PP field set to "11b" are allowed.
 
 Additionally, TsbPd ({{tsbpd}}) and TL Packet drop ({{too-late-packet-drop}}) mechanisms are used 
 in this mode.
-
 
 Additionally Timestamp Based Packet Delivery (TSBPD) ({{tsbpd}}) and
 Too-Late Packet Drop ({{too-late-packet-drop}}) mechanisms are used in this mode.
@@ -901,8 +887,6 @@ of the handshake Extension Message Flags to 1.
 
 In this mode consecutive packets form one continuous stream that can be read, with 
 portions of any size.
-
-
 
 ## Handshake Messages {#handshake-messages}
 
@@ -1056,7 +1040,6 @@ phase. It also checks the following:
 A legacy UDT party completely ignores the values reported in Version and Handshake Type.  
 It is, however, interested in the SYN Cookie value, as this must be passed to the next 
 phase. It does interpret these fields, but only in the "conclusion" message.
-
 
 #### The Conclusion Phase
 
@@ -1571,12 +1554,9 @@ references to the beginning of the session. When a packet is received
 the beginning of the session to recalculate its timestamp. The start
 time is derived from the local time at the moment that the session is
 connected. A packet timestamp equals "now" minus "StartTime", where
-zthe latter is the point in time when the socket was created.
-
-
+the latter is the point in time when the socket was created.
 
 ## Acknowledgement and Lost Packet Handling
-
 
 To enable the Automatic Repeat reQuest of data packet retransmissions, a sender stores
 all sent data packets in its buffer. 
@@ -1601,7 +1581,6 @@ packets to be transmitted for the first time.
 
 The retransmission of the missing packet is repeated until the receiver acknowledges its receipt,
 or if both peers agree to drop this packet (see {{too-late-packet-drop}}).
-
 
 ### Packet Acknowledgement (ACKs, ACKACKs) {#packet-acks}
 
@@ -1638,7 +1617,6 @@ SRT receiver.
 The SRT receiver sends NAK control packets to notify the sender about the missing packets.
 The NAK packet sending can be triggered immediately after a gap in sequence numbers of
 data packets is detected. 
-
 
 Upon reception of the NAK packet, the SRT sender prioritizes retransmissions of lost packets over the regular data
 packets to be transmitted for the first time.
@@ -1681,8 +1659,6 @@ queue to match them. Unlike a full ACK, which contains the current RTT and sever
 values in the CIF, a light ACK just contains the sequence number. All control messages 
 are sent directly and processed upon reception, but ACKACK processing time is negligible 
 (the time this takes is included in the round-trip time).
-
-
 
 ## Bidirectional Transmission Queues
 
