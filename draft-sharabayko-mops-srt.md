@@ -1585,7 +1585,7 @@ must start with "0".
 ~~~
 {: #single-sequence-number title="single sequence numbers coding"}
 
-For any consectutive packet seqeunce numbers that the differnece between
+For any consecutive packet sequence numbers that the difference between
 the last and first is more than 1, only record the first (a) and the
 the last (b) sequence numbers in the list field, and modify the
 the first bit of a to "1".
