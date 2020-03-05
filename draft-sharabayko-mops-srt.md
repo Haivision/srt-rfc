@@ -551,7 +551,7 @@ extensions. The value of a request is 3, and the response value is 4.
    This is a fixed-width field for specifying SEK length in bytes divided by 4. 
    Size of one key even if two keys present.
 
-   Salt[Slen] ( ): Slen*8 bits. Value: { }  
+   Salt (Slen): Slen*8 bits. Value: { }  
    This is a variable-width field for specifying a salt key 
 
    Wrap ( ): (64+n * Klen * 8) bits. Value: { }  
@@ -1463,7 +1463,7 @@ The TSBPD wrapping period happens every 01:11:35 hours. This time corresponds
 to the maximum timestamp value of a packet (MAX_TIMESTAMP). MAX_TIMESTAMP is equal
 to 0xFFFFFFFF, or the maximum value of 32-bit unsigned integer, in microseconds ({{packet-structure}}).
 The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value
-of a packet and ends once the packet with timestamp within [30, 60] seconds interval
+of a packet and ends once the packet with timestamp within (30, 60) seconds interval
 is delivered (read from the buffer). The updated value of TsbpdTimeBase will be recalculated as follows:
 
 ~~~
