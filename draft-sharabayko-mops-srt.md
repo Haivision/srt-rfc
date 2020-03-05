@@ -856,7 +856,7 @@ set to 1. The last packet of the message has the second bit of the Packet Positi
 set to 1. Thus, a PP equal to "11b" indicates a packet that forms the whole message.
 A PP equal to "00b" indicates a packet that belongs to the inner part of the message.
 
-The concept of the message in SRT comes from UDT ({{I-D.gg-udt}}). In this mode a single 
+The concept of the message in SRT comes from UDT ({{GHG04b}}). In this mode a single 
 sending instruction passes exactly one piece of data that has boundaries (a message). 
 This message may span across multiple UDP packets (and multiple SRT data packets). The 
 only size limitation is that it shall fit as a whole in the buffers of the sender and the 
