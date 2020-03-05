@@ -782,7 +782,6 @@ Type-specific Information:
 Control Information Field:
 : This field must not appear in shutdown control packets.
 
-
 ### ACKACK {#ctrl-pkt-ackack}
 
 ACKACK control packets are sent to acknowledge the reception of a Full ACK, and are used 
