@@ -890,13 +890,6 @@ In this mode consecutive packets form one continuous stream that can be read, wi
 portions of any size.
 
 
-## Stream Multiplexing
-
-Multiple SRT sockets may share one UDP socket, and the packets received on this
-UDP socket will be correctly dispatched to the SRT socket to which they are currently 
-destined. The parties exchange their SRT Socket IDs during the handshake. These IDs are 
-then used in the Destination Socket ID field of every control and data packet.
-
 
 ## Handshake Messages {#handshake-messages}
 
