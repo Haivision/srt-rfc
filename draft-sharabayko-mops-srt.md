@@ -695,12 +695,12 @@ Receiving Rate (32 bits):
 
 There are several types of ACK packets:
 
-    - A Full ACK control packet is sent every 10 ms and has all the fields 
-      of {{ack-control-packet}}.
-    - A Lite ACK control packet includes only the Last Acknowledged Packet Sequence Number 
-      field. The Type-specific Information field should be set to 0.
-    - A Small ACK includes the fields up to and including the Available Buffer Size field. 
-      The Type-specific Information field should be set to 0.
+- A Full ACK control packet is sent every 10 ms and has all the fields 
+  of {{ack-control-packet}}.
+- A Lite ACK control packet includes only the Last Acknowledged Packet Sequence Number 
+  field. The Type-specific Information field should be set to 0.
+- A Small ACK includes the fields up to and including the Available Buffer Size field. 
+  The Type-specific Information field should be set to 0.
 
 The sender only acknowledges the receipt of Full ACK packets (see ACKACK).
 
