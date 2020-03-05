@@ -1682,7 +1682,6 @@ based on the time difference between the ACK packet is sent and the
 corresponding ACKACK is received by the data receiver.
 
 
-
 # Security Considerations
 
 SRT support confidentiality of user data using stream ciphering based on AES.
