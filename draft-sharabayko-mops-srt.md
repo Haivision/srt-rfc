@@ -489,10 +489,9 @@ Packet Type (PT): 4 bits. Value: {2}
 - 2: KMmsg 
 - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)   
 
-
 Signature (Sign): 16 bits. Value: {0x2029}  
-: This is a fixed-width field that contains the signature ‘HAI‘ encoded as a PnP Vendor ID 
-   (in big endian order)
+: This is a fixed-width field that contains the signature ‘HAI‘ encoded as a 
+  PnP Vendor ID ({{PNPID}}) (in big endian order)
 
 Reserved (Resv): 6 bits. Value: {0}  
 : This is a fixed-width field reserved for flag extension or other usage.
@@ -516,7 +515,7 @@ Cipher ( ): 8 bits. Value: {2}
 
 - 0: None or KEKI indexed crypto context
 - 1: AES-ECB (not supported in SRT)
-- 2: AES-CTR (FP800-38A) 
+- 2: AES-CTR (SP800-38A) 
 - x: AES-CCM (RFC3610) if message integrity required (FIPS 140-2 approved)   
 - x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)   
 
