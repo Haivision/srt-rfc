@@ -1520,23 +1520,31 @@ corresponding ACKACK is received by the data receiver.
 
 ## Congestion Control
 
-SRT Congestion control provides different options, including the integration of
-user defined algorithms.
+SRT provides certain mechanisms for the sender to get some feedback
+from the receiving side through the ACK packets ({{ctrl-pkt-ack}}).
+Every 10 ms the sender receives the latest values of RTT and RTT variance,
+Available Buffer Size, Packets Receiving Rate and Estimated Link Capacity.
+Upon reception of the NAK packet ({{ctrl-pkt-nak}}) the sender can detect
+packet losses during the transmission.
+These mechanisms provide a solid backgroud for various congestion control
+algorithms.
 
-For live video transmission, SRT adds similar functionality, while for file transfer,
-UDT congestion control mechanism is used. In UDT, when congestion occurred the sender
-algorithm could block the application, preferring to transmit the packets in the loss
-list, so that new video frames could not be processed. Real-time video cannot be
-suspended, so packets would be dropped by the application.
+Given that SRT can operate in live and file transfer modes, there are two groups
+of congestion control algorithms possible.
 
-The UDT congestion control factory checks the round-trip time, looks at its statistics,
-and then slows down the output of packets as needed by adjusting the packet period.
-In periods of congestion, it might completely stop sending. If the number of lost
-packets becomes significant, it can block the main stream and focus on the lost packets.
-This is not suitable for real-time transmission, where it is better to drop packets or
-frames than to try to get the queue back to a reliable state. SRT shares the available
-bandwidth between real-time and retransmitted packets, losing or dropping older packets
-instead of newer.
+For live transmission mode ({{transmission-mode-live}}) the congestion control algorithm
+does not need to control the sending pace of the data packets, as the sending timing
+is provided by the live input. Although certain limitations on the minimal
+inter-sending time of consecutive packets can be applied in order to avoid congestion
+during fluctuations of the source bitrate. Also it is allowed to drop those packets
+that can not be delivered in time.
+
+For file transfer, any known File Congestion Control algorithms like CUBIC and BBR can apply,
+including the congestion control mechanism proposed in UDT {{GHG04b}}.
+The UDT congestion control relies on the available link capacity, packet loss reports (NAK)
+and packet acknowledgements (ACKs).
+It then slows down the output of packets as needed by adjusting the packet sending pace.
+In periods of congestion, it can block the main stream and focus on the lost packets.
 
 # Security Considerations
 
