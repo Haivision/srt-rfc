@@ -67,6 +67,14 @@ informative:
       name: Morris Dworkin
       ins: M. Dworkin
     date: December, 2001
+  SRTTO:
+    title: SRT Protocol Technical Overview
+    author:
+      - 
+        name: Jean Dube
+      - 
+        name: Steve Matthews
+    date: December, 2019
     
 --- abstract
 
@@ -81,7 +89,7 @@ and a mechanism for data encryption.
 
 # Introduction
 
-TODO Introduction
+TODO Introduction {{SRTTO}}
 
 
 # Conventions and Definitions
@@ -1580,7 +1588,7 @@ This document makes no requests of the IANA.
 # Contributors
 {:numbered="false"}
 
-This specification is heavily based on the SRT Protocol Technical Overview
+This specification is heavily based on the SRT Protocol Technical Overview {{SRTTO}}
 written by Jean Dube and Steve Matthews.
 
 In alphabetical order, the contributors to the pre-IETF SRT project and
