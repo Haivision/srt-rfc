@@ -814,7 +814,6 @@ Type-specific Information:
 Control Information Field:
 : This field must not appear in ACKACK control packets.
 
-
 # SRT Data Transmission and Control
 
 This section describes key concepts related to the handling of control
