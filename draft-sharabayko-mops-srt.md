@@ -874,7 +874,7 @@ already fully available, before any preceding messages that may have some packet
 Live mode is a special type of message mode where only data packets
 with their PP field set to "11b" are allowed.
 
-Additionally, TsbPd ({{tsbpd}}) and TL Packet drop ({{tl-pkt-drop}}) mechanisms are used 
+Additionally, TsbPd ({{tsbpd}}) and TL Packet drop ({{too-late-packet-drop}}) mechanisms are used 
 in this mode.
 
 
