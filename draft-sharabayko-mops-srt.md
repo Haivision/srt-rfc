@@ -24,6 +24,11 @@ author:
     organization: "Haivision Network Video, GmbH"
     email: msharabayko@haivision.com
  -
+    ins: "J. Dube"
+    name: "Jean Dube"
+    organization: "Haivision Network Video, GmbH"
+    email: jdube@haivision.com
+ -
     ins: "JS. Kim"
     name: "Jeongseok Kim"
     organization: "SK Telecom Co., Ltd."
@@ -1572,8 +1577,31 @@ which is out of scope of the present document.
 
 This document makes no requests of the IANA.
 
+# Contributors
+{:numbered="false"}
+
+This specification is heavily based on the SRT Protocol Technical Overview
+written by Jean Dube and Steve Matthews.
+
+In alphabetical order, the contributors to the pre-IETF SRT project and
+specification at Haivision are: Marc Cymontkowski, Roman Diouskine,
+Jean Dube, Mikolaj Malecki, Steve Matthews, Maria Sharabayko,
+Maxim Sharabayko, Adam Yellen.
+
+The contributors to this specification at South Korea Telekom
+are Jeongseok Kim and Joonwoong Kim.
+
+We can't list all the contributors to the open-sourced implementation of SRT on GitHub.
+But we appreciate the help, contribution, integrations and feedback of the 
+SRT and SRT Alliances community.
+
 # Acknowledgments
 {:numbered="false"}
+
+The basis of the SRT protocol and its implementation was
+the UDP-based Data Transfer Protocol {{GHG04b}}.
+The authors thank Yunhong Gu and Robert Grossman,
+the authors of the UDP-based Data Transfer Protocol {{GHG04b}}.
 
 TODO acknowledge.
 
