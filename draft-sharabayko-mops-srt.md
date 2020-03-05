@@ -970,7 +970,6 @@ connection. See the list of error codes in {{hs-rej-reason}}.
  | 1013 | REJ_CONGESTION   | incompatible congestion-controller type        |
  | 1014 | REJ_FILTER       | incompatible packet filter                     |
  | 1015 | REJ_GROUP        | incompatible group                             |
-
 {: #hs-rej-reason title="HS Rejection Reason Codes"}
 
 The specification of the cipher family and block size is decided by the Sender. When the transmission 
