@@ -24,9 +24,9 @@ author:
     organization: "Haivision Network Video, GmbH"
     email: msharabayko@haivision.com
  -
-    ins: "J. Dube"
-    name: "Jean Dube"
-    organization: "Haivision Network Video, GmbH"
+    ins: "J. Dubé"
+    name: "Jean Dubé"
+    organization: "Haivision"
     email: jdube@haivision.com
  -
     ins: "JS. Kim"
@@ -255,7 +255,7 @@ KK (2 bits):
 : Encryption Flag. The flag bits indicate whether or not data is encrypted.
   The value "00b" means data is not encrypted, "01b" indicates that data is
   encrypted with even key, and "10b" is used for odd key encryption.
-  The value "11b" is is used to carry both keys in single message.
+  The value "11b" is used to carry both keys in single message.
 
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
 The value "0x7ffff" is reserved for a user-defined type.
