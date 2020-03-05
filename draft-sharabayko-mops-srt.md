@@ -320,7 +320,7 @@ Extension Field (16 bits):
 : This field is message specific extension related to Handshake Type field.
   The value must be set to 0 except for the following cases.
   
-   (1) If the handshake control packet is the INDUCTION message, this field is 
+  (1) If the handshake control packet is the INDUCTION message, this field is 
   sent back by the Listener. 
   (2) In the case of a CONCLUSION message, this field value should contain a combination 
   of Extension Type values. 
