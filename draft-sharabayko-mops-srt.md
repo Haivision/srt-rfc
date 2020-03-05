@@ -1541,17 +1541,16 @@ This document makes no requests of the IANA.
 # Contributors
 {:numbered="false"}
 
-The original design and rationale behind the SRT protocol
-belongs to Marc Cymontkowski and Jean Dube.
-
 This specification is heavily based on the SRT Protocol Technical Overview
 written by Jean Dube and Steve Matthews.
-In alphabetical order, the contributors to the pre-IETF SRT project and
-specification at Haivision are: Marc Cymontkowski, Jean Dube,
-Mikolaj Malecki, Steve Matthews, Maria Sharabayko, Maxim Sharabayko,
-Adam Yellen.
 
-The contributors at South Korea Telekom are Jeongseok Kim and Joonwoong Kim.
+In alphabetical order, the contributors to the pre-IETF SRT project and
+specification at Haivision are: Marc Cymontkowski, Roman Diouskine,
+Jean Dube, Mikolaj Malecki, Steve Matthews, Maria Sharabayko,
+Maxim Sharabayko, Adam Yellen.
+
+The contributors to this specification at South Korea Telekom
+are Jeongseok Kim and Joonwoong Kim.
 
 We can't list all the contributors to the open-sourced implementation of SRT on GitHub.
 But we appreciate the help, contribution, integrations and feedback of the 
@@ -1564,7 +1563,6 @@ The basis of the SRT protocol and its implementation was
 the UDP-based Data Transfer Protocol {{GHG04b}}.
 The authors thank Yunhong Gu and Robert Grossman,
 the authors of the UDP-based Data Transfer Protocol {{GHG04b}}.
-
 
 TODO acknowledge.
 
