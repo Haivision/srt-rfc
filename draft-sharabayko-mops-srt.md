@@ -1675,7 +1675,6 @@ are sent directly and processed upon reception, but ACKACK processing time is ne
 
 Once an SRT connection is established, both peers can send data packets simultaneously.
 
-
 ## Round Trip Time Estimation
 
 The round-trip time is estimated during the transmission of SRT data packets
