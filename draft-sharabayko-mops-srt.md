@@ -706,7 +706,7 @@ There are several types of ACK packets:
     - A Small ACK includes the fields up to and including the Available Buffer Size field. 
       The Type-specific Information field should be set to 0.
 
-The sender only acknowledges only the receipt of Full ACK packets (see ACKACK).
+The sender only acknowledges the receipt of Full ACK packets (see ACKACK).
 
 The Lite ACK and Small ACK packets are used in cases when the receiver should acknowledge
 received data packets more often than every 10 ms. This is usually needed at high data rates.
