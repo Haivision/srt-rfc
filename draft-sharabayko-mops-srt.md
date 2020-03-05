@@ -355,7 +355,7 @@ Handshake Type (32 bits):
  | 0xFFFFFFFD | DONE                         |
  | 0xFFFFFFFE | AGREEMENT                    |
  | 0xFFFFFFFF | CONCLUSION                   |
- | 0x00000000 | WAVEAHAND                    |
+ | 0x00000000 | WAVEHAND                    |
  | 0x00000001 | INDUCTION                    |
 {: #handshake-type title="Handshake Type"}
 
