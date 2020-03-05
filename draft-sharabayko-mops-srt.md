@@ -211,7 +211,6 @@ Data (variable length):
 : The payload of the data packet. The length of the data is the remaining length of 
   the UDP packet.
 
-
 ## Control Packets
 
 An SRT control packet has the following structure.
@@ -517,8 +516,8 @@ Cipher ( ): 8 bits. Value: {2}
 
 - 0: None or KEKI indexed crypto context
 - 1: AES-ECB (not supported in SRT)
-- 2: AES-CTR [FP800-38A] 
-- x: AES-CCM [RFC3610] if message integrity required (FIPS 140-2 approved)   
+- 2: AES-CTR (FP800-38A) 
+- x: AES-CCM (RFC3610) if message integrity required (FIPS 140-2 approved)   
 - x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)   
 
 Authentication (Auth): 8 bits. Value: {0}  
