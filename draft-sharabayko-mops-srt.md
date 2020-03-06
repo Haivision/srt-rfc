@@ -942,7 +942,7 @@ the original UDT library supported, that is, buffer and message transmission.
 ### Message Mode {#transmission-mode-msg}
 
 When the STREAM flag of the handshake Extension Message
-{{#handshake-extension-msg}} is set to 0, the protocol operates
+{{handshake-extension-msg}} is set to 0, the protocol operates
 in Message mode, characterized as follows:
 
 - Every packet has its own Packet Sequence Number.
