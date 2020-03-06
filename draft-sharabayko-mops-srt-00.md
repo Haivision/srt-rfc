@@ -330,11 +330,11 @@ An SRT control packet has the following structure.
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Destination Socket ID                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+- CIF -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
-+                   Control Information Field                   + CIF
++                   Control Information Field                   +
 |                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #controlpacket title="control packet structure"}
 
@@ -352,12 +352,6 @@ Type-specific Information (32 bits):
 
 Control Information Field (variable length):
 : The use of this field is defined by the Control Type field of the control packet.
-
-KK (2 bits):
-: Encryption Flag. The flag bits indicate whether or not data is encrypted.
-  The value "00b" means data is not encrypted, "01b" indicates that data is
-  encrypted with an even key, and "10b" is used for odd key encryption.
-  The value "11b" is used to carry both keys in single message.
 
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
 The value "0x7ffff" is reserved for a user-defined type.
@@ -452,7 +446,7 @@ Extension Field (16 bits):
  | 0x00000001 | HSREQ             |
  | 0x00000002 | KMREQ             |
  | 0x00000004 | CONFIG            |
-{: #hs-ext-flags title="HS Extension Flags"}
+{: #hs-ext-flags title="Handshake Extension Flags"}
 
 Initial Packet Sequence Number (32 bits):
 : The sequence number of the very first data packet to be sent.
@@ -551,10 +545,10 @@ SRT Flags (32 bits):
  | 0x00000020 | REXMITFLG         |
  | 0x00000040 | STREAM            |
  | 0x00000080 | PACKET_FILTER     |
-{: #hs-ext-msg-flags title="HS Extension Message Flags"}
+{: #hs-ext-msg-flags title="Handshake Extension Message Flags"}
 
 Receiver TSBPD Delay (16 bits):
-: TimeStamp-Based Packet Delay (TSBPD) of the receiver. Refer to {{tsbpd}}.
+: TimeStamp-Based Packet Delivery (TSBPD) Delay of the receiver. Refer to {{tsbpd}}.
 
 Sender TSBPD Delay (16 bits):
 : TSBPD of the sender. Refer to {{tsbpd}}.
@@ -1079,7 +1073,7 @@ connection. See the list of error codes in {{hs-rej-reason}}.
  | 1013 | REJ_CONGESTION   | incompatible congestion-controller type        |
  | 1014 | REJ_FILTER       | incompatible packet filter                     |
  | 1015 | REJ_GROUP        | incompatible group                             |
-{: #hs-rej-reason title="HS Rejection Reason Codes"}
+{: #hs-rej-reason title="Handshake Rejection Reason Codes"}
 
 The specification of the cipher family and block size is decided by the Sender. When the transmission 
 is bidirectional, this value must be agreed upon at the outset because when both 
