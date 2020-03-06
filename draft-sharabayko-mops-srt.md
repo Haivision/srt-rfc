@@ -1,7 +1,7 @@
 ---
 title: The SRT Protocol
 abbrev: SRT
-docname: draft-sharabayko-mops-srt
+docname: draft-sharabayko-mops-srt-00
 category: std
 
 ipr: trust200902
@@ -330,11 +330,11 @@ An SRT control packet has the following structure.
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Destination Socket ID                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+- CIF -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
-+                   Control Information Field                   + CIF
++                   Control Information Field                   +
 |                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ---
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #controlpacket title="control packet structure"}
 
@@ -348,16 +348,10 @@ Subtype (16 bits):
 
 Type-specific Information (32 bits):
 : The use of this field depends on the particular control
-  packet type. Handshake packets don't use this field.
+  packet type. Handshake packets do not use this field.
 
 Control Information Field (variable length):
 : The use of this field is defined by the Control Type field of the control packet.
-
-KK (2 bits):
-: Encryption Flag. The flag bits indicate whether or not data is encrypted.
-  The value "00b" means data is not encrypted, "01b" indicates that data is
-  encrypted with an even key, and "10b" is used for odd key encryption.
-  The value "11b" is used to carry both keys in single message.
 
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
 The value "0x7ffff" is reserved for a user-defined type.
@@ -452,7 +446,7 @@ Extension Field (16 bits):
  | 0x00000001 | HSREQ             |
  | 0x00000002 | KMREQ             |
  | 0x00000004 | CONFIG            |
-{: #hs-ext-flags title="HS Extension Flags"}
+{: #hs-ext-flags title="Handshake Extension Flags"}
 
 Initial Packet Sequence Number (32 bits):
 : The sequence number of the very first data packet to be sent.
@@ -488,7 +482,7 @@ SYN Cookie (32 bits):
 
 Peer IP Address (128 bits):
 : The sender's IPv4 or IPv6 address. The value consists of four 32-bit fields. In the case
-  of IPv4 adresses, fields 2, 3 and 4 are padded with zeroes.  <-- **TO BE CONFIRMED**
+  of IPv4 addresses, fields 2, 3 and 4 are padded with zeroes.
 
 Extension Type (16 bits):
 : The value of this field is used to process an integrated handshake.
@@ -551,10 +545,10 @@ SRT Flags (32 bits):
  | 0x00000020 | REXMITFLG         |
  | 0x00000040 | STREAM            |
  | 0x00000080 | PACKET_FILTER     |
-{: #hs-ext-msg-flags title="HS Extension Message Flags"}
+{: #hs-ext-msg-flags title="Handshake Extension Message Flags"}
 
 Receiver TSBPD Delay (16 bits):
-: TimeStamp-Based Packet Delay (TSBPD) of the receiver. Refer to {{tsbpd}}.
+: TimeStamp-Based Packet Delivery (TSBPD) Delay of the receiver. Refer to {{tsbpd}}.
 
 Sender TSBPD Delay (16 bits):
 : TSBPD of the sender. Refer to {{tsbpd}}.
@@ -583,21 +577,19 @@ extensions. The value of a request is 3, and the response value is 4.
 ~~~~
 {: #keymaterial-extension-structure title="Key Material Extension structure"}
 
-0 ( ): 1 bit. Value: {0}  
-: This is a fixed-width field that is a remnant from the header of a previous design (VF).
+S ( ): 1 bit. Value: {0}  
+: This is a fixed-width field that is a remnant from the header of a previous design.
 
 Version (V): 3 bits. Value: {1}  
 : This is a fixed-width field that indicates the SRT version:
-
-- 1: initial version
+  - 1: initial version
 
 Packet Type (PT): 4 bits. Value: {2}  
 : This is a fixed-width field that indicates the Packet Type:
-
-- 0: Reserved
-- 1: MSmsg
-- 2: KMmsg 
-- 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)   
+  - 0: Reserved
+  - 1: MSmsg
+  - 2: KMmsg 
+  - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)   
 
 Signature (Sign): 16 bits. Value: {0x2029}  
 : This is a fixed-width field that contains the signature ‘HAI‘ encoded as a 
@@ -606,40 +598,35 @@ Signature (Sign): 16 bits. Value: {0x2029}
 Reserved (Resv): 6 bits. Value: {0}  
 : This is a fixed-width field reserved for flag extension or other usage.
 
-Key-based Data Encryption (KK): 2 bits.  Value: ???
+Key-based Data Encryption (KK): 2 bits.
 : This is a fixed-width field that indicates whether or not data is encrypted:
-
-- 00b: not encrypted (data packets only)
-- 01b: even key
-- 10b: odd key   
-- 11b: even and odd keys   
+  - 00b: not encrypted (data packets only)
+  - 01b: even key
+  - 10b: odd key   
+  - 11b: even and odd keys   
 
 Key Encryption Key Index (KEKI): 32 bits. Value: {0}  
 : This is a fixed-width field for specifying the KEK index (big endian order)
+  - 0: Default stream associated key (stream/system default)
+  - 1..255: Reserved for manually indexed keys
 
-- 0: Default stream associated key (stream/system default)
-- 1..255: Reserved for manually indexed keys
-
-Cipher ( ): 8 bits. Value: {2}  
+Cipher ( ): 8 bits. Value: {0..2}
 : This is a fixed-width field for specifying encryption cipher and mode:
-
-- 0: None or KEKI indexed crypto context
-- 1: AES-ECB (not supported in SRT)
-- 2: AES-CTR {{SP800-38A}} 
-- x: AES-CCM {{RFC3610}} if message integrity required (FIPS 140-2 approved)   
-- x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)   
+  - 0: None or KEKI indexed crypto context
+  - 1: AES-ECB (not supported in SRT)
+  - 2: AES-CTR {{SP800-38A}}
+  - x: AES-CCM {{RFC3610}} if message integrity required (FIPS 140-2 approved)
+  - x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)
 
 Authentication (Auth): 8 bits. Value: {0}  
 : This is a fixed-width field for specifying a message authentication code algorithm:
-
-- 0: None or KEKI indexed crypto context
+  - 0: None or KEKI indexed crypto context
 
 Stream Encapsulation (SE): 8 bits. Value: {2}  
 : This is a fixed-width field for describing the stream encapsulation:
-
-- 0: Unspecified or KEKI indexed crypto context
-- 1: MPEG-TS/UDP
-- :MPEG-TS/SRT 
+  - 0: Unspecified or KEKI indexed crypto context
+  - 1: MPEG-TS/UDP
+  - 2: MPEG-TS/SRT
 
 Reserved (Resv1): 8 bits. Value: {0}  
 : This is a fixed-width field reserved for future use.
@@ -784,7 +771,7 @@ Last Acknowledged Packet Sequence Number (32 bits):
 : The sequence number of the last acknowledged data packet +1.
 
 RTT (32 bits):
-: RTT value (in microseconds) estimated by the receiver based on the previous ACK-ACKACK 
+: RTT value (in microseconds) estimated by the receiver based on the previous ACK-ACKACK
 packet exchange.
 
 RTT variance (32 bits):
@@ -948,16 +935,19 @@ every control and data packet (see {{packet-structure}}).
 
 ## Data Transmission Modes {#data-transmission-mode}
 
-In Live Transmission Mode the only valid value is "1".
+SRT has been mainly created for Live Streaming and therefore its main and
+default transmission mode is "live". SRT supports, however, the modes that
+the original UDT library supported, that is, buffer and message transmission.
 
 ### Message Mode {#transmission-mode-msg}
 
-When the STREAM flag of the handshake Extension Message {#handshake-extension-msg} is set 
-to 0, the protocol operates in Message mode, characterized as follows:
+When the STREAM flag of the handshake Extension Message
+{{handshake-extension-msg}} is set to 0, the protocol operates
+in Message mode, characterized as follows:
 
 - Every packet has its own Packet Sequence Number.
 - One or several consecutive SRT Data packets can form a message.
-- All the packets belonging to the same message have a similar message number set 
+- All the packets belonging to the same message have a similar message number set
       in the Message Number field.
 
 The first packet of a message has the first bit of the Packet Position Flags ({{data-pkt}})
@@ -981,9 +971,6 @@ already fully available, before any preceding messages that may have some packet
 
 Live mode is a special type of message mode where only data packets
 with their PP field set to "11b" are allowed.
-
-Additionally, TsbPd ({{tsbpd}}) and TL Packet drop ({{too-late-packet-drop}}) mechanisms are used 
-in this mode.
 
 Additionally Timestamp Based Packet Delivery (TSBPD) ({{tsbpd}}) and
 Too-Late Packet Drop ({{too-late-packet-drop}}) mechanisms are used in this mode.
@@ -1079,7 +1066,7 @@ connection. See the list of error codes in {{hs-rej-reason}}.
  | 1013 | REJ_CONGESTION   | incompatible congestion-controller type        |
  | 1014 | REJ_FILTER       | incompatible packet filter                     |
  | 1015 | REJ_GROUP        | incompatible group                             |
-{: #hs-rej-reason title="HS Rejection Reason Codes"}
+{: #hs-rej-reason title="Handshake Rejection Reason Codes"}
 
 The specification of the cipher family and block size is decided by the Sender. When the transmission 
 is bidirectional, this value must be agreed upon at the outset because when both 
@@ -1109,11 +1096,11 @@ The Caller begins by sending the INDUCTION handshake, which contains the followi
 The Destination Socket ID of the SRT packet header in this message is 0, which is
 interpreted as a connection request.
 
-NOTE: The handshake version number is set to 4 in this initial handshake.
+The handshake version number is set to 4 in this initial handshake.
 This is due to the initial design of SRT that was to be compliant with the UDT
 protocol ({{GHG04b}}) on which it is based.
 
-NOTE: This phase serves only to set a cookie on the Listener so that it
+This phase serves only to set a cookie on the Listener so that it
 doesn't allocate resources, thus mitigating a potential DoS attack that might be
 perpetrated by flooding the Listener with handshake commands.
 
@@ -1127,7 +1114,7 @@ The Listener responds with the following:
 - SYN Cookie: a cookie that is crafted based on host, port and current time
   with 1 minute accuracy
 
-NOTE: At this point the Listener still doesn't know if the Caller is SRT or UDT,
+At this point the Listener still doesn't know if the Caller is SRT or UDT,
 and it responds with the same set of values regardless of whether the Caller is
 SRT or UDT.
 
@@ -1168,10 +1155,10 @@ of the handshake structure.
 - Extension Flags: A set of flags that define the extensions provided in the handshake.
 
 The Listener responds with the same values shown above, without the cookie (which
-isn't needed here), as well as the extensions for HSv5 (which will probably be
+is not needed here), as well as the extensions for HS Version 5 (which will probably be
 exactly the same).
 
-IMPORTANT: There isn't any "negotiation" here. If the values passed in the
+There is not any "negotiation" here. If the values passed in the
 handshake are in any way not acceptable by the other side, the connection will
 be rejected. The only case when the Listener can have precedence over the Caller
 is the advertised Cipher Family and Block Size ({{handshake-encr-fld}})
@@ -1199,7 +1186,7 @@ port, and current time with 1 minute accuracy. This value is scrambled using
 an MD5 sum calculation. The cookie values are then compared with one another.
 
 Since it is impossible to have two sockets on the same machine bound to the same NIC
-and port and operating independently, it's virtually impossible that the
+and port and operating independently, it is virtually impossible that the
 parties will generate identical cookies. However, this situation may occur if an
 application tries to "connect to itself" - that is, either connects to a local
 IP address, when the socket is bound to INADDR_ANY, or to the same IP address to
@@ -1244,7 +1231,7 @@ the Version 4 peer when the Handshake Type is WAVEAHAND.
    (compares both cookie values). If Bob's cookie is greater than Alice's, he will
    become the Initiator. Otherwise, he will become the Responder.
 
-IMPORTANT: The resolution of the Handshake Role
+The resolution of the Handshake Role
 (Initiator or Responder) is essential for further processing.
 
 Then Bob responds:
@@ -1254,7 +1241,7 @@ Then Bob responds:
 - Encryption field: advertised PBKEYLEN
 - Handshake Type: CONCLUSION
 
-NOTE: If Bob is the Initiator and encryption is on, he will use either his
+If Bob is the Initiator and encryption is on, he will use either his
 own cipher family and block size or the one received from Alice (if she has advertised
 those values).
 
@@ -1265,7 +1252,7 @@ those values).
    - Appropriate extension flags and encryption flags
    - Handshake Type: CONCLUSION
 
-NOTE: Both parties always send extension flags at this point, which will
+Both parties always send extension flags at this point, which will
 contain HSREQ if the message comes from an Initiator, or
 HSRSP if it comes from a Responder. If the Initiator has received a
 previous message from the Responder containing an advertised cipher family and block size in the
@@ -1352,7 +1339,7 @@ Responder:
    - Sends CONCLUSION message (with no extensions)
 2. Attention
    - Receives CONCLUSION message with HSREQ
-     NOTE: This message might contain no extensions, in which case the party 
+     This message might contain no extensions, in which case the party 
      shall simply send the empty CONCLUSION message, as before, and remain 
      in this state.
    - Switches to Initiated and sends CONCLUSION message with HSRSP
@@ -1383,12 +1370,13 @@ never become aware. The missing packet problem is resolved this way:
 
 3. When the Initiator switches to the Connected state it responds with a
    AGREEMENT message, which may be missed by the Responder. Nonetheless, the
-   Initiator may start sending data packets because it considers itself connected
-- it doesn't know that the Responder has not yet switched to the Connected state.
-  Therefore it is exceptionally allowed that when the Responder is in the Initiated
-  state and receives a data packet (or any control packet that is normally sent only
-  between connected parties) over this connection, it may switch to the Connected
-  state just as if it had received a AGREEMENT message.
+   Initiator may start sending data packets because it considers itself
+   connected - it doesn't know that the Responder has not yet switched
+   to the Connected state. Therefore it is exceptionally allowed that when
+   the Responder is in the Initiated state and receives a data packet
+   (or any control packet that is normally sent only between connected
+   parties) over this connection, it may switch to the Connected
+   state just as if it had received a AGREEMENT message.
 
 4. If the the Initiator has already switched to the Connected state it will not
    bother the Responder with any more handshake messages. But the Responder may be
@@ -1521,7 +1509,7 @@ extended RTT time, and the time needed to retransmit the lost packet. The value 
 is negotiated during the SRT handshake exchange and is equal to 120 milliseconds. The recommended
 value of TsbpdDelay is 3-4 times RTT.
 
-It's worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent
+it is worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent
 making impossible to retransmit packets endlessly. This is important for live data transmission.
 
 #### TSBPD Time Base Calculation {#tsbpd-time-base}
@@ -1635,7 +1623,7 @@ events (packet delivery, etc.) can be scheduled.
 The receiver samples time drift data and periodically calculates a
 packet timestamp correction factor, which is applied to each data
 packet received by adjusting the inter-packet interval. When a
-packet is received it isn't given right away to the application.
+packet is received it is not given right away to the application.
 As time advances, the receiver knows the expected time for any
 missing or dropped packet, and can use this information to fill
 any "holes" in the receive queue with another packet
@@ -1649,7 +1637,7 @@ large number of samples. The actual time drift being very slow (affecting a
 stream only after many hours) does not require a fast reaction.
 
 The receiver uses local time to be able to schedule events — to
-determine, for example, if it's time to deliver a certain packet
+determine, for example, if it is time to deliver a certain packet
 right away. The timestamps in the packets themselves are just
 references to the beginning of the session. When a packet is received
 (with a timestamp from the sender), the receiver makes a reference to
@@ -1772,10 +1760,6 @@ The round-trip time is estimated during the transmission of SRT data packets
 based on the time difference between the ACK packet is sent and the
 corresponding ACKACK is received by the data receiver.
 
-# Encryption {#encryption}
-
-SRT supports encryption based on the exchange of private keys.
-
 ## Congestion Control
 
 SRT provides certain mechanisms for the sender to get some feedback
@@ -1784,7 +1768,7 @@ Every 10 ms the sender receives the latest values of RTT and RTT variance,
 Available Buffer Size, Packets Receiving Rate and Estimated Link Capacity.
 Upon reception of the NAK packet ({{ctrl-pkt-nak}}) the sender can detect
 packet losses during the transmission.
-These mechanisms provide a solid backgroud for various congestion control
+These mechanisms provide a solid background for various congestion control
 algorithms.
 
 Given that SRT can operate in live and file transfer modes, there are two groups
@@ -1804,6 +1788,10 @@ and packet acknowledgements (ACKs).
 It then slows down the output of packets as needed by adjusting the packet sending pace.
 In periods of congestion, it can block the main stream and focus on the lost packets.
 
+# Encryption {#encryption}
+
+SRT supports encryption based on the exchange of private keys.
+
 # Security Considerations
 
 SRT supports confidentiality of user data using stream ciphering based on AES.
@@ -1813,14 +1801,6 @@ with pre-shared secret such as passphrase. As in UDT, careful uses of SYN Cookie
 may help to deter denial of service attacks. Appropriate security policy including
 key size, key refresh period, as well as passphrase should be managed by security
 officers, which is out of scope of the present document.
-
-SRT support confidentiality of user data using stream ciphering based on AES,
-as specified in {{encryption}}. Session key for ciphering is delivered control
-packet during handshake, with the protection by Key encryption key,
-which is generated by a sender and receiver with pre-shared secret such as passphrase.
-Appropriate security policy including key size, key refresh period,
-as well as passphrase should be managed by security officers,
-which is out of scope of the present document.
 
 # IANA Considerations
 
@@ -1837,11 +1817,11 @@ specification at Haivision are: Marc Cymontkowski, Roman Diouskine,
 Jean Dube, Mikolaj Malecki, Steve Matthews, Maria Sharabayko,
 Maxim Sharabayko, Adam Yellen.
 
-The contributors to this specification at South Korea Telekom
+The contributors to this specification at SK Telecom
 are Jeongseok Kim and Joonwoong Kim.
 
-We can't list all the contributors to the open-sourced implementation of SRT on GitHub.
-But we appreciate the help, contribution, integrations and feedback of the 
+We cannot list all the contributors to the open-sourced implementation of SRT on GitHub.
+But we appreciate the help, contribution, integrations and feedback of the
 SRT and SRT Alliances community.
 
 # Acknowledgments
