@@ -24,9 +24,9 @@ author:
     organization: "Haivision Network Video, GmbH"
     email: msharabayko@haivision.com
  -
-    ins: "J. Dube"
-    name: "Jean Dube"
-    organization: "Haivision Network Video, GmbH"
+    ins: "J. Dubé"
+    name: "Jean Dubé"
+    organization: "Haivision"
     email: jdube@haivision.com
  -
     ins: "JS. Kim"
@@ -301,7 +301,8 @@ O (1 bit):
 KK (2 bits):
 : Key-based Encryption Flag. The flag bits indicate whether or not data is encrypted.
   The value "00b" (binary) means data is not encrypted. "01b" indicates that data is
-  encrypted with even key, and "11b" is used for odd key encryption. Refer to {{encryption}}.
+  encrypted with an even key, and "10b" is used for odd key encryption. Refer to {{encryption}}.
+  The value "11b" is only used in control packets.
 
 R (1 bit):
 : Retransmitted Packet Flag. This flag is clear when a packet is transmitted the first time.
@@ -350,7 +351,13 @@ Type-specific Information (32 bits):
   packet type. Handshake packets don't use this field.
 
 Control Information Field (variable length):
-: The use of this field is defined by the Control Type field of a control packet.
+: The use of this field is defined by the Control Type field of the control packet.
+
+KK (2 bits):
+: Encryption Flag. The flag bits indicate whether or not data is encrypted.
+  The value "00b" means data is not encrypted, "01b" indicates that data is
+  encrypted with an even key, and "10b" is used for odd key encryption.
+  The value "11b" is used to carry both keys in single message.
 
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
 The value "0x7ffff" is reserved for a user-defined type.
