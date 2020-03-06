@@ -582,12 +582,10 @@ S ( ): 1 bit. Value: {0}
 
 Version (V): 3 bits. Value: {1}  
 : This is a fixed-width field that indicates the SRT version:
-
   - 1: initial version
 
 Packet Type (PT): 4 bits. Value: {2}  
 : This is a fixed-width field that indicates the Packet Type:
-
   - 0: Reserved
   - 1: MSmsg
   - 2: KMmsg 
@@ -600,9 +598,8 @@ Signature (Sign): 16 bits. Value: {0x2029}
 Reserved (Resv): 6 bits. Value: {0}  
 : This is a fixed-width field reserved for flag extension or other usage.
 
-Key-based Data Encryption (KK): 2 bits.  Value: ???
+Key-based Data Encryption (KK): 2 bits.
 : This is a fixed-width field that indicates whether or not data is encrypted:
-
   - 00b: not encrypted (data packets only)
   - 01b: even key
   - 10b: odd key   
@@ -610,30 +607,26 @@ Key-based Data Encryption (KK): 2 bits.  Value: ???
 
 Key Encryption Key Index (KEKI): 32 bits. Value: {0}  
 : This is a fixed-width field for specifying the KEK index (big endian order)
+  - 0: Default stream associated key (stream/system default)
+  - 1..255: Reserved for manually indexed keys
 
-- 0: Default stream associated key (stream/system default)
-- 1..255: Reserved for manually indexed keys
-
-Cipher ( ): 8 bits. Value: {2}  
+Cipher ( ): 8 bits. Value: {0..2}
 : This is a fixed-width field for specifying encryption cipher and mode:
-
   - 0: None or KEKI indexed crypto context
   - 1: AES-ECB (not supported in SRT)
-  - 2: AES-CTR {{SP800-38A}} 
-  - x: AES-CCM {{RFC3610}} if message integrity required (FIPS 140-2 approved)   
-  - x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)   
+  - 2: AES-CTR {{SP800-38A}}
+  - x: AES-CCM {{RFC3610}} if message integrity required (FIPS 140-2 approved)
+  - x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)
 
 Authentication (Auth): 8 bits. Value: {0}  
 : This is a fixed-width field for specifying a message authentication code algorithm:
-
   - 0: None or KEKI indexed crypto context
 
 Stream Encapsulation (SE): 8 bits. Value: {2}  
 : This is a fixed-width field for describing the stream encapsulation:
-
   - 0: Unspecified or KEKI indexed crypto context
   - 1: MPEG-TS/UDP
-  - :MPEG-TS/SRT 
+  - 2: MPEG-TS/SRT
 
 Reserved (Resv1): 8 bits. Value: {0}  
 : This is a fixed-width field reserved for future use.
@@ -778,7 +771,7 @@ Last Acknowledged Packet Sequence Number (32 bits):
 : The sequence number of the last acknowledged data packet +1.
 
 RTT (32 bits):
-: RTT value (in microseconds) estimated by the receiver based on the previous ACK-ACKACK 
+: RTT value (in microseconds) estimated by the receiver based on the previous ACK-ACKACK
 packet exchange.
 
 RTT variance (32 bits):
@@ -942,16 +935,18 @@ every control and data packet (see {{packet-structure}}).
 
 ## Data Transmission Modes {#data-transmission-mode}
 
-In Live Transmission Mode the only valid value is "1".
+SRT has been mainly created for Live Streaming and therefore its main and
+default transmission mode is "live". SRT supports, however, the modes that
+the original UDT library supported, that is, buffer and message transmission.
 
 ### Message Mode {#transmission-mode-msg}
 
-When the STREAM flag of the handshake Extension Message {#handshake-extension-msg} is set 
+When the STREAM flag of the handshake Extension Message {#handshake-extension-msg} is set
 to 0, the protocol operates in Message mode, characterized as follows:
 
 - Every packet has its own Packet Sequence Number.
 - One or several consecutive SRT Data packets can form a message.
-- All the packets belonging to the same message have a similar message number set 
+- All the packets belonging to the same message have a similar message number set
       in the Message Number field.
 
 The first packet of a message has the first bit of the Packet Position Flags ({{data-pkt}})
