@@ -1837,7 +1837,7 @@ specification at Haivision are: Marc Cymontkowski, Roman Diouskine,
 Jean Dube, Mikolaj Malecki, Steve Matthews, Maria Sharabayko,
 Maxim Sharabayko, Adam Yellen.
 
-The contributors to this specification at South Korea Telekom
+The contributors to this specification at SK Telecom
 are Jeongseok Kim and Joonwoong Kim.
 
 We can't list all the contributors to the open-sourced implementation of SRT on GitHub.
