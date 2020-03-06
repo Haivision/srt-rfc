@@ -577,21 +577,21 @@ extensions. The value of a request is 3, and the response value is 4.
 ~~~~
 {: #keymaterial-extension-structure title="Key Material Extension structure"}
 
-0 ( ): 1 bit. Value: {0}  
-: This is a fixed-width field that is a remnant from the header of a previous design (VF).
+S ( ): 1 bit. Value: {0}  
+: This is a fixed-width field that is a remnant from the header of a previous design.
 
 Version (V): 3 bits. Value: {1}  
 : This is a fixed-width field that indicates the SRT version:
 
-- 1: initial version
+  - 1: initial version
 
 Packet Type (PT): 4 bits. Value: {2}  
 : This is a fixed-width field that indicates the Packet Type:
 
-- 0: Reserved
-- 1: MSmsg
-- 2: KMmsg 
-- 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)   
+  - 0: Reserved
+  - 1: MSmsg
+  - 2: KMmsg 
+  - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)   
 
 Signature (Sign): 16 bits. Value: {0x2029}  
 : This is a fixed-width field that contains the signature ‘HAI‘ encoded as a 
@@ -603,10 +603,10 @@ Reserved (Resv): 6 bits. Value: {0}
 Key-based Data Encryption (KK): 2 bits.  Value: ???
 : This is a fixed-width field that indicates whether or not data is encrypted:
 
-- 00b: not encrypted (data packets only)
-- 01b: even key
-- 10b: odd key   
-- 11b: even and odd keys   
+  - 00b: not encrypted (data packets only)
+  - 01b: even key
+  - 10b: odd key   
+  - 11b: even and odd keys   
 
 Key Encryption Key Index (KEKI): 32 bits. Value: {0}  
 : This is a fixed-width field for specifying the KEK index (big endian order)
@@ -617,23 +617,23 @@ Key Encryption Key Index (KEKI): 32 bits. Value: {0}
 Cipher ( ): 8 bits. Value: {2}  
 : This is a fixed-width field for specifying encryption cipher and mode:
 
-- 0: None or KEKI indexed crypto context
-- 1: AES-ECB (not supported in SRT)
-- 2: AES-CTR {{SP800-38A}} 
-- x: AES-CCM {{RFC3610}} if message integrity required (FIPS 140-2 approved)   
-- x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)   
+  - 0: None or KEKI indexed crypto context
+  - 1: AES-ECB (not supported in SRT)
+  - 2: AES-CTR {{SP800-38A}} 
+  - x: AES-CCM {{RFC3610}} if message integrity required (FIPS 140-2 approved)   
+  - x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)   
 
 Authentication (Auth): 8 bits. Value: {0}  
 : This is a fixed-width field for specifying a message authentication code algorithm:
 
-- 0: None or KEKI indexed crypto context
+  - 0: None or KEKI indexed crypto context
 
 Stream Encapsulation (SE): 8 bits. Value: {2}  
 : This is a fixed-width field for describing the stream encapsulation:
 
-- 0: Unspecified or KEKI indexed crypto context
-- 1: MPEG-TS/UDP
-- :MPEG-TS/SRT 
+  - 0: Unspecified or KEKI indexed crypto context
+  - 1: MPEG-TS/UDP
+  - :MPEG-TS/SRT 
 
 Reserved (Resv1): 8 bits. Value: {0}  
 : This is a fixed-width field reserved for future use.
