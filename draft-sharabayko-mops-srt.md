@@ -348,7 +348,7 @@ Subtype (16 bits):
 
 Type-specific Information (32 bits):
 : The use of this field depends on the particular control
-  packet type. Handshake packets don't use this field.
+  packet type. Handshake packets do not use this field.
 
 Control Information Field (variable length):
 : The use of this field is defined by the Control Type field of the control packet.
@@ -482,7 +482,7 @@ SYN Cookie (32 bits):
 
 Peer IP Address (128 bits):
 : The sender's IPv4 or IPv6 address. The value consists of four 32-bit fields. In the case
-  of IPv4 adresses, fields 2, 3 and 4 are padded with zeroes.  <-- **TO BE CONFIRMED**
+  of IPv4 addresses, fields 2, 3 and 4 are padded with zeroes.
 
 Extension Type (16 bits):
 : The value of this field is used to process an integrated handshake.
@@ -1096,11 +1096,11 @@ The Caller begins by sending the INDUCTION handshake, which contains the followi
 The Destination Socket ID of the SRT packet header in this message is 0, which is
 interpreted as a connection request.
 
-NOTE: The handshake version number is set to 4 in this initial handshake.
+The handshake version number is set to 4 in this initial handshake.
 This is due to the initial design of SRT that was to be compliant with the UDT
 protocol ({{GHG04b}}) on which it is based.
 
-NOTE: This phase serves only to set a cookie on the Listener so that it
+This phase serves only to set a cookie on the Listener so that it
 doesn't allocate resources, thus mitigating a potential DoS attack that might be
 perpetrated by flooding the Listener with handshake commands.
 
@@ -1114,7 +1114,7 @@ The Listener responds with the following:
 - SYN Cookie: a cookie that is crafted based on host, port and current time
   with 1 minute accuracy
 
-NOTE: At this point the Listener still doesn't know if the Caller is SRT or UDT,
+At this point the Listener still doesn't know if the Caller is SRT or UDT,
 and it responds with the same set of values regardless of whether the Caller is
 SRT or UDT.
 
@@ -1155,10 +1155,10 @@ of the handshake structure.
 - Extension Flags: A set of flags that define the extensions provided in the handshake.
 
 The Listener responds with the same values shown above, without the cookie (which
-isn't needed here), as well as the extensions for HS Version 5 (which will probably be
+is not needed here), as well as the extensions for HS Version 5 (which will probably be
 exactly the same).
 
-IMPORTANT: There isn't any "negotiation" here. If the values passed in the
+There is not any "negotiation" here. If the values passed in the
 handshake are in any way not acceptable by the other side, the connection will
 be rejected. The only case when the Listener can have precedence over the Caller
 is the advertised Cipher Family and Block Size ({{handshake-encr-fld}})
@@ -1186,7 +1186,7 @@ port, and current time with 1 minute accuracy. This value is scrambled using
 an MD5 sum calculation. The cookie values are then compared with one another.
 
 Since it is impossible to have two sockets on the same machine bound to the same NIC
-and port and operating independently, it's virtually impossible that the
+and port and operating independently, it is virtually impossible that the
 parties will generate identical cookies. However, this situation may occur if an
 application tries to "connect to itself" - that is, either connects to a local
 IP address, when the socket is bound to INADDR_ANY, or to the same IP address to
@@ -1231,7 +1231,7 @@ the Version 4 peer when the Handshake Type is WAVEAHAND.
    (compares both cookie values). If Bob's cookie is greater than Alice's, he will
    become the Initiator. Otherwise, he will become the Responder.
 
-IMPORTANT: The resolution of the Handshake Role
+The resolution of the Handshake Role
 (Initiator or Responder) is essential for further processing.
 
 Then Bob responds:
@@ -1241,7 +1241,7 @@ Then Bob responds:
 - Encryption field: advertised PBKEYLEN
 - Handshake Type: CONCLUSION
 
-NOTE: If Bob is the Initiator and encryption is on, he will use either his
+If Bob is the Initiator and encryption is on, he will use either his
 own cipher family and block size or the one received from Alice (if she has advertised
 those values).
 
@@ -1252,7 +1252,7 @@ those values).
    - Appropriate extension flags and encryption flags
    - Handshake Type: CONCLUSION
 
-NOTE: Both parties always send extension flags at this point, which will
+Both parties always send extension flags at this point, which will
 contain HSREQ if the message comes from an Initiator, or
 HSRSP if it comes from a Responder. If the Initiator has received a
 previous message from the Responder containing an advertised cipher family and block size in the
@@ -1339,7 +1339,7 @@ Responder:
    - Sends CONCLUSION message (with no extensions)
 2. Attention
    - Receives CONCLUSION message with HSREQ
-     NOTE: This message might contain no extensions, in which case the party 
+     This message might contain no extensions, in which case the party 
      shall simply send the empty CONCLUSION message, as before, and remain 
      in this state.
    - Switches to Initiated and sends CONCLUSION message with HSRSP
@@ -1509,7 +1509,7 @@ extended RTT time, and the time needed to retransmit the lost packet. The value 
 is negotiated during the SRT handshake exchange and is equal to 120 milliseconds. The recommended
 value of TsbpdDelay is 3-4 times RTT.
 
-It's worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent
+it is worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent
 making impossible to retransmit packets endlessly. This is important for live data transmission.
 
 #### TSBPD Time Base Calculation {#tsbpd-time-base}
@@ -1623,7 +1623,7 @@ events (packet delivery, etc.) can be scheduled.
 The receiver samples time drift data and periodically calculates a
 packet timestamp correction factor, which is applied to each data
 packet received by adjusting the inter-packet interval. When a
-packet is received it isn't given right away to the application.
+packet is received it is not given right away to the application.
 As time advances, the receiver knows the expected time for any
 missing or dropped packet, and can use this information to fill
 any "holes" in the receive queue with another packet
@@ -1637,7 +1637,7 @@ large number of samples. The actual time drift being very slow (affecting a
 stream only after many hours) does not require a fast reaction.
 
 The receiver uses local time to be able to schedule events — to
-determine, for example, if it's time to deliver a certain packet
+determine, for example, if it is time to deliver a certain packet
 right away. The timestamps in the packets themselves are just
 references to the beginning of the session. When a packet is received
 (with a timestamp from the sender), the receiver makes a reference to
@@ -1820,8 +1820,8 @@ Maxim Sharabayko, Adam Yellen.
 The contributors to this specification at SK Telecom
 are Jeongseok Kim and Joonwoong Kim.
 
-We can't list all the contributors to the open-sourced implementation of SRT on GitHub.
-But we appreciate the help, contribution, integrations and feedback of the 
+We cannot list all the contributors to the open-sourced implementation of SRT on GitHub.
+But we appreciate the help, contribution, integrations and feedback of the
 SRT and SRT Alliances community.
 
 # Acknowledgments
