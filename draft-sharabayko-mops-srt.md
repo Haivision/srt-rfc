@@ -90,9 +90,111 @@ and a mechanism for data encryption.
 
 # Introduction
 
-TO DO Introduction
+## Motivation 
 
+The demand for live video streaming has been increasing steadily for many years. With 
+the emergence of cloud technologies, many video processing pipeline components have 
+transitioned from on-premises appliances to software running on cloud instances. While 
+real-time streaming over TCP-based protocols like RTMP is possible at low bitrates and 
+on a small scale, the exponential growth of the streaming market has created a need for 
+more powerful solutions. 
 
+To improve scalability on the delivery side, content delivery networks (CDNs) at one 
+point transitioned to segmentation-based technologies like HLS (HTTP Live Streaming) 
+and DASH (Dynamic Adaptive Streaming over HTTP). This move increased the end-to-end 
+latency of live streaming to over 30 seconds, which makes it unattractive for many 
+use cases. Over time, the industry optimized these delivery methods, bringing the 
+latency down to 3 seconds.  
+
+While the delivery side scaled up, improvements to video transcoding became a necessity. 
+Viewers watch video streams on a variety of different devices, connected over different 
+types of networks. Since upload bandwidth from on-premises locations is often limited, 
+video transcoding moved to the cloud. 
+
+RTMP became the de facto standard for contribution over the public internet. But there 
+are limitations for the payload to be transmitted, since RTMP as a media specific 
+protocol only supports two audio channels and a restricted set of audio and video codecs, 
+lacking support for newer formats such as HEVC, VP9, or AV1.  
+
+Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee acceptable 
+reliability over connections with low RTTs, and can’t use the bandwidth of network 
+connections to their full extent due to limitations imposed by congestion control. 
+Notably, QUIC has been designed to address these problems with HTTP-based delivery 
+protocols in HTTP/3. Like QUIC, SRT uses UDP instead of the TCP transport protocol, 
+but includes features which assure more reliable delivery. 
+
+## Secure Reliable Transport Protocol 
+
+Low latency video transmissions across reliable (usually local) IP based networks 
+typically take the form of MPEG-TS unicast or multicast streams using the UDP/RTP 
+protocol, where any packet loss can be mitigated by enabling forward error correction 
+(FEC). Achieving the same low latency between sites in different cities, countries or 
+even continents is more challenging. While it is possible with satellite links or 
+dedicated MPLS networks, these are expensive solutions. The use of public internet 
+connectivity, while less expensive, imposes significant bandwidth overhead to achieve 
+the necessary level of packet loss recovery. Introducing selective packet retransmission 
+(reliable UDP) to recover from packet loss removes those limitations.  
+
+Derived from the UDP-based Data Transfer protocol (UDT), SRT is a user-level protocol 
+that retains most of the core concepts and mechanisms while introducing several 
+refinements and enhancements, including control packet modifications, improved flow 
+control for handling live streaming, enhanced congestion control, and a mechanism for 
+encrypting packets. A fully functional reference implementation can be found at 
+https://github.com/Haivision/srt.  
+
+SRT is a transport protocol that enables the secure, reliable transport of data across 
+unpredictable networks, such as the Internet. While any data type can be transferred 
+via SRT, it is ideal for low latency (sub-second) video streaming. SRT provides 
+dramatically improved bandwidth utilization compared to RTMP, allowing much higher 
+contribution bitrates over long distance connections. 
+
+As packets are streamed from source to destination, SRT detects and adapts to the 
+real-time network conditions between the two endpoints, and helps compensate for 
+jitter and bandwidth fluctuations due to congestion over noisy networks. Its error 
+recovery mechanism minimizes the packet loss typical of Internet connections. SRT 
+supports AES encryption for end-to-end security. 
+
+To achieve low latency streaming, SRT had to address timing issues. The characteristics 
+of a stream from a source network are completely changed by transmission over the public 
+internet, which introduces delays, jitter, and packet loss. This, in turn, leads to 
+problems with decoding, as the audio and video decoders do not receive packets at the 
+expected times. The use of large buffers helps, but latency is increased. 
+
+SRT includes a mechanism that recreates the signal characteristics on the receiver side, 
+dramatically reducing the need for buffering.
+
+Like TCP, SRT employs a listener/caller model. The data flow is bi-directional and 
+independent of the connection initiation - either the sender or receiver can operate 
+as listener or caller to initiate a connection. The protocol provides an internal 
+multiplexing mechanism, allowing multiple SRT connections to share the same UDP port, 
+providing access control functionality to identify the caller on the listener side. 
+
+Supporting forward error correction (FEC) and selective packet retransmission (ARQ), 
+SRT provides the flexibility to use either of the two mechanisms or both combined, 
+allowing for use cases ranging from the lowest possible latency to the highest possible 
+reliability. 
+
+SRT maintains the ability for fast file transfers introduced in UDT, and adds support 
+for AES encryption. 
+
+## Open Source Initiative 
+
+Haivision developed the SRT protocol in 2012. After successfully using it in thousands 
+of installations worldwide for five years, they decided to open it up to the community 
+and made it open source in April 2017.  
+
+Open source SRT is distributed under MPL-2.0, which was chosen because it strikes a 
+balance between driving adoption for open source SRT, while encouraging contributions 
+to improve upon it by the community of adopters. Any third party is free to use the 
+SRT source in a larger work regardless of how that larger work is compiled. Should 
+they make source code changes, they would be obligated to make those changes available 
+to the community. 
+
+In the three years since Haivision opened up the source code, more than 350 companies 
+have joined the SRT Industry Alliance (https://www.srtalliance.org), and even more 
+have adopted the protocol. SRT has seen the fastest adoption of a protocol in the 
+media industry to date, and has become the new de facto standard for secure, low 
+latency, high quality contribution and point-to-(multi-)point distribution. 
 
 # Conventions and Definitions
 
