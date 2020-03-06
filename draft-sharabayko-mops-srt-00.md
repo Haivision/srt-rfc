@@ -1772,10 +1772,6 @@ The round-trip time is estimated during the transmission of SRT data packets
 based on the time difference between the ACK packet is sent and the
 corresponding ACKACK is received by the data receiver.
 
-# Encryption {#encryption}
-
-SRT supports encryption based on the exchange of private keys.
-
 ## Congestion Control
 
 SRT provides certain mechanisms for the sender to get some feedback
@@ -1803,6 +1799,10 @@ The UDT congestion control relies on the available link capacity, packet loss re
 and packet acknowledgements (ACKs).
 It then slows down the output of packets as needed by adjusting the packet sending pace.
 In periods of congestion, it can block the main stream and focus on the lost packets.
+
+# Encryption {#encryption}
+
+SRT supports encryption based on the exchange of private keys.
 
 # Security Considerations
 
