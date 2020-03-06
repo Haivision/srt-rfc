@@ -24,8 +24,8 @@ author:
     organization: "Haivision Network Video, GmbH"
     email: msharabayko@haivision.com
  -
-    ins: "J. Dubé"
-    name: "Jean Dubé"
+    ins: "J. Dube"
+    name: "Jean Dube"
     organization: "Haivision"
     email: jdube@haivision.com
  -
@@ -1787,7 +1787,8 @@ In periods of congestion, it can block the main stream and focus on the lost pac
 
 # Encryption {#encryption}
 
-SRT supports encryption based on the exchange of private keys.
+SRT supports encryption based on a pre-shared secret.
+Please refer to {{SRTTO}} for more information.
 
 # Security Considerations
 
