@@ -44,7 +44,6 @@ normative:
   RFC0768:
 
 informative:
-  RFC3610:
   RFC8174:
   GHG04b:
     title: Experiences in Design and Implementation of a High Performance Transport Protocol
@@ -615,8 +614,6 @@ Cipher ( ): 8 bits. Value: {0..2}
   - 0: None or KEKI indexed crypto context
   - 1: AES-ECB (not supported in SRT)
   - 2: AES-CTR {{SP800-38A}}
-  - x: AES-CCM {{RFC3610}} if message integrity required (FIPS 140-2 approved)
-  - x: AES-GCM if message integrity required (FIPS 140-3 & NSA Suite B)
 
 Authentication (Auth): 8 bits. Value: {0}  
 : This is a fixed-width field for specifying a message authentication code algorithm:
