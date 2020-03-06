@@ -160,12 +160,8 @@ internet, which introduces delays, jitter, and packet loss. This, in turn, leads
 problems with decoding, as the audio and video decoders do not receive packets at the 
 expected times. The use of large buffers helps, but latency is increased. 
 
-[Unhappy Decoder](SRT_DecoderUnhappy.svg)
-
 SRT includes a mechanism that recreates the signal characteristics on the receiver side, 
 dramatically reducing the need for buffering.
-
-[Happy Decoder](SRT_DecoderHappy.svg)
 
 Like TCP, SRT employs a listener/caller model. The data flow is bi-directional and 
 independent of the connection initiation - either the sender or receiver can operate 
