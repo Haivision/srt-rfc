@@ -45,6 +45,8 @@ normative:
 
 informative:
   RFC8174:
+  RFC8216:
+  RFC3031:
   GHG04b:
     title: Experiences in Design and Implementation of a High Performance Transport Protocol
     author:
@@ -75,7 +77,54 @@ informative:
       - 
         name: Steve Matthews
     date: December, 2019
-    
+  RTMP:
+    target: https://www.adobe.com/devnet/rtmp.html
+    title: Real-Time Messaging Protocol
+    date: none
+  ISO23009:
+    title: Information technology — Dynamic adaptive streaming over HTTP (DASH)
+    author:
+      org: ISO
+    date: none
+    seriesinfo:
+      "ISO/IEC": 23009:2019
+  ISO13818-1:
+    title: >
+      Information technology 
+      — Generic coding of moving pictures and associated audio information:
+      Systems
+    author:
+      org: ISO
+    date: none
+    seriesinfo:
+      "ISO/IEC": 13818-1
+  I-D.ietf-quic-http:
+  I-D.ietf-quic-transport:
+  H.265:
+    title: "H.265 : High efficiency video coding"
+    author:
+      org: International Telecommunications Union
+    date: 2019
+    seriesinfo:
+      ITU-T: "Recommendation H.265"
+  VP9:
+    target: https://www.webmproject.org/vp9
+    title: VP9 Video Codec
+    author:
+      org: WebM 
+    date: none
+  AV1:
+    target: https://aomediacodec.github.io/av1-spec/av1-spec.pdf
+    title: AV1 Bitstream & Decoding Process Specification
+    author:
+      -
+        name: Peter de Rivaz
+        org: Argon Design Ltd
+      -
+        name: Jack Haughton
+        org: Argon Design Ltd
+    date: none
+
 --- abstract
 
 This document specifies Secure Reliable Transport (SRT) protocol. 
@@ -94,13 +143,13 @@ and a mechanism for data encryption.
 The demand for live video streaming has been increasing steadily for many years. With 
 the emergence of cloud technologies, many video processing pipeline components have 
 transitioned from on-premises appliances to software running on cloud instances. While 
-real-time streaming over TCP-based protocols like RTMP is possible at low bitrates and 
+real-time streaming over TCP-based protocols like RTMP{{RTMP}} is possible at low bitrates and 
 on a small scale, the exponential growth of the streaming market has created a need for 
 more powerful solutions. 
 
 To improve scalability on the delivery side, content delivery networks (CDNs) at one 
-point transitioned to segmentation-based technologies like HLS (HTTP Live Streaming) 
-and DASH (Dynamic Adaptive Streaming over HTTP). This move increased the end-to-end 
+point transitioned to segmentation-based technologies like HLS (HTTP Live Streaming){{RFC8216}}
+and DASH (Dynamic Adaptive Streaming over HTTP){{ISO23009}}. This move increased the end-to-end 
 latency of live streaming to over 30 seconds, which makes it unattractive for many 
 use cases. Over time, the industry optimized these delivery methods, bringing the 
 latency down to 3 seconds.  
@@ -113,23 +162,23 @@ video transcoding moved to the cloud.
 RTMP became the de facto standard for contribution over the public internet. But there 
 are limitations for the payload to be transmitted, since RTMP as a media specific 
 protocol only supports two audio channels and a restricted set of audio and video codecs, 
-lacking support for newer formats such as HEVC, VP9, or AV1.  
+lacking support for newer formats such as HEVC{{H.265}}, VP9{{VP9}}, or AV1{{AV1}}.
 
 Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee acceptable 
 reliability over connections with low RTTs, and can’t use the bandwidth of network 
 connections to their full extent due to limitations imposed by congestion control. 
-Notably, QUIC has been designed to address these problems with HTTP-based delivery 
-protocols in HTTP/3. Like QUIC, SRT uses UDP instead of the TCP transport protocol, 
+Notably, QUIC{{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery 
+protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT uses UDP instead of the TCP transport protocol, 
 but includes features which assure more reliable delivery. 
 
 ## Secure Reliable Transport Protocol 
 
 Low latency video transmissions across reliable (usually local) IP based networks 
-typically take the form of MPEG-TS unicast or multicast streams using the UDP/RTP 
+typically take the form of MPEG-TS{{ISO13818-1}} unicast or multicast streams using the UDP/RTP 
 protocol, where any packet loss can be mitigated by enabling forward error correction 
 (FEC). Achieving the same low latency between sites in different cities, countries or 
 even continents is more challenging. While it is possible with satellite links or 
-dedicated MPLS networks, these are expensive solutions. The use of public internet 
+dedicated MPLS{{RFC3031}} networks, these are expensive solutions. The use of public internet 
 connectivity, while less expensive, imposes significant bandwidth overhead to achieve 
 the necessary level of packet loss recovery. Introducing selective packet retransmission 
 (reliable UDP) to recover from packet loss removes those limitations.  
