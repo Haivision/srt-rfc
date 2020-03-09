@@ -193,7 +193,7 @@ https://github.com/Haivision/srt.
 SRT is a transport protocol that enables the secure, reliable transport of data across 
 unpredictable networks, such as the Internet. While any data type can be transferred 
 via SRT, it is ideal for low latency (sub-second) video streaming. SRT provides 
-dramatically improved bandwidth utilization compared to RTMP, allowing much higher 
+improved bandwidth utilization compared to RTMP, allowing much higher 
 contribution bitrates over long distance connections. 
 
 As packets are streamed from source to destination, SRT detects and adapts to the 
@@ -209,7 +209,7 @@ problems with decoding, as the audio and video decoders do not receive packets a
 expected times. The use of large buffers helps, but latency is increased. 
 
 SRT includes a mechanism that recreates the signal characteristics on the receiver side, 
-dramatically reducing the need for buffering.
+reducing the need for buffering.
 
 Like TCP, SRT employs a listener/caller model. The data flow is bi-directional and 
 independent of the connection initiation - either the sender or receiver can operate 
