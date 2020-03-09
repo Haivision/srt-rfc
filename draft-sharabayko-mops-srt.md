@@ -165,7 +165,7 @@ protocol only supports two audio channels and a restricted set of audio and vide
 lacking support for newer formats such as HEVC{{H.265}}, VP9{{VP9}}, or AV1{{AV1}}.
 
 Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee acceptable 
-reliability over connections with low RTTs, and can’t use the bandwidth of network 
+reliability over connections with low RTTs, and can not use the bandwidth of network 
 connections to their full extent due to limitations imposed by congestion control. 
 Notably, QUIC{{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery 
 protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT uses UDP instead of the TCP transport protocol, 
