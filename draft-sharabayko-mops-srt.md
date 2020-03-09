@@ -1077,24 +1077,24 @@ When a connection process has failed before either party can send the CONCLUSION
 the Handshake Type field will contain the appropriate error value for the rejected 
 connection. See the list of error codes in {{hs-rej-reason}}.
 
- | Code | Error            | Description                                    |
- | ---- | ---------------- | ---------------------------------------------- |
- | 1000 | REJ_UNKNOWN      | Unknown reason                                 |
- | 1001 | REJ_SYSTEM       | System function error                          |
- | 1002 | REJ_PEER         | Rejected by peer                               |
- | 1003 | REJ_RESOURCE     | Resource allocation problem                    |
- | 1004 | REJ_ROGUE        | incorrect data in handshake                    |
- | 1005 | REJ_BACKLOG      | listener's backlog exceeded                    |
- | 1006 | REJ_IPE          | internal program error                         |
- | 1007 | REJ_CLOSE        | socket is closing                              |
- | 1008 | REJ_VERSION      | peer is older version than agent's minimum set |
- | 1009 | REJ_RDVCOOKIE    | rendezvous cookie collision                    |
- | 1010 | REJ_BADSECRET    | wrong password                                 |
- | 1011 | REJ_UNSECURE     | password required or unexpected                |
- | 1012 | REJ_MESSAGEAPI   | Stream flag collision                          |
- | 1013 | REJ_CONGESTION   | incompatible congestion-controller type        |
- | 1014 | REJ_FILTER       | incompatible packet filter                     |
- | 1015 | REJ_GROUP        | incompatible group                             |
+ | Code | Error            | Description                             |
+ | ---- | ---------------- | --------------------------------------- |
+ | 1000 | REJ_UNKNOWN      | Unknown reason                          |
+ | 1001 | REJ_SYSTEM       | System function error                   |
+ | 1002 | REJ_PEER         | Rejected by peer                        |
+ | 1003 | REJ_RESOURCE     | Resource allocation problem             |
+ | 1004 | REJ_ROGUE        | incorrect data in handshake             |
+ | 1005 | REJ_BACKLOG      | listener's backlog exceeded             |
+ | 1006 | REJ_IPE          | internal program error                  |
+ | 1007 | REJ_CLOSE        | socket is closing                       |
+ | 1008 | REJ_VERSION      | peer is older version than agent's min  |
+ | 1009 | REJ_RDVCOOKIE    | rendezvous cookie collision             |
+ | 1010 | REJ_BADSECRET    | wrong password                          |
+ | 1011 | REJ_UNSECURE     | password required or unexpected         |
+ | 1012 | REJ_MESSAGEAPI   | Stream flag collision                   |
+ | 1013 | REJ_CONGESTION   | incompatible congestion-controller type |
+ | 1014 | REJ_FILTER       | incompatible packet filter              |
+ | 1015 | REJ_GROUP        | incompatible group                      |
 {: #hs-rej-reason title="Handshake Rejection Reason Codes"}
 
 The specification of the cipher family and block size is decided by the Sender. When the transmission 
