@@ -500,7 +500,7 @@ Handshake Type (32 bits):
  | 0xFFFFFFFD | DONE                         |
  | 0xFFFFFFFE | AGREEMENT                    |
  | 0xFFFFFFFF | CONCLUSION                   |
- | 0x00000000 | WAVEHAND                    |
+ | 0x00000000 | WAVEHAND                     |
  | 0x00000001 | INDUCTION                    |
 {: #handshake-type title="Handshake Type"}
 
@@ -684,7 +684,7 @@ Wrap ( ): (64+n * Klen * 8) bits. Value: { }
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
-+                  Integrity Check Vector (ICV)                  +
++                  Integrity Check Vector (ICV)                 +
 |                                                               |
 +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 |                              xSEK                             |
@@ -1601,8 +1601,12 @@ the following:
                  packet relatively to the current buffer position pos */
 
     while(True) {
-        Get the position of the next available in receiver buffer packet i;
-        Calculate packet delivery time for the next available packet PktTsbpdTime;
+        // Get the position i of the next available packet
+        // in the receiver buffer
+        i = next_avail();
+        // Calculate packet delivery time PktTsbpdTime
+        // for the next available packet
+        PktTsbpdTime = delivery_time(i);
 
         if T_NOW < PktTsbpdTime:
             continue;
