@@ -202,8 +202,7 @@ contribution bitrates over long distance connections.
 As packets are streamed from source to destination, SRT detects and adapts to the 
 real-time network conditions between the two endpoints, and helps compensate for 
 jitter and bandwidth fluctuations due to congestion over noisy networks. Its error 
-recovery mechanism minimizes the packet loss typical of Internet connections. SRT 
-supports AES encryption for end-to-end security. 
+recovery mechanism minimizes the packet loss typical of Internet connections.
 
 To achieve low latency streaming, SRT had to address timing issues. The characteristics 
 of a stream from a source network are completely changed by transmission over the public 
