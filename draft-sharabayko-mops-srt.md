@@ -228,25 +228,6 @@ reliability.
 SRT maintains the ability for fast file transfers introduced in UDT, and adds support 
 for AES encryption. 
 
-## Open Source Initiative 
-
-Haivision developed the SRT protocol in 2012. After successfully using it in thousands 
-of installations worldwide for five years, they decided to open it up to the community 
-and made it open source in April 2017.  
-
-Open source SRT is distributed under MPL-2.0, which was chosen because it strikes a 
-balance between driving adoption for open source SRT, while encouraging contributions 
-to improve upon it by the community of adopters. Any third party is free to use the 
-SRT source in a larger work regardless of how that larger work is compiled. Should 
-they make source code changes, they would be obligated to make those changes available 
-to the community. 
-
-In the three years since Haivision opened up the source code, more than 350 companies 
-have joined the SRT Industry Alliance (https://www.srtalliance.org), and even more 
-have adopted the protocol. SRT has seen the fastest adoption of a protocol in the 
-media industry to date, and has become the new de facto standard for secure, low 
-latency, high quality contribution and point-to-(multi-)point distribution. 
-
 # Conventions and Definitions
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
