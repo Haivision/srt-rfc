@@ -124,6 +124,10 @@ informative:
         name: Jack Haughton
         org: Argon Design Ltd
     date: none
+  SRTSRC:
+    target: https://github.com/Haivision/srt
+    title: SRT fully functional reference implementation
+    date: none
 
 --- abstract
 
@@ -168,7 +172,7 @@ Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee accepta
 reliability over connections with low RTTs, and can not use the bandwidth of network 
 connections to their full extent due to limitations imposed by congestion control. 
 Notably, QUIC{{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery 
-protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT uses UDP instead of the TCP transport protocol, 
+protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT{{SRTSRC}} uses UDP instead of the TCP transport protocol, 
 but includes features which assure more reliable delivery. 
 
 ## Secure Reliable Transport Protocol 
@@ -187,8 +191,7 @@ Derived from the UDP-based Data Transfer protocol (UDT), SRT is a user-level pro
 that retains most of the core concepts and mechanisms while introducing several 
 refinements and enhancements, including control packet modifications, improved flow 
 control for handling live streaming, enhanced congestion control, and a mechanism for 
-encrypting packets. A fully functional reference implementation can be found at 
-https://github.com/Haivision/srt.  
+encrypting packets.
 
 SRT is a transport protocol that enables the secure, reliable transport of data across 
 unpredictable networks, such as the Internet. While any data type can be transferred 
