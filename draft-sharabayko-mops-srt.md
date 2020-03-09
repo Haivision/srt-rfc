@@ -1595,6 +1595,7 @@ it is their time to play.
 In pseudo-code, the algorithm of reading from the receiver buffer is
 the following:
 
+    <CODE BEGINS>
     pos = 0;  /* Current receiver buffer position */
     i = 0;    /* Position of the next available in the receiver buffer 
                  packet relatively to the current buffer position pos */
@@ -1612,6 +1613,7 @@ the following:
 
         pos = i + 1;
     }
+    <CODE ENDS>
 
 where T_NOW is the current time according to the receiver clock.
 
