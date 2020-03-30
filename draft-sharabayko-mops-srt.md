@@ -1823,6 +1823,91 @@ and packet acknowledgements (ACKs).
 It then slows down the output of packets as needed by adjusting the packet sending pace.
 In periods of congestion, it can block the main stream and focus on the lost packets.
 
+The algorithm consists on three states: slow start, congestion avoidance and slow down.
+Starting with no information, the congestion control module probes the network to
+determine the available bandwidth and the sending pace for the desired operation mode: congestion avoidance.
+In this state, if there is no congestion detected via Loss reports, the sending pace is gradually increased.
+On the other side, if congestion is detected in the network the state is changed to slow down and
+the sending pace is decreased to reduce packet loss.
+
+### Slow Start
+
+Slow start state has a limit on the number of data packets that can be sent before
+acknowledgment of those segments is received. File CC starts with 16 DATA packets (CWND_SIZE=16)
+sent with minimum possible interval.
+
+CWND_SIZE is increased by the difference between the acknowledged sequence number since last ACK processing
+and the sequence number being acknowledged:
+ 
+~~~
+CWND_SIZE += LAST_ACK_SEQNO - ACK_SEQNO
+~~~
+
+When the congestion window size exceeds its maximum set value (MAX_CWND_SIZE), slow start period ends. Note
+that this congestion maximum window size is equal to the flow window size (FLOW_WND_SIZE). If a delivery
+rate was reported by the receiver the inter sending interval is set as:
+
+~~~
+PKT_SND_PERIOD = 1000000.0 / DELIVERY_RATE
+~~~
+
+If delivery rate has not been reported, the sending period is set to:
+
+~~~
+PKT_SND_PERIOD = CWND_SIZE / (RTT + RC_INTERVAL)
+~~~
+
+### Congestion Avoidance
+At the end of the slow start state, the congestion avoidance state begins. If the estimated bandwidth (B) is
+smaller than the actual sending rate (1/PKT_SND_PERIOD), the increase (inc) is equal to the inverse of MSS.
+
+If not the increase is computed as:
+
+~~~
+inc = max(10 ^ ceil(log10( B * MSS * 8 ) * Beta / MSS, 1/MSS)
+~~~
+
+With beta being a constant set to 1.5 * 10^(-6). The variable inc is capped at 1/MSS.
+
+The new sending period is then calculated as:
+
+~~~
+PKT_SND_PERIOD = (PKT_SND_PERIOD * RC_INTERVAL) / (PKT_SND_PERIOD * inc + RC_INTERVAL)
+~~~
+
+### Slow Down
+
+Upon the arrival of a NACK a congestion period is started if the lost packet sequence in the NACK
+is bigger than the largest sequence number sent so far (LastDecSeq).
+
+The decreasing sending rate is computed with the following variables:
+
+* AvgNAKNum: The average number of NACKs. Initial value: 1.
+* NAKCount: Number of NACKs received in the current congestion period. Initial value: 1.
+* DecCount: Number of times the sending period has been increased in the former congestion period.
+Initial value: 0.
+* DecRandom: Uniformly distributed random number to avoid global synchronization. Ranges from 1 to AvgNAKNum.
+
+When a new congestion period is started the previously enumerated variables are reset and the
+packet sending period is increased as:
+
+~~~
+PKT_SND_PERIOD = PKT_SND_PERIOD * 1.125
+~~~
+
+If the following statement is true:
+
+~~~
+DecCount <= 5 and NAKCount == DecCount * DecRandom
+~~~
+
+The PKT_SND_PERIOD and DecCount are increased: 
+
+~~~
+PKT_SND_PERIOD = PKT_SND_PERIOD * 1.125
+DecCount += 1 
+~~~
+
 # Encryption {#encryption}
 
 SRT supports encryption based on a pre-shared secret.
