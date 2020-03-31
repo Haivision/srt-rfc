@@ -1806,15 +1806,22 @@ packet losses during the transmission.
 These mechanisms provide a solid background for various congestion control
 algorithms.
 
-Given that SRT can operate in live and file transfer modes, there are two groups
-of congestion control algorithms possible.
+Given that SRT can operate in live and file transfer modes, there are two possible groups
+of congestion control algorithms.
+
+### Live Congestion Control (LiveCC)
 
 For live transmission mode ({{transmission-mode-live}}) the congestion control algorithm
 does not need to control the sending pace of the data packets, as the sending timing
-is provided by the live input. Although certain limitations on the minimal
-inter-sending time of consecutive packets can be applied in order to avoid congestion
-during fluctuations of the source bitrate. Also it is allowed to drop those packets
-that can not be delivered in time.
+is provided by the live input. It is mainly a reactor on network events. Although certain 
+limitations on the minimal inter-sending time of consecutive packets can be applied in order
+to avoid congestion during fluctuations of the source bitrate. Also, it is allowed to drop those 
+packets that can not be delivered in time.
+ 
+On the receiving side, LiveCC may decide when an ACK is needed prior to ACK timeout. 
+It also determines the minimum time between consecutive packets are sent.
+
+### File Transfer Congestion Control (FileCC)
 
 For file transfer, any known File Congestion Control algorithms like CUBIC and BBR can apply,
 including the congestion control mechanism proposed in UDT {{GHG04b}}.
@@ -1823,14 +1830,14 @@ and packet acknowledgements (ACKs).
 It then slows down the output of packets as needed by adjusting the packet sending pace.
 In periods of congestion, it can block the main stream and focus on the lost packets.
 
-The algorithm consists on three states: slow start, congestion avoidance and slow down.
+The algorithm consists of three states: slow start, congestion avoidance and slow down.
 Starting with no information, the congestion control module probes the network to
 determine the available bandwidth and the sending pace for the desired operation mode: congestion avoidance.
 In this state, if there is no congestion detected via Loss reports, the sending pace is gradually increased.
 On the other side, if congestion is detected in the network the state is changed to slow down and
 the sending pace is decreased to reduce packet loss.
 
-### Slow Start
+#### Slow Start
 
 Slow start state has a limit on the number of data packets that can be sent before
 acknowledgment of those segments is received. File CC starts with 16 DATA packets (CWND_SIZE=16)
@@ -1857,7 +1864,7 @@ If delivery rate has not been reported, the sending period is set to:
 PKT_SND_PERIOD = CWND_SIZE / (RTT + RC_INTERVAL)
 ~~~
 
-### Congestion Avoidance
+#### Congestion Avoidance
 At the end of the slow start state, the congestion avoidance state begins. If the estimated bandwidth (B) is
 smaller than the actual sending rate (1/PKT_SND_PERIOD), the increase (inc) is equal to the inverse of MSS.
 
@@ -1875,7 +1882,7 @@ The new sending period is then calculated as:
 PKT_SND_PERIOD = (PKT_SND_PERIOD * RC_INTERVAL) / (PKT_SND_PERIOD * inc + RC_INTERVAL)
 ~~~
 
-### Slow Down
+#### Slow Down
 
 Upon the arrival of a NACK a congestion period is started if the lost packet sequence in the NACK
 is bigger than the largest sequence number sent so far (LastDecSeq).
