@@ -47,6 +47,8 @@ informative:
   RFC8174:
   RFC8216:
   RFC3031:
+  RFC8312:
+  RFC4987:
   GHG04b:
     title: Experiences in Design and Implementation of a High Performance Transport Protocol
     author:
@@ -1831,7 +1833,7 @@ It also determines the interval of periodic NAK packets to be reported to the se
 
 ### File Transfer Congestion Control (FileCC)
 
-For file transfer, any known File Congestion Control algorithms, like CUBIC {{rfc8312}}, can apply,
+For file transfer, any known File Congestion Control algorithms, like CUBIC {{RFC8312}}, can apply,
 including the congestion control mechanism proposed in UDT {{GHG04b}}.
 The UDT congestion control relies on the available link capacity, packet loss reports (NAK)
 and packet acknowledgements (ACKs).
