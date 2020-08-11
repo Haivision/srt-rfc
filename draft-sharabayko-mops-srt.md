@@ -512,8 +512,8 @@ SYN Cookie (32 bits):
   by the handshake message type. See {{handshake-messages}}.
 
 Peer IP Address (128 bits):
-: The sender's IPv4 or IPv6 address. The value consists of four 32-bit fields. In the case
-  of IPv4 addresses, fields 2, 3 and 4 are padded with zeroes.
+: IPv4 or IPv6 address of the packet's sender. The value consists of four 32-bit fields.
+  In the case of IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
 
 Extension Type (16 bits):
 : The value of this field is used to process an integrated handshake.
@@ -534,7 +534,7 @@ Extension Type (16 bits):
 {: #handshake-ext-type title="Handshake Extension Type values"}
 
 Extension Length (16 bits):
-: The length of the Extension Contents field.
+: The length of the Extension Contents field in four-byte blocks.
 
 Extension Contents (variable length):
 : The payload of the extension.
@@ -542,8 +542,8 @@ Extension Contents (variable length):
 #### Handshake Extension Message {#handshake-extension-msg}
 
 In a Handshake Extension, the value of the Extension Field of the
-handshake control packet is defined as 1 for a Handshake Extension request,
-and 2 for a Handshake Extension response.
+handshake control packet is defined as 1 for a Handshake Extension request (SRT_CMD_HSREQ in {{handshake-ext-type}}),
+and 2 for a Handshake Extension response (SRT_CMD_HSRSP in {{handshake-ext-type}}).
 
 The Extension Contents field of a Handshake Extension Message is structured as follows:
 
@@ -561,10 +561,18 @@ The Extension Contents field of a Handshake Extension Message is structured as f
 {: #handshake-extension-msg-structure title="Handshake Extension Message structure"}
 
 SRT Version (32 bits):
-: SRT library version.
+: SRT library version MUST be formed as major * 0x10000 + minor * 0x100 + patch.
 
 SRT Flags (32 bits):
-: SRT configuration flags:
+: SRT configuration flags (see {{hs-ext-msg-flags}}).
+
+Receiver TSBPD Delay (16 bits):
+: TimeStamp-Based Packet Delivery (TSBPD) Delay of the receiver. Refer to {{tsbpd}}.
+
+Sender TSBPD Delay (16 bits):
+: TSBPD of the sender. Refer to {{tsbpd}}.
+
+##### Handshake Extension Message Flags {#hs-ext-msg-flags}
 
  | Bitmask    | Flag |
  | ---------- | :---------------: |
@@ -578,11 +586,26 @@ SRT Flags (32 bits):
  | 0x00000080 | PACKET_FILTER     |
 {: #hs-ext-msg-flags title="Handshake Extension Message Flags"}
 
-Receiver TSBPD Delay (16 bits):
-: TimeStamp-Based Packet Delivery (TSBPD) Delay of the receiver. Refer to {{tsbpd}}.
+- TSBPDSND flag defines if the TSBPD mechanism ({{tsbpd}}) will be used for sending.
 
-Sender TSBPD Delay (16 bits):
-: TSBPD of the sender. Refer to {{tsbpd}}.
+- TSBPDRCV flag defines if the TSBPD mechanism ({{tsbpd}}) will be used for receiving. 
+
+- CRYPT flag MUST be set. It is a legacy flag that indicates the party understands 
+KK field of the SRT Packet ({{srtdatapacket}}).
+
+- TLPKTDROP flag should be set if too-late packet drop mechanism will be used during transmission.
+See {{too-late-packet-drop}}.
+
+- PERIODICNAK flag set indicates the peer will send periodic NAK packets. See {{packet-naks}}.
+
+- REXMITFLG flag MUST be set. It is a legacy flag that indicates the peer understands the R field
+of the SRT DATA Packet ({{srtdatapacket}}).
+
+- STREAM flag identifies the tansmission mode ({{data-transmission-mode}}) to be used in the connection.
+If the flag is set the buffer mode ({{transmission-mode-buffer}}) will be used.
+Otherwise, message mode ({{transmission-mode-msg}}) is to be used.
+
+- PACKET_FILTER flag indicates if the peer supports packet filter.
 
 #### Key Material Exchange {#key-material-exchange}
 
@@ -1112,6 +1135,10 @@ The process has two phases: induction and conclusion.
 
 #### The Induction Phase
 
+The INDUCTION phase serves only to set a cookie on the Listener so that it
+doesn't allocate resources, thus mitigating a potential DoS attack that might be
+perpetrated by flooding the Listener with handshake commands.
+
 The Caller begins by sending the INDUCTION handshake, which contains the following
 (significant) fields:
 
@@ -1128,10 +1155,6 @@ interpreted as a connection request.
 The handshake version number is set to 4 in this initial handshake.
 This is due to the initial design of SRT that was to be compliant with the UDT
 protocol ({{GHG04b}}) on which it is based.
-
-This phase serves only to set a cookie on the Listener so that it
-doesn't allocate resources, thus mitigating a potential DoS attack that might be
-perpetrated by flooding the Listener with handshake commands.
 
 The Listener responds with the following:
 
