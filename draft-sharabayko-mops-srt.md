@@ -584,7 +584,7 @@ Sender TSBPD Delay (16 bits):
  | 0x00000020 | REXMITFLG         |
  | 0x00000040 | STREAM            |
  | 0x00000080 | PACKET_FILTER     |
-{: #hs-ext-msg-flags title="Handshake Extension Message Flags"}
+{: #hs-ext-msg-flags-tbl title="Handshake Extension Message Flags"}
 
 - TSBPDSND flag defines if the TSBPD mechanism ({{tsbpd}}) will be used for sending.
 
