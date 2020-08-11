@@ -165,7 +165,7 @@ Viewers watch video streams on a variety of different devices, connected over di
 types of networks. Since upload bandwidth from on-premises locations is often limited, 
 video transcoding moved to the cloud. 
 
-RTMP became the de facto standard for contribution over the public internet. But there 
+RTMP became the de facto standard for contribution over the public Internet. But there 
 are limitations for the payload to be transmitted, since RTMP as a media specific 
 protocol only supports two audio channels and a restricted set of audio and video codecs, 
 lacking support for newer formats such as HEVC{{H.265}}, VP9{{VP9}}, or AV1{{AV1}}.
@@ -175,7 +175,7 @@ reliability over connections with low RTTs, and can not use the bandwidth of net
 connections to their full extent due to limitations imposed by congestion control. 
 Notably, QUIC{{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery 
 protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT{{SRTSRC}} uses UDP instead of the TCP transport protocol,
-but assures more reliable delivery using Automatic Repeat Request (ARQ), packet acknowledgements,
+but assures more reliable delivery using Automatic Repeat Request (ARQ), packet acknowledgments,
 end-to-end latency management, etc.
 
 ## Secure Reliable Transport Protocol 
@@ -185,7 +185,7 @@ typically take the form of MPEG-TS{{ISO13818-1}} unicast or multicast streams us
 protocol, where any packet loss can be mitigated by enabling forward error correction 
 (FEC). Achieving the same low latency between sites in different cities, countries or 
 even continents is more challenging. While it is possible with satellite links or 
-dedicated MPLS{{RFC3031}} networks, these are expensive solutions. The use of public internet 
+dedicated MPLS{{RFC3031}} networks, these are expensive solutions. The use of public Internet 
 connectivity, while less expensive, imposes significant bandwidth overhead to achieve 
 the necessary level of packet loss recovery. Introducing selective packet retransmission 
 (reliable UDP) to recover from packet loss removes those limitations.  
@@ -209,7 +209,7 @@ recovery mechanism minimizes the packet loss typical of Internet connections.
 
 To achieve low latency streaming, SRT had to address timing issues. The characteristics 
 of a stream from a source network are completely changed by transmission over the public 
-internet, which introduces delays, jitter, and packet loss. This, in turn, leads to 
+Internet, which introduces delays, jitter, and packet loss. This, in turn, leads to 
 problems with decoding, as the audio and video decoders do not receive packets at the 
 expected times. The use of large buffers helps, but latency is increased. 
 SRT includes a mechanism to keep a constant end-to-end latency, thus recreating
@@ -603,7 +603,7 @@ See {{too-late-packet-drop}}.
 - REXMITFLG flag MUST be set. It is a legacy flag that indicates the peer understands the R field
 of the SRT DATA Packet ({{srtdatapacket}}).
 
-- STREAM flag identifies the tansmission mode ({{data-transmission-mode}}) to be used in the connection.
+- STREAM flag identifies the transmission mode ({{data-transmission-mode}}) to be used in the connection.
 If the flag is set the buffer mode ({{transmission-mode-buffer}}) will be used.
 Otherwise, message mode ({{transmission-mode-msg}}) is to be used.
 
@@ -650,7 +650,7 @@ Packet Type (PT): 4 bits. Value: {2}
 
 Signature (Sign): 16 bits. Value: {0x2029}  
 : This is a fixed-width field that contains the signature ‘HAI‘ encoded as a 
-  PnP Vendor ID ({{PNPID}}) (in big endian order)
+  PnP Vendor ID ({{PNPID}}) (in big-endian order)
 
 Reserved (Resv): 6 bits. Value: {0}  
 : This is a fixed-width field reserved for flag extension or other usage.
@@ -664,7 +664,7 @@ Key-based Data Encryption (KK): 2 bits.
   - 11b: even and odd keys
 
 Key Encryption Key Index (KEKI): 32 bits. Value: {0}
-: This is a fixed-width field for specifying the KEK index (big endian order)
+: This is a fixed-width field for specifying the KEK index (big-endian order)
 
   - 0: Default stream associated key (stream/system default)
   - 1..255: Reserved for manually indexed keys
@@ -788,9 +788,9 @@ Destination Socket ID (DestSockID): 32 bits.  Value: ???
 Control Information Field (CIF): n bits. Value: {none}  
 : This field must not appear in Keep-Alive control packets.
 
-### ACK (Acknowledgement) {#ctrl-pkt-ack}
+### ACK (Acknowledgment) {#ctrl-pkt-ack}
 
-Acknowledgement control packets are used to provide delivery status of data packets.
+Acknowledgment control packets are used to provide delivery status of data packets.
 These packets may also carry some additional information from the receiver like
 RTT, bandwidth, receiving speed, etc. The CIF portion of the ACK control packet is 
 expanded as follows:
@@ -868,7 +868,7 @@ The recommendation is to send a Lite ACK for every 64 packets received.
 
 ### NAK (Loss Report) {#ctrl-pkt-nak}
 
-Negative acknowledgement (NAK) control packets are used to signal failed data packet 
+Negative acknowledgment (NAK) control packets are used to signal failed data packet 
 deliveries. The receiver notifies the sender about lost data packets by sending a NAK 
 packet that contains a list of sequence numbers for those lost packets.
 
@@ -1454,7 +1454,7 @@ The SRT sender and receiver have buffers to store packets.
 
 On the sender, latency is the time that SRT holds a packet to give it a chance to be
 delivered successfully while maintaining the rate of the sender at the receiver. If an 
-acknowledgement (ACK) is missing or late for more than the configured latency, the packet 
+acknowledgment (ACK) is missing or late for more than the configured latency, the packet 
 is dropped from the sender buffer. A packet can be retransmitted as long as it remains
 in the buffer for the duration of the latency window. On the receiver, packets are 
 delivered to an application from a buffer after the latency interval has passed. This 
@@ -1718,12 +1718,12 @@ the latter is the point in time when the socket was created.
 To enable the Automatic Repeat reQuest of data packet retransmissions, a sender stores
 all sent data packets in its buffer. 
 
-The SRT receiver periodically sends acknowledgements (ACKs) for the
+The SRT receiver periodically sends acknowledgments (ACKs) for the
 received data packets so that the SRT sender can remove the
 acknowledged packets from its buffer ({{packet-acks}}). Once the acknowledged packets are
 removed, their retransmission is no longer possible and presumably not needed.
 
-Upon receiving the full acknowledgement (ACK) control packet, the SRT sender should acknowledge
+Upon receiving the full acknowledgment (ACK) control packet, the SRT sender should acknowledge
 its reception to the receiver by sending an ACKACK control packet with the sequence number
 of the full ACK packet being acknowledged.
 
@@ -1741,7 +1741,7 @@ or if both peers agree to drop this packet (see {{too-late-packet-drop}}).
 
 ### Packet Acknowledgement (ACKs, ACKACKs) {#packet-acks}
 
-At certain intervals (see below), the SRT receiver sends an acknowledgement (ACK) that
+At certain intervals (see below), the SRT receiver sends an acknowledgment (ACK) that
 causes the acknowledged packets to be removed from the SRT sender's buffer.
 
 An ACK control packet contains the sequence number of the packet immediately
@@ -1754,7 +1754,7 @@ The ACKACK tells the receiver to stop sending the ACK position because the sende
 knows it. Otherwise, ACKs (with outdated information) would continue to be sent regularly.
 Similarly, if the sender does not receive an ACK, it does not stop transmitting.
 
-There are two conditions for sending an acknowledgement. A full ACK is based on a timer of 10
+There are two conditions for sending an acknowledgment. A full ACK is based on a timer of 10
 milliseconds (the ACK period). For high bit rate transmissions, a "light ACK" can be sent, which is an ACK
 for a sequence of packets. In a 10 milliseconds interval, there are often so many packets being sent and
 received that the ACK position on the sender does not advance quickly enough. To mitigate this,
@@ -1859,7 +1859,7 @@ It also determines the interval of periodic NAK packets to be reported to the se
 For file transfer, any known File Congestion Control algorithms, like CUBIC {{RFC8312}}, can apply,
 including the congestion control mechanism proposed in UDT {{GHG04b}}.
 The UDT congestion control relies on the available link capacity, packet loss reports (NAK)
-and packet acknowledgements (ACKs).
+and packet acknowledgments (ACKs).
 It then slows down the output of packets as needed by adjusting the packet sending pace.
 In periods of congestion, it can block the main stream and focus on the lost packets.
 
