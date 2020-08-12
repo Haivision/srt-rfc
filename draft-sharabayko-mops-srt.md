@@ -51,6 +51,8 @@ informative:
   RFC3547:
   RFC3711:
   RFC3830:
+  RFC8312:
+  RFC4987:
   GHG04b:
     title: Experiences in Design and Implementation of a High Performance Transport Protocol
     author:
@@ -167,7 +169,7 @@ Viewers watch video streams on a variety of different devices, connected over di
 types of networks. Since upload bandwidth from on-premises locations is often limited, 
 video transcoding moved to the cloud. 
 
-RTMP became the de facto standard for contribution over the public internet. But there 
+RTMP became the de facto standard for contribution over the public Internet. But there 
 are limitations for the payload to be transmitted, since RTMP as a media specific 
 protocol only supports two audio channels and a restricted set of audio and video codecs, 
 lacking support for newer formats such as HEVC{{H.265}}, VP9{{VP9}}, or AV1{{AV1}}.
@@ -176,8 +178,9 @@ Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee accepta
 reliability over connections with low RTTs, and can not use the bandwidth of network 
 connections to their full extent due to limitations imposed by congestion control. 
 Notably, QUIC{{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery 
-protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT{{SRTSRC}} uses UDP instead of the TCP transport protocol, 
-but includes features which assure more reliable delivery. 
+protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT{{SRTSRC}} uses UDP instead of the TCP transport protocol,
+but assures more reliable delivery using Automatic Repeat Request (ARQ), packet acknowledgments,
+end-to-end latency management, etc.
 
 ## Secure Reliable Transport Protocol 
 
@@ -186,12 +189,12 @@ typically take the form of MPEG-TS{{ISO13818-1}} unicast or multicast streams us
 protocol, where any packet loss can be mitigated by enabling forward error correction 
 (FEC). Achieving the same low latency between sites in different cities, countries or 
 even continents is more challenging. While it is possible with satellite links or 
-dedicated MPLS{{RFC3031}} networks, these are expensive solutions. The use of public internet 
+dedicated MPLS{{RFC3031}} networks, these are expensive solutions. The use of public Internet 
 connectivity, while less expensive, imposes significant bandwidth overhead to achieve 
 the necessary level of packet loss recovery. Introducing selective packet retransmission 
 (reliable UDP) to recover from packet loss removes those limitations.  
 
-Derived from the UDP-based Data Transfer protocol (UDT), SRT is a user-level protocol 
+Derived from the UDP-based Data Transfer protocol{{GHG04b}} (UDT), SRT is a user-level protocol 
 that retains most of the core concepts and mechanisms while introducing several 
 refinements and enhancements, including control packet modifications, improved flow 
 control for handling live streaming, enhanced congestion control, and a mechanism for 
@@ -210,12 +213,11 @@ recovery mechanism minimizes the packet loss typical of Internet connections.
 
 To achieve low latency streaming, SRT had to address timing issues. The characteristics 
 of a stream from a source network are completely changed by transmission over the public 
-internet, which introduces delays, jitter, and packet loss. This, in turn, leads to 
+Internet, which introduces delays, jitter, and packet loss. This, in turn, leads to 
 problems with decoding, as the audio and video decoders do not receive packets at the 
 expected times. The use of large buffers helps, but latency is increased. 
-
-SRT includes a mechanism that recreates the signal characteristics on the receiver side, 
-reducing the need for buffering.
+SRT includes a mechanism to keep a constant end-to-end latency, thus recreating
+the signal characteristics on the receiver side, and reducing the need for buffering.
 
 Like TCP, SRT employs a listener/caller model. The data flow is bi-directional and 
 independent of the connection initiation - either the sender or receiver can operate 
@@ -389,7 +391,7 @@ Control Information Field (variable length):
 : The use of this field is defined by the Control Type field of the control packet.
 
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
-The value "0x7ffff" is reserved for a user-defined type.
+The value "0x7FFF" is reserved for a user-defined type.
 
 | ----------------- | ------------ | ------- | -------------------------- |
 | Packet Type       | Control Type | Subtype | Section                    |
@@ -516,8 +518,8 @@ SYN Cookie (32 bits):
   by the handshake message type. See {{handshake-messages}}.
 
 Peer IP Address (128 bits):
-: The sender's IPv4 or IPv6 address. The value consists of four 32-bit fields. In the case
-  of IPv4 addresses, fields 2, 3 and 4 are padded with zeroes.
+: IPv4 or IPv6 address of the packet's sender. The value consists of four 32-bit fields.
+  In the case of IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
 
 Extension Type (16 bits):
 : The value of this field is used to process an integrated handshake.
@@ -538,7 +540,7 @@ Extension Type (16 bits):
 {: #handshake-ext-type title="Handshake Extension Type values"}
 
 Extension Length (16 bits):
-: The length of the Extension Contents field.
+: The length of the Extension Contents field in four-byte blocks.
 
 Extension Contents (variable length):
 : The payload of the extension.
@@ -546,8 +548,8 @@ Extension Contents (variable length):
 #### Handshake Extension Message {#handshake-extension-msg}
 
 In a Handshake Extension, the value of the Extension Field of the
-handshake control packet is defined as 1 for a Handshake Extension request,
-and 2 for a Handshake Extension response.
+handshake control packet is defined as 1 for a Handshake Extension request (SRT_CMD_HSREQ in {{handshake-ext-type}}),
+and 2 for a Handshake Extension response (SRT_CMD_HSRSP in {{handshake-ext-type}}).
 
 The Extension Contents field of a Handshake Extension Message is structured as follows:
 
@@ -565,10 +567,18 @@ The Extension Contents field of a Handshake Extension Message is structured as f
 {: #handshake-extension-msg-structure title="Handshake Extension Message structure"}
 
 SRT Version (32 bits):
-: SRT library version.
+: SRT library version MUST be formed as major * 0x10000 + minor * 0x100 + patch.
 
 SRT Flags (32 bits):
-: SRT configuration flags:
+: SRT configuration flags (see {{hs-ext-msg-flags}}).
+
+Receiver TSBPD Delay (16 bits):
+: TimeStamp-Based Packet Delivery (TSBPD) Delay of the receiver. Refer to {{tsbpd}}.
+
+Sender TSBPD Delay (16 bits):
+: TSBPD of the sender. Refer to {{tsbpd}}.
+
+##### Handshake Extension Message Flags {#hs-ext-msg-flags}
 
  | Bitmask    | Flag |
  | ---------- | :---------------: |
@@ -580,13 +590,28 @@ SRT Flags (32 bits):
  | 0x00000020 | REXMITFLG         |
  | 0x00000040 | STREAM            |
  | 0x00000080 | PACKET_FILTER     |
-{: #hs-ext-msg-flags title="Handshake Extension Message Flags"}
+{: #hs-ext-msg-flags-tbl title="Handshake Extension Message Flags"}
 
-Receiver TSBPD Delay (16 bits):
-: TimeStamp-Based Packet Delivery (TSBPD) Delay of the receiver. Refer to {{tsbpd}}.
+- TSBPDSND flag defines if the TSBPD mechanism ({{tsbpd}}) will be used for sending.
 
-Sender TSBPD Delay (16 bits):
-: TSBPD of the sender. Refer to {{tsbpd}}.
+- TSBPDRCV flag defines if the TSBPD mechanism ({{tsbpd}}) will be used for receiving. 
+
+- CRYPT flag MUST be set. It is a legacy flag that indicates the party understands 
+KK field of the SRT Packet ({{srtdatapacket}}).
+
+- TLPKTDROP flag should be set if too-late packet drop mechanism will be used during transmission.
+See {{too-late-packet-drop}}.
+
+- PERIODICNAK flag set indicates the peer will send periodic NAK packets. See {{packet-naks}}.
+
+- REXMITFLG flag MUST be set. It is a legacy flag that indicates the peer understands the R field
+of the SRT DATA Packet ({{srtdatapacket}}).
+
+- STREAM flag identifies the transmission mode ({{data-transmission-mode}}) to be used in the connection.
+If the flag is set the buffer mode ({{transmission-mode-buffer}}) will be used.
+Otherwise, message mode ({{transmission-mode-msg}}) is to be used.
+
+- PACKET_FILTER flag indicates if the peer supports packet filter.
 
 #### Key Material Exchange {#key-material-exchange}
 
@@ -621,42 +646,48 @@ Version (V): 3 bits. Value: {1}
 
 Packet Type (PT): 4 bits. Value: {2}  
 : This is a fixed-width field that indicates the Packet Type:
+
   - 0: Reserved
-  - 1: MSmsg
-  - 2: KMmsg 
-  - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)   
+  - 1: Media Stream Message (MSmsg)
+  - 2: Keying Material Message (KMmsg)
+  - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)
 
 Signature (Sign): 16 bits. Value: {0x2029}  
 : This is a fixed-width field that contains the signature ‘HAI‘ encoded as a 
-  PnP Vendor ID ({{PNPID}}) (in big endian order)
+  PnP Vendor ID ({{PNPID}}) (in big-endian order)
 
 Reserved (Resv): 6 bits. Value: {0}  
 : This is a fixed-width field reserved for flag extension or other usage.
 
 Key-based Data Encryption (KK): 2 bits.
 : This is a fixed-width field that indicates whether or not data is encrypted:
+
   - 00b: not encrypted (data packets only)
   - 01b: even key
-  - 10b: odd key   
-  - 11b: even and odd keys   
+  - 10b: odd key
+  - 11b: even and odd keys
 
-Key Encryption Key Index (KEKI): 32 bits. Value: {0}  
-: This is a fixed-width field for specifying the KEK index (big endian order)
+Key Encryption Key Index (KEKI): 32 bits. Value: {0}
+: This is a fixed-width field for specifying the KEK index (big-endian order)
+
   - 0: Default stream associated key (stream/system default)
   - 1..255: Reserved for manually indexed keys
 
 Cipher ( ): 8 bits. Value: {0..2}
 : This is a fixed-width field for specifying encryption cipher and mode:
+
   - 0: None or KEKI indexed crypto context
   - 1: AES-ECB (not supported in SRT)
   - 2: AES-CTR {{SP800-38A}}
 
 Authentication (Auth): 8 bits. Value: {0}  
 : This is a fixed-width field for specifying a message authentication code algorithm:
+
   - 0: None or KEKI indexed crypto context
 
 Stream Encapsulation (SE): 8 bits. Value: {2}  
 : This is a fixed-width field for describing the stream encapsulation:
+
   - 0: Unspecified or KEKI indexed crypto context
   - 1: MPEG-TS/UDP
   - 2: MPEG-TS/SRT
@@ -668,20 +699,21 @@ Reserved (Resv2): 16 bits. Value: {0}
 : This is a fixed-width field reserved for future use.
 
 Slen/4 ( ): 4 bits. Value: {0..255}  
-: This is a fixed-width field for specifying salt length in bytes divided by 4. 
+: This is a fixed-width field for specifying salt length in bytes divided by 4.
   Can be zero if no salt/IV present
 
 Klen/4 ( ): 8 bits. Value: {4,6,8}  
-: This is a fixed-width field for specifying SEK length in bytes divided by 4. 
+: This is a fixed-width field for specifying SEK length in bytes divided by 4.
   Size of one key even if two keys present.
 
 Salt (Slen): Slen*8 bits. Value: { }  
 : This is a variable-width field for specifying a salt key 
 
-Wrap ( ): (64+n * Klen * 8) bits. Value: { }  
+Wrap ( ): (64+n * Klen * 8) bits. Value: { }
 : This is a variable-width field for specifying Wrapped key(s), where n = 1 or 2
+
   NOTE 1: n = (KK + 1)/2
-  NOTE 2: size in bytes = (((KK+1/2) * Klen) + 8)   
+  NOTE 2: size in bytes = (((KK+1/2) * Klen) + 8)
 
 ~~~
  0                   1                   2                   3
@@ -760,9 +792,9 @@ Destination Socket ID (DestSockID): 32 bits.  Value: ???
 Control Information Field (CIF): n bits. Value: {none}  
 : This field must not appear in Keep-Alive control packets.
 
-### ACK (Acknowledgement) {#ctrl-pkt-ack}
+### ACK (Acknowledgment) {#ctrl-pkt-ack}
 
-Acknowledgement control packets are used to provide delivery status of data packets.
+Acknowledgment control packets are used to provide delivery status of data packets.
 These packets may also carry some additional information from the receiver like
 RTT, bandwidth, receiving speed, etc. The CIF portion of the ACK control packet is 
 expanded as follows:
@@ -831,7 +863,7 @@ There are several types of ACK packets:
 - A Small ACK includes the fields up to and including the Available Buffer Size field. 
   The Type-specific Information field should be set to 0.
 
-The sender only acknowledges the receipt of Full ACK packets (see ACKACK).
+The sender only acknowledges the receipt of Full ACK packets (see ACKACK Section {{ctrl-pkt-ackack}}).
 
 The Lite ACK and Small ACK packets are used in cases when the receiver should acknowledge
 received data packets more often than every 10 ms. This is usually needed at high data rates.
@@ -840,7 +872,7 @@ The recommendation is to send a Lite ACK for every 64 packets received.
 
 ### NAK (Loss Report) {#ctrl-pkt-nak}
 
-Negative acknowledgement (NAK) control packets are used to signal failed data packet 
+Negative acknowledgment (NAK) control packets are used to signal failed data packet 
 deliveries. The receiver notifies the sender about lost data packets by sending a NAK 
 packet that contains a list of sequence numbers for those lost packets.
 
@@ -959,8 +991,8 @@ as specified in this section.
 ## Stream Multiplexing
 
 Multiple SRT sockets may share the same UDP socket so that the packets
-received to this UDP socket will be correctly dispatched to the
-SRT socket they are currently destined.
+received to this UDP socket will be correctly dispatched to those
+SRT sockets they are currently destined.
 
 During the handshake, the parties exchange their SRT Socket IDs.
 These IDs are then used in the Destination Socket ID field of
@@ -1018,7 +1050,7 @@ portions of any size.
 
 ## Handshake Messages {#handshake-messages}
 
-SRT is a connection protocol. It embraces the concepts of "connection"
+SRT is a connection-oriented protocol. It embraces the concepts of "connection"
 and "session". The UDP system protocol is used by SRT for sending data
 and control packets.
 
@@ -1101,11 +1133,11 @@ connection. See the list of error codes in {{hs-rej-reason}}.
  | 1015 | REJ_GROUP        | incompatible group                      |
 {: #hs-rej-reason title="Handshake Rejection Reason Codes"}
 
-The specification of the cipher family and block size is decided by the Sender. When the transmission 
-is bidirectional, this value must be agreed upon at the outset because when both 
-are set the Responder wins. For Caller-Listener connections it is reasonable to 
-set this value on the Listener only. In the case of Rendezvous the only reasonable 
-approach is to decide upon the correct value from the different sources and to 
+The specification of the cipher family and block size is decided by the data Sender.
+When the transmission is bidirectional, this value must be agreed upon at the outset
+because when both are set the Responder wins. For Caller-Listener connections it is
+reasonable to set this value on the Listener only. In the case of Rendezvous the only
+reasonable approach is to decide upon the correct value from the different sources and to 
 set it on both parties (note that **AES-128** is the default).
 
 ### Caller-Listener Handshake {#caller-listener-handshake}
@@ -1115,6 +1147,10 @@ waiting for an incoming Handshake request on a bound UDP port from a Caller.
 The process has two phases: induction and conclusion.
 
 #### The Induction Phase
+
+The INDUCTION phase serves only to set a cookie on the Listener so that it
+doesn't allocate resources, thus mitigating a potential DoS attack that might be
+perpetrated by flooding the Listener with handshake commands.
 
 The Caller begins by sending the INDUCTION handshake, which contains the following
 (significant) fields:
@@ -1133,10 +1169,6 @@ The handshake version number is set to 4 in this initial handshake.
 This is due to the initial design of SRT that was to be compliant with the UDT
 protocol ({{GHG04b}}) on which it is based.
 
-This phase serves only to set a cookie on the Listener so that it
-doesn't allocate resources, thus mitigating a potential DoS attack that might be
-perpetrated by flooding the Listener with handshake commands.
-
 The Listener responds with the following:
 
 - Version: 5
@@ -1145,9 +1177,9 @@ The Listener responds with the following:
 - Handshake Type: INDUCTION
 - SRT Socket ID: Socket ID of the Listener
 - SYN Cookie: a cookie that is crafted based on host, port and current time
-  with 1 minute accuracy
+  with 1 minute accuracy to avoid SYN flooding attack {{RFC4987}}
 
-At this point the Listener still doesn't know if the Caller is SRT or UDT,
+At this point the Listener still does not know if the Caller is SRT or UDT,
 and it responds with the same set of values regardless of whether the Caller is
 SRT or UDT.
 
@@ -1232,7 +1264,7 @@ When one party's cookie value is greater than its peer's, it wins the cookie
 contest and becomes Initiator (the other party becomes the Responder).
 
 At this point there are two possible "handshake flows":
-*serial*  and *parallel*.
+serial and parallel.
 
 #### Serial Handshake Flow
 
@@ -1247,15 +1279,15 @@ Bob has received from her.
 This process can be described easily as a series of exchanges between the first
 and following parties (Alice and Bob, respectively):
 
-1. Initially, both parties are in the *waving* state. Alice sends a handshake
+1. Initially, both parties are in the waving state. Alice sends a handshake
    message to Bob:
    - Version: 5
-   - Type: Extension field: 0, Encryption field: advertised `PBKEYLEN`.
+   - Type: Extension field: 0, Encryption field: advertised "PBKEYLEN".
    - Handshake Type: WAVEAHAND
    - SRT Socket ID: Alice's socket ID
    - SYN Cookie: Created based on host/port and current time.
 
-While Alice doesn't yet know if she is sending this message to
+While Alice does not yet know if she is sending this message to
 a Version 4 or Version 5 peer, the values from these fields would not be interpreted by
 the Version 4 peer when the Handshake Type is WAVEAHAND.
 
@@ -1295,7 +1327,7 @@ for key generation sent next in the KMREQ extension.
 4. Bob receives Alice's CONCLUSION message, and then does one of the
    following (depending on Bob's role):
    - If Bob is the Initiator (Alice's message contains HSRSP), he:
-     - switches to the "*connected" state
+     - switches to the "connected" state
      - sends Alice a message with Handshake Type AGREEMENT, but containing
        no SRT extensions (Extension Flags field should be 0)
 
@@ -1309,14 +1341,14 @@ for key generation sent next in the KMREQ extension.
 5. Alice receives the above message, enters into the "connected" state, and
    then does one of the following (depending on Alice's role):
     - If Alice is the Initiator (received CONCLUSION with HSRSP),
-      she sends Bob a message with Handshake Type = URQ_AGREEMENT.
+      she sends Bob a message with Handshake Type = AGREEMENT.
     - If Alice is the Responder, the received message has Handshake Type AGREEMENT
       and in response she does nothing.
 
 6. At this point, if Bob was Initiator, he is connected already. If he was a
    Responder, he should receive the above AGREEMENT message, after which he
    switches to the "connected" state. In the case where the UDP packet with the
-   agreement message gets lost, Bob will still enter the *connected* state once
+   agreement message gets lost, Bob will still enter the "connected" state once
    he receives anything else from Alice. If Bob is going to send, however, he
    has to continue sending the same CONCLUSION until he gets the confirmation
    from Alice.
@@ -1351,13 +1383,13 @@ Initiator:
 2. Attention
    - Receives CONCLUSION message, which:
      - contains no extensions:
-       - switches to Initiated, still sends URQ_CONCLUSION + HSREQ
+       - switches to Initiated, still sends CONCLUSION + HSREQ
      - contains `HSRSP` extension:
        - switches to Connected, sends AGREEMENT
 3. Initiated
    - Receives CONCLUSION message, which:
      - Contains no extensions:
-       - REMAINS IN THIS STATE, still sends URQ_CONCLUSION + HSREQ
+       - REMAINS IN THIS STATE, still sends CONCLUSION + HSREQ
      - contains `HSRSP` extension:
        - switches to Connected, sends AGREEMENT
 4. Connected
@@ -1371,7 +1403,7 @@ Responder:
    - Switches to Attention
    - Sends CONCLUSION message (with no extensions)
 2. Attention
-   - Receives CONCLUSION message with HSREQ
+   - Receives CONCLUSION message with HSREQ.
      This message might contain no extensions, in which case the party 
      shall simply send the empty CONCLUSION message, as before, and remain 
      in this state.
@@ -1404,7 +1436,7 @@ never become aware. The missing packet problem is resolved this way:
 3. When the Initiator switches to the Connected state it responds with a
    AGREEMENT message, which may be missed by the Responder. Nonetheless, the
    Initiator may start sending data packets because it considers itself
-   connected - it doesn't know that the Responder has not yet switched
+   connected - it does not know that the Responder has not yet switched
    to the Connected state. Therefore it is exceptionally allowed that when
    the Responder is in the Initiated state and receives a data packet
    (or any control packet that is normally sent only between connected
@@ -1414,7 +1446,7 @@ never become aware. The missing packet problem is resolved this way:
 4. If the the Initiator has already switched to the Connected state it will not
    bother the Responder with any more handshake messages. But the Responder may be
    completely unaware of that (having missed the AGREEMENT message from the
-   Initiator). Therefore it doesn't exit the connecting state, which means that it
+   Initiator). Therefore it does not exit the connecting state, which means that it
    continues sending CONCLUSION + HSRSP messages until it receives any
    packet that will make it switch to the Connected state (normally
    AGREEMENT). Only then does it exit the connecting state and the
@@ -1426,7 +1458,7 @@ The SRT sender and receiver have buffers to store packets.
 
 On the sender, latency is the time that SRT holds a packet to give it a chance to be
 delivered successfully while maintaining the rate of the sender at the receiver. If an 
-acknowledgement (ACK) is missing or late for more than the configured latency, the packet 
+acknowledgment (ACK) is missing or late for more than the configured latency, the packet 
 is dropped from the sender buffer. A packet can be retransmitted as long as it remains
 in the buffer for the duration of the latency window. On the receiver, packets are 
 delivered to an application from a buffer after the latency interval has passed. This 
@@ -1542,7 +1574,7 @@ extended RTT time, and the time needed to retransmit the lost packet. The value 
 is negotiated during the SRT handshake exchange and is equal to 120 milliseconds. The recommended
 value of TsbpdDelay is 3-4 times RTT.
 
-it is worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent
+It is worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent
 making impossible to retransmit packets endlessly. This is important for live data transmission.
 
 #### TSBPD Time Base Calculation {#tsbpd-time-base}
@@ -1690,12 +1722,12 @@ the latter is the point in time when the socket was created.
 To enable the Automatic Repeat reQuest of data packet retransmissions, a sender stores
 all sent data packets in its buffer. 
 
-The SRT receiver periodically sends acknowledgements (ACKs) for the
+The SRT receiver periodically sends acknowledgments (ACKs) for the
 received data packets so that the SRT sender can remove the
 acknowledged packets from its buffer ({{packet-acks}}). Once the acknowledged packets are
 removed, their retransmission is no longer possible and presumably not needed.
 
-Upon receiving the full acknowledgement (ACK) control packet, the SRT sender should acknowledge
+Upon receiving the full acknowledgment (ACK) control packet, the SRT sender should acknowledge
 its reception to the receiver by sending an ACKACK control packet with the sequence number
 of the full ACK packet being acknowledged.
 
@@ -1713,7 +1745,7 @@ or if both peers agree to drop this packet (see {{too-late-packet-drop}}).
 
 ### Packet Acknowledgement (ACKs, ACKACKs) {#packet-acks}
 
-At certain intervals (see below), the SRT receiver sends an acknowledgement (ACK) that
+At certain intervals (see below), the SRT receiver sends an acknowledgment (ACK) that
 causes the acknowledged packets to be removed from the SRT sender's buffer.
 
 An ACK control packet contains the sequence number of the packet immediately
@@ -1724,14 +1756,14 @@ An ACK (from a receiver) will trigger the transmission of an ACKACK (by the send
 The time it takes for an ACK to be sent and an ACKACK to be received is the RTT.
 The ACKACK tells the receiver to stop sending the ACK position because the sender already
 knows it. Otherwise, ACKs (with outdated information) would continue to be sent regularly.
-Similarly, if the sender doesn't receive an ACK, it doesn't stop transmitting.
+Similarly, if the sender does not receive an ACK, it does not stop transmitting.
 
-There are two conditions for sending an acknowledgement. A full ACK is based on a timer of 10
+There are two conditions for sending an acknowledgment. A full ACK is based on a timer of 10
 milliseconds (the ACK period). For high bit rate transmissions, a "light ACK" can be sent, which is an ACK
 for a sequence of packets. In a 10 milliseconds interval, there are often so many packets being sent and
-received that the ACK position on the sender doesn't advance quickly enough. To mitigate this,
+received that the ACK position on the sender does not advance quickly enough. To mitigate this,
 after 64 packets (even if the ACK period has not fully elapsed) the receiver sends a light ACK.
-A light ACK is a shorter ACK (header + 1 x 32-bit field). It does not trigger an ACKACK.
+A light ACK is a shorter ACK (SRT header  and one 32-bit field). It does not trigger an ACKACK.
 
 
 When a receiver encounters the situation where the next packet to be played was not
@@ -1752,13 +1784,13 @@ packets to be transmitted for the first time.
 
 The SRT sender maintains a list of lost packets (loss list) that is built from NAK reports. When
 scheduling packet transmission, it looks to see if a packet in the loss list has priority and sends it if so.
-Otherwise, it sends the next packet from the scheduled for the first transmission list.
+Otherwise, it sends the next packet scheduled for the first transmission list.
 Note that when a packet is transmitted, it stays in the buffer in case it is not received by the SRT receiver.
 
 NAK packets are processed to fill in the loss list. As the latency window advances and packets are
 dropped from the sending queue, a check is performed to see if any of the dropped or resent
 packets are in the loss list, to determine if they can be removed from there as well so that they
-are not retransmitted unnecessarily. 
+are not retransmitted unnecessarily.
 
 There is a counter for the packets that are resent. If there is no ACK
 for a packet, it will stay in the loss list and can be resent more than
@@ -1769,7 +1801,7 @@ send queue to fill. When the send queue is full, the sender will begin to drop p
 even sending them the first time. An encoder (or other application) may continue to provide
 packets, but there's no place for them, so they will end up being thrown away.
 
-This condition where packets are unsent doesn't happen often. There is a maximum number of
+This condition where packets are unsent does not happen often. There is a maximum number of
 packets held in the send buffer based on the configured latency. Older packets that have no
 chance to be retransmitted and played in time are dropped, making room for newer real-time
 packets produced by the sending application. See sections {{tsbpd}}, {{too-late-packet-drop}} for details.
@@ -1781,12 +1813,12 @@ at the time of sending the Periodic NAK report.
 An ACKACK tells the receiver to stop sending the ACK position because the sender already
 knows it. Otherwise, ACKs (with outdated information) would continue to be sent regularly.
 
-An ACK serves as a ping, with a corresponding ACKACK pong, to measure RTT. The time it 
-takes for an ACK to be sent and an ACKACK to be received is the RTT. Each ACK has a number. 
-A corresponding ACKACK has that same number. The receiver keeps a list of all ACKs in a 
-queue to match them. Unlike a full ACK, which contains the current RTT and several other 
-values in the CIF, a light ACK just contains the sequence number. All control messages 
-are sent directly and processed upon reception, but ACKACK processing time is negligible 
+An ACK serves as a ping, with a corresponding ACKACK pong, to measure RTT. The time it
+takes for an ACK to be sent and an ACKACK to be received is the RTT. Each ACK has a number.
+A corresponding ACKACK has that same number. The receiver keeps a list of all ACKs in a
+queue to match them. Unlike a full ACK, which contains the current RTT and several other
+values in the CIF, a light ACK just contains the sequence number. All control messages
+are sent directly and processed upon reception, but ACKACK processing time is negligible
 (the time this takes is included in the round-trip time).
 
 ## Bidirectional Transmission Queues
@@ -1817,20 +1849,21 @@ of congestion control algorithms.
 
 For live transmission mode ({{transmission-mode-live}}) the congestion control algorithm
 does not need to control the sending pace of the data packets, as the sending timing
-is provided by the live input. It is mainly a reactor on network events. Although certain 
+is provided by the live input source. It is mainly a reactor on network events. Certain
 limitations on the minimal inter-sending time of consecutive packets can be applied in order
-to avoid congestion during fluctuations of the source bitrate. Also, it is allowed to drop those 
-packets that can not be delivered in time.
- 
-On the receiving side, LiveCC may decide when an ACK is needed prior to ACK timeout. 
-It also determines the minimum time between consecutive packets are sent.
+to avoid congestion during fluctuations of the source bitrate.
+LiveCC determines the minimum time between consecutive packets are sent.
+Also, it is allowed to drop those packets that can not be delivered in time.
+
+On the receiving side, LiveCC may decide when an ACK is needed prior to ACK timeout.
+It also determines the interval of periodic NAK packets to be reported to the sender.
 
 ### File Transfer Congestion Control (FileCC)
 
-For file transfer, any known File Congestion Control algorithms like CUBIC and BBR can apply,
+For file transfer, any known File Congestion Control algorithms, like CUBIC {{RFC8312}}, can apply,
 including the congestion control mechanism proposed in UDT {{GHG04b}}.
 The UDT congestion control relies on the available link capacity, packet loss reports (NAK)
-and packet acknowledgements (ACKs).
+and packet acknowledgments (ACKs).
 It then slows down the output of packets as needed by adjusting the packet sending pace.
 In periods of congestion, it can block the main stream and focus on the lost packets.
 
