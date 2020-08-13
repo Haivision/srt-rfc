@@ -319,7 +319,7 @@ The structure of the SRT data packet is shown in {{srtdatapacket}}.
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #srtdatapacket title="data packet structure"}
+{: #srtdatapacket title="Data packet structure"}
 
 Packet Sequence Number (31 bits):
 : The sequential number of the data packet.
@@ -373,7 +373,7 @@ An SRT control packet has the following structure.
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #controlpacket title="control packet structure"}
+{: #controlpacket title="Control packet structure"}
 
 Control Type (15 bits):
 : Control Packet Type. The use of these bits is determined
@@ -449,7 +449,7 @@ in {{handshake-packet-structure}}.
 |                                                               |
 +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 ~~~
-{: #handshake-packet-structure title="handshake packet structure"}
+{: #handshake-packet-structure title="Handshake packet structure"}
 
 Version (32 bits):
 : A base protocol version number. Currently used values are 4 and 5.
@@ -2465,7 +2465,7 @@ must start with "0".
 |0|                   Sequence Number                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #single-sequence-number title="single sequence numbers coding"}
+{: #single-sequence-number title="Single sequence numbers coding"}
 
 For any consecutive packet sequence numbers that the difference between
 the last and first is more than 1, only record the first (a) and the
@@ -2481,4 +2481,4 @@ the first bit of a to "1".
 |0|                   Sequence Number b (last)                  |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #list-sequence-numbers title="list of sequence numbers coding"}
+{: #list-sequence-numbers title="List of sequence numbers coding"}
