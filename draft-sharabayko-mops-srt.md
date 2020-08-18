@@ -241,11 +241,9 @@ document are to be interpreted as described in BCP 14 {{RFC2119}} {{RFC8174}}
 when, and only when, they appear in all capitals, as shown here.
 
 SRT:
-
 : The Secure Reliable Transport protocol described by this document.
 
 PRNG:
-
 : Pseudo-Random Number Generator.
 
 # Packet Structure {#packet-structure}
@@ -684,10 +682,10 @@ Key-based Encryption (KK): 2 bits.
 
 Key Encryption Key Index (KEKI): 32 bits. Value: {0}
 : This is a fixed-width field for specifying the KEK index (big-endian order)
-was used to wrap (and optionally authenticate) the SEK(s).
-The value 0 is used to indicate the default key of the current stream.
-Other values are reserved for the possible use of a key management system in the future
-to retrieve a cryptographic context.
+  was used to wrap (and optionally authenticate) the SEK(s).
+  The value 0 is used to indicate the default key of the current stream.
+  Other values are reserved for the possible use of a key management system in the future
+  to retrieve a cryptographic context.
 
   - 0: Default stream associated key (stream/system default)
   - 1..255: Reserved for manually indexed keys
@@ -730,7 +728,7 @@ Salt (Slen): Slen * 4 * 8 bits. Value: { }
 
 Wrap ( ): (64+n * Klen * 4 * 8) bits. Value: { }
 : This is a variable-width field for specifying Wrapped key(s), where n = (KK + 1)/2 and
-the size of the wrap field is ((n * Klen * 4) + 8) bytes.
+  the size of the wrap field is ((n * Klen * 4) + 8) bytes.
 
 ~~~
  0                   1                   2                   3
@@ -749,8 +747,8 @@ the size of the wrap field is ((n * Klen * 4) + 8) bytes.
 
 ICV (64 bits): 
 : 64-bit Integrity Check Vector(AES key wrap integrity).
-This field is used to detect if the keys were unwrapped properly.
-If the KEK in hand is invalid, validation fails and unwrapped keys are discarded.
+  This field is used to detect if the keys were unwrapped properly.
+  If the KEK in hand is invalid, validation fails and unwrapped keys are discarded.
 
 xSEK (variable width):
 : This field identifies an odd or even SEK. If only one key is present, the bit set in the KK field tells which SEK is provided.
