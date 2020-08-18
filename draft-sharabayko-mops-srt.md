@@ -233,12 +233,18 @@ reliability.
 SRT maintains the ability for fast file transfers introduced in UDT, and adds support 
 for AES encryption. 
 
-# Conventions and Definitions
+# Terms and Definitions
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this
 document are to be interpreted as described in BCP 14 {{RFC2119}} {{RFC8174}}
 when, and only when, they appear in all capitals, as shown here.
+
+SRT:
+: The Secure Reliable Transport protocol described by this document.
+
+PRNG:
+: Pseudo-Random Number Generator.
 
 # Packet Structure {#packet-structure}
 
@@ -615,18 +621,24 @@ Otherwise, message mode ({{transmission-mode-msg}}) is to be used.
 
 #### Key Material Exchange {#key-material-exchange}
 
-The Key Material Exchange portion of a Handshake packet has both request and response type 
-extensions. The value of a request is 3, and the response value is 4.
+The purpose of the Key Material Exchange extension of a Handshake packet
+is to let peers exchange and negotiate encryption-related information to be used to encrypt and decrypt the payload of the stream.
+The extension can be supplied with the Handshake Extension Type field set
+to either SRT_CMD_KMREQ or SRT_CMD_HSRSP (see {{handshake-ext-type}} in {{ctrl-pkt-handshake}}).
+For more details refer to {{handshake-messages}}.
+
 
 ~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|S|  V  |   PT  |              Sign             |    Resv   | KK|
+|S|  V  |   PT  |              Sign             |   Resv1   | KK|
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                              KEKI                             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|     Cipher    |      Auth     |       SE      |  SLen |  KLen |
+|     Cipher    |      Auth     |       SE      |     Resv2     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Resv3             |      SLen     |      KLen     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                              Salt                             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -640,8 +652,9 @@ extensions. The value of a request is 3, and the response value is 4.
 S ( ): 1 bit. Value: {0}  
 : This is a fixed-width field that is a remnant from the header of a previous design.
 
-Version (V): 3 bits. Value: {1}  
+Version (V): 3 bits. Value: {1}
 : This is a fixed-width field that indicates the SRT version:
+
   - 1: initial version
 
 Packet Type (PT): 4 bits. Value: {2}  
@@ -652,23 +665,27 @@ Packet Type (PT): 4 bits. Value: {2}
   - 2: Keying Material Message (KMmsg)
   - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)
 
-Signature (Sign): 16 bits. Value: {0x2029}  
+Sign (Sign): 16 bits. Value: {0x2029}  
 : This is a fixed-width field that contains the signature ‘HAI‘ encoded as a 
   PnP Vendor ID ({{PNPID}}) (in big-endian order)
 
-Reserved (Resv): 6 bits. Value: {0}  
+Resv1 ( ): 6 bits. Value: {0}  
 : This is a fixed-width field reserved for flag extension or other usage.
 
-Key-based Data Encryption (KK): 2 bits.
-: This is a fixed-width field that indicates whether or not data is encrypted:
+Key-based Encryption (KK): 2 bits.
+: This is a fixed-width field that indicates which SEKs (odd and/or even) are provided in the extension:
 
-  - 00b: not encrypted (data packets only)
-  - 01b: even key
-  - 10b: odd key
-  - 11b: even and odd keys
+  - 00b: no SEK is provided (invalid extension format)
+  - 01b: even key is provided
+  - 10b: odd key is provided
+  - 11b: both even and odd keys are provided
 
 Key Encryption Key Index (KEKI): 32 bits. Value: {0}
 : This is a fixed-width field for specifying the KEK index (big-endian order)
+  was used to wrap (and optionally authenticate) the SEK(s).
+  The value 0 is used to indicate the default key of the current stream.
+  Other values are reserved for the possible use of a key management system in the future
+  to retrieve a cryptographic context.
 
   - 0: Default stream associated key (stream/system default)
   - 1..255: Reserved for manually indexed keys
@@ -692,28 +709,26 @@ Stream Encapsulation (SE): 8 bits. Value: {2}
   - 1: MPEG-TS/UDP
   - 2: MPEG-TS/SRT
 
-Reserved (Resv1): 8 bits. Value: {0}  
+Resv2 ( ): 8 bits. Value: {0}  
 : This is a fixed-width field reserved for future use.
 
-Reserved (Resv2): 16 bits. Value: {0}  
+Resv3 ( ): 16 bits. Value: {0}  
 : This is a fixed-width field reserved for future use.
 
-Slen/4 ( ): 4 bits. Value: {0..255}  
+Slen ( ): 8 bits. Value: {0..255}  
 : This is a fixed-width field for specifying salt length in bytes divided by 4.
   Can be zero if no salt/IV present
 
-Klen/4 ( ): 8 bits. Value: {4,6,8}  
+Klen ( ): 8 bits. Value: {4,6,8}
 : This is a fixed-width field for specifying SEK length in bytes divided by 4.
   Size of one key even if two keys present.
 
-Salt (Slen): Slen*8 bits. Value: { }  
-: This is a variable-width field for specifying a salt key 
+Salt (Slen): Slen * 4 * 8 bits. Value: { }  
+: This is a variable-width field that complements the keying material by specifying a salt key.
 
-Wrap ( ): (64+n * Klen * 8) bits. Value: { }
-: This is a variable-width field for specifying Wrapped key(s), where n = 1 or 2
-
-  NOTE 1: n = (KK + 1)/2
-  NOTE 2: size in bytes = (((KK+1/2) * Klen) + 8)
+Wrap ( ): (64+n * Klen * 4 * 8) bits. Value: { }
+: This is a variable-width field for specifying Wrapped key(s), where n = (KK + 1)/2 and
+  the size of the wrap field is ((n * Klen * 4) + 8) bytes.
 
 ~~~
  0                   1                   2                   3
@@ -732,14 +747,16 @@ Wrap ( ): (64+n * Klen * 8) bits. Value: { }
 
 ICV (64 bits): 
 : 64-bit Integrity Check Vector(AES key wrap integrity).
+  This field is used to detect if the keys were unwrapped properly.
+  If the KEK in hand is invalid, validation fails and unwrapped keys are discarded.
 
-xSEK (variable length):
-: This field identifies an odd or even SEK. If both keys are present,
-  then this field is eSEK (even key) and the next one is the odd key.
-  The length of this field is calculated by KLen * 4 * 8.
+xSEK (variable width):
+: This field identifies an odd or even SEK. If only one key is present, the bit set in the KK field tells which SEK is provided.
+  If both keys are present, then this field is eSEK (even key) and it is followed by odd key oSEK.
+  The length of this field is calculated as KLen * 4 * 8.
 
-oSEK (variable length):
-: This field is present only when the message carries the two SEKs.
+oSEK (variable width):
+: This field with the odd key is present only when the message carries the two SEKs (identified by he KK field).
   
 ### Keep-Alive {#ctrl-pkt-keepalive}
 
@@ -1958,7 +1975,8 @@ This section describes the encryption mechanism that protects the payload of SRT
 Based on standard cryptographic algorithms, the mechanism allows an efficient stream cipher
 with a key establishment method.
 
-##Overview
+## Overview
+
 AES in counter mode (AES-CTR) is used with a short-lived key to encrypt the media stream.
 This cipher is suitable for random access of a continuous stream, content protection
 (used by HDCP 2.0), and strong confidentiality when the counter is managed properly.
@@ -2199,7 +2217,7 @@ at the expected SEK rekeying rate (90,000 years to rekey 100 keys every second).
 
 In the simplest stream protection form, a stream is configured with a password
 (preferably a passphrase) to enable encryption. The sender decides to protect or not.
-On the receiver, a configured a passphrase is used only if the incoming media stream is encrypted.
+On the receiver, a configured passphrase is used only if the incoming media stream is encrypted.
 A receiver knows that a received stream is encrypted and how (cipher/key length),
 based on the received stream itself - not because it has a password configured.
 
@@ -2293,17 +2311,20 @@ ICV || SEK = AESkw(KEK, Wrap)
 ~~~~~~~~~~~
 
 #### Generate Key Stream
+
 With the next stream message (MSmsg) the receiver grabs the packet counter and odd/even
 key flag from the clear text header and prepares the cipher to generate a key stream for some
 packets in advance.
 
 #### Counter Preset
+
 As an optimization, while waiting for the first KMmsg, the decoder can grab the packet counter
 and odd/even flag from the stream message (MSmsg) received before the KMmsg and know
 what the packet counter of the next MSmsg should be, then prepares the cipher earlier.
 
 #### Early Frames vs. Latency
-Where the key stream is generated in any arrangement where a crypto processor can process
+
+If the key stream is generated in any arrangement where a crypto processor can process
 the key stream in parallel, there is a choice between displaying the earlier frames received or
 achieving low latency.
 
@@ -2319,94 +2340,17 @@ there is no guarantee that the odd or even key used to encrypt these messages is
 encrypted in the KMmsg received after, especially if backward secrecy is achieved (where a new
 receiver cannot decrypt an earlier stream).
 
-## Messages
+## TO Remove
 
-### Data Message Header
+### KEKI (to be moved to a relevan section)
 
-<!-- TODO: [[Figure]] -->
-
-<!-- TODO: [[Table]] -->
-
-### SRT Control Message Header
-
-<!-- TODO: [[Figure]] -->
-
-<!-- TODO: [[Table]] -->
-
-### SRT Keying Material Control Message (KMmsg)
-The Keying Material message provides the information to decrypt the Media Stream message
-payload.
-
-<!-- TODO: [[Figure]] -->
-<!-- TODO: [[Table]] -->
-
-<!-- TODO: [[Reference needed for AES-CCM, AES-GCM... it's already there so need to include in reference section.]] -->
-
-#### KEKI
-
-The KEK index (KEKI) tells which KEK was used to wrap (and optionally authenticate) the SEK(s).
-With a key management system, the KEKI is used as one of the parameters
-(possibly with the IP address and port of the stream) to retrieve a cryptographic context.
-In the absence of a key management system, the value 0 is used to indicate the default key
-of the current stream.
+<!-- TODO: Move the following paragraph to some description section -->
 
 If it is required to seamlessly change the KEK for good security practice (key lifetime elapsed),
 to preserve backward/forward secrecy when a new receiver joins/leaves,
 for a security breach (compromised KEK or device),
 or if there are multiple sensitive streams to protect (e.g. secret, sensitive, public, etc.),
 then the system needs to manage multiple keys and this fields tells which one to use.
-
-#### Auth
-
-In the eventuality that a separate authentication protocol such as SHA2 is used 
-for message integrity, the SAK (Stream Authentication Key) may be derived
-from the SEK instead of being carried in the KMmsg.
-The SEK then becomes a Key Generating Key and the Salt a master salt from
-which the stream encryption, authentication, and salt keys are derived.
-This is the method used for SRTP {{RFC3711}}.
-
-#### Salt
-
-This field complements the keying material.
-It can carry a nonce; salting key; Initialization Vector, or be used as a generator for them.
-
-#### Wrap
-
-Once KMmsg is unwrapped, the following fields are revealed.
-
-<!-- [[Figure]] -->
-<!-- [[Table]] -->
-
-The same KMmsg can carry two keys only if they share the same KEKI and same length.
-If there is a security parameter change with SEK rekeying (key length or new KEKI),
-then a different KMmsg must be used to carry the odd and even key.
-
-Note that the same Salt is reused on SEK rekeying.
-This does not break the nonce requirement of the counter mode that is used only once for a given key,
-and preserves the password-based derived KEK of this stream.
-
-<!-- [[Need to check if it is okay or not...the same salt for SEK and KEK or...the same salt for SEK and next SEK??]] -->
-
-##### ICV
-
-This field is used to detect if the keys were unwrapped properly.
-If the KEK in hand is invalid, validation fails and unwrapped keys are discarded.
-
-##### xSEK
-
-This field identifies an odd or even SEK.
-If only one key is present, the bit set in the Flags field tells which one it is.
-If both keys are present, then this field is eSEK (even key) and the next one is the odd key.
-
-##### oSEK
-
-This field is present only when the message carries the two SEKs.
-This may be only for a short period before re-keying the stream for a new receiver
-to decrypt the current stream, and for all members to prepare for seamless re-keying.
-
-## Parameters
-<!-- TODO: [[Table]] -->
-<!-- TODO: [[Now some or all of these parameters are implementation specific, so need to be removed from the draft. Maybe some of them should be fixed value for the current version of SRT???]] -->
 
 # Security Considerations
 
