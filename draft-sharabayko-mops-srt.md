@@ -1975,7 +1975,7 @@ This section describes the encryption mechanism that protects the payload of SRT
 Based on standard cryptographic algorithms, the mechanism allows an efficient stream cipher
 with a key establishment method.
 
-##Overview
+## Overview
 
 AES in counter mode (AES-CTR) is used with a short-lived key to encrypt the media stream.
 This cipher is suitable for random access of a continuous stream, content protection
