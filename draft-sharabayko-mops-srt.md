@@ -757,6 +757,35 @@ xSEK (variable width):
 
 oSEK (variable width):
 : This field with the odd key is present only when the message carries the two SEKs (identified by he KK field).
+
+#### Stream ID Extension Message {#sec-hsext-streamid}
+
+The Stream ID handshake extension message can be used to identify the stream content, 
+The Stream ID value can be used as free-form, but there is also recommended convention
+that can be used to achieve interoperability.
+
+The Stream ID handshake extension message has SRT_CMD_SID extension type (see {{handshake-ext-type}}.
+The extension contents holds a sequence of UTF-8 characters. The maximum allowed size of the
+SrteamID extension is 512 bytes.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
+|                           Stream ID                           |
+                               ...
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #fig-hsext-streamid title="Stream ID Extension Message"}
+
+The Extension Contents field holds a sequence of UTF-8 characters (see {{fig-hsext-streamid}}).
+The maximum allowed size of the SrteamID extension is 512 bytes. The actual size is determined
+by the Extension Length field ({{handshake-packet-structure}}), which defines the length in
+four byte blocks. If the actual payload is less than the declared length, the remaining bytes are set to zeros.
+
+The content is stored as 32-bit little endian words.
   
 ### Keep-Alive {#ctrl-pkt-keepalive}
 
@@ -2426,3 +2455,95 @@ the first bit of a to "1".
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #list-sequence-numbers title="List of sequence numbers coding"}
+
+# SRT Access Control {#sec-srt-access-control}
+
+One type of information that can be interchanged when a connection is being established in SRT
+is the Stream ID, which can be used in a caller-listener connection layout.
+This is a string of maximum 512 characters set on the caller side.
+It can be retrieved at the listener side on the newly accepted connection.
+
+SRT listener can notify an upstream application about the connection attempt when a HS conclusion arrives,
+exposing the contents of the Stream ID extension message.
+Based on this information, the application can accept or reject the connection,
+select the desired data stream, or set an appropriate passphrase for the connection.
+
+The Stream ID value can be used as free-form, but there is a recommended convention so that
+all SRT users speak the same language. The intent of the convention is to:
+
+- promote readability and consistency among free-form names,
+- interpret some typical data in the key-value style.
+
+## General Syntax
+
+This recommended syntax starts with the characters known as an executable specification in POSIX: #!.
+
+The next two characters are:
+
+    : - this marks the YAML format, the only one currently used
+    The content format, which is either:
+        : - the comma-separated keys with no nesting
+        { - like above, but nesting is allowed and must end with }
+
+(Nesting means that you can have multiple level brace-enclosed parts inside.)
+
+The form of the key-value pair is:
+
+~~~
+key1=value1,key2=value2...
+~~~
+
+## Standard Keys
+
+Beside the general syntax, there are several top-level keys treated as standard keys.
+All single letter key definitions, including those not listed in this section, are reserved for future use.
+Users can additionally use custom key definitions with user_* or companyname_* prefixes,
+where user and companyname are to be replaced with an actual user or company name.
+
+The existing key values must not be extended, and must not differ from those described in this section.
+
+The following keys are standard:
+
+- u: User Name, or authorization name, that is expected to control which password should be used for the connection.
+  The application should interpret it to distinguish which user should be used by the listener party to set up the password.
+
+- r: Resource Name identifies the name of the resource and facilitates selection should the listener party be able to serve multiple resources.
+
+- h: Host Name identifies the hostname of the resource. For example, to request a stream with the URI somehost.com/videos/querry.php?vid=366
+  the hostname field should have somehost.com, and the resource name can have videos/querry.php?vid=366 or simply 366.
+  Note that this is still a key to be specified explicitly. Support tools that apply simplifications and URI extraction
+  are expected to insert only the host portion of the URI here.
+  
+- s: Session ID is a temporary resource identifier negotiated with the server, used just for verification.
+  This is a one-shot identifier, invalidated after the first use. The expected usage is when details for the resource
+  and authorization are negotiated over a separate connection first, and then the session ID is used here alone.
+
+- t: Type specifies the purpose of the connection. Several standard types are defined, but users may extend the use:
+  - stream (default, if not specified): for exchanging the user-specified payload for an application-defined purpose,
+  - file: for transmitting a file, where r is the filename,
+  - auth: for exchanging sensible data. The r value states its purpose. No specific possible values for that are known so far (FUTURE USE).
+
+- m: Mode expected for this connection:
+  - request (default): the caller wants to receive the stream,
+  - publish: the caller wants to send the stream data,
+  - bidirectional: bidirectional data exchange is expected.
+
+Note that "m" is not required in the case where Stream ID is not used to distinguish authorization or resources,
+and the caller is expected to send the data. This is only for cases where the listener can handle various purposes of the connection
+and is therefore required to know what the caller is attempting to do.
+
+## Examples
+
+The example content of the StreamID is:
+
+~~~
+#!::u=admin,r=bluesbrothers1_hi
+~~~
+
+It specifies the username and the resource name of the stream to be served to the caller.
+
+~~~
+#!::u=johnny,t=file,m=publish,r=results.csv
+~~~
+
+This specifies that the file is expected to be transmitted from the caller to the listener and its name is results.csv.
