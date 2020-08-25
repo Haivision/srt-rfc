@@ -814,7 +814,7 @@ Type (8 bits):
 - 0: undefined group type,
 - 1: broadcast group type,
 - 2: main/backup group type
-- 3: balancing group type
+- 3: balancing group type (reserved for future use)
 - 4: multicast group type (reserved for future use)
 
 Flags (8 bits):
