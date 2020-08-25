@@ -786,6 +786,58 @@ by the Extension Length field ({{handshake-packet-structure}}), which defines th
 four byte blocks. If the actual payload is less than the declared length, the remaining bytes are set to zeros.
 
 The content is stored as 32-bit little endian words.
+
+#### Group Membership Extension
+
+The Group Membership handshake extension is used to distinguish single SRT connections
+and bonded SRT connections (group connections).
+
+~~~
+0                   1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Group ID                            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     Type    |     Flags     |             Weight              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #fig-hsext-group title="Group Membership Extension Message"}
+
+GroupID (32 bits):
+: The group identifier of a group to which there belongs the socket that is making the connection at the sending side.
+  The target socket that should interpret it should belong to the corresponding group on its side
+  (or should create one, if it doesn't exist).
+
+Type (8 bits):
+: Group type, as per SRT_GTYPE_ enumeration.
+
+- 0: undefined group type,
+- 1: broadcast group type,
+- 2: main/backup group type
+- 3: balancing group type (reserved for future use)
+- 4: multicast group type (reserved for future use)
+
+Flags (8 bits):
+: Special flags mostly reserved for the future. See {{fig-hsext-group-flags}}.
+
+Weight (16 bits):
+: Special value with interpretation depending on the Type field value.
+
+- Not used in case of broadcast group.
+- In backup group defines the link priority.
+- In the rest cases the meaning is not yet defined (reserved for future).
+
+~~~
+0 1 2 3 4 5 6 7 
++-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+
+|   (zero)  |M|
++-+-+-+-+-+-+-+
+~~~
+{: #fig-hsext-group-flags title="Group Membership Extension Flags"}
+
+M (1 bit):
+: When set, defines synchronization on message numbers, otherwise transmission is synchronized on sequence numbers.
   
 ### Keep-Alive {#ctrl-pkt-keepalive}
 
