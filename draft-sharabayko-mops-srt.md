@@ -811,8 +811,21 @@ GroupID (32 bits):
 Type (8 bits):
 : Group type, as per SRT_GTYPE_ enumeration.
 
+- 0: undefined group type,
+- 1: broadcast group type,
+- 2: main/backup group type
+- 3: balancing group type
+- 4: multicast group type (reserved for future use)
+
 Flags (8 bits):
 : Special flags mostly reserved for the future. See {{fig-hsext-group-flags}}.
+
+Weight (16 bits):
+: Special value with interpretation depending on the Type field value.
+
+- Not used in case of broadcast group.
+- In backup group defines the link priority.
+- In the rest cases the meaning is not yet defined (reserved for future).
 
 ~~~
 0 1 2 3 4 5 6 7 
