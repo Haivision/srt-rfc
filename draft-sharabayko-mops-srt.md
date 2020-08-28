@@ -1923,11 +1923,54 @@ are sent directly and processed upon reception, but ACKACK processing time is ne
 
 Once an SRT connection is established, both peers can send data packets simultaneously.
 
-## Round Trip Time Estimation
+## Round-Trip Time Estimation
 
-The round-trip time is estimated during the transmission of SRT data packets
-based on the time difference between the ACK packet is sent and the
-corresponding ACKACK is received by the data receiver.
+Round-trip time (RTT) in SRT is estimated during the transmission of
+data packets based on a difference in time between an ACK packet is
+sent out and a corresponding ACKACK packet is received back by the
+SRT receiver.
+
+SRT can not measure one-way transmission time directly, so it uses RTT/2, which is
+calculated based on an ACK. An ACK (from a receiver) will trigger the transmission of an ACKACK
+(by the sender), with almost no delay. The time it takes for an ACK to be sent and an ACKACK to
+be received is the RTT.
+
+The SRT receiver records the time when an ACK is sent out. The ACK carries
+a unique sequence number (independent of the data packet sequence number).
+The corresponding ACKACK also carries the same sequence number. Upon
+receiving the ACKACK, SRT calculates the RTT by comparing the
+difference between the ACKACK arrival time and the ACK departure time.
+In the following formula, RTT is the current value that the receiver
+maintains and rtt is the recent value that was just calculated from an ACK/ACKACK pair:
+
+~~~
+RTT = RTT * 0.875 + rtt * 0.125
+~~~
+
+RTT variance RTTVar is obtained as follows:
+
+~~~
+RTTVar = RTTVar * 0.75 + abs(RTT - rtt) * 0.25
+~~~
+
+where abs() means an absolute value.
+
+Both RTT and RTTVar are measured in microseconds. The initial value of RTT is 100 milliseconds, RTTVar is 50 milliseconds.
+
+The smoothed RTT calculated by the receiver as well as the RTT variance
+RTTVar are sent with the next full acknowledgement packet (see section {{ctrl-pkt-ack}}).
+Note that the first ACK in an SRT session might contain an initial RTT
+value of 100 milliseconds, because the early calculations may not be precise.
+
+The sender always gets the RTT from the receiver. It does not have an analog to the
+ACK/ACKACK mechanism, i.e. it can not send a message that guarantees an immediate return
+without processing. Upon an ACK reception, the SRT sender updates its own RTT and RTTVar
+values using the same formulas as above, in which case rtt is the most recent value it receives,
+e.g., carried by an incoming ACK.
+
+Note that SRT socket can both send and receive. RTT and RTTVar are not just sender specific variables.
+They are shared by both the sender and the receiver (of the same socket).
+When an SRT socket receives data, it updates its local RTT and RTTVar, which can be used for its own sender as well.
 
 ## Congestion Control
 
