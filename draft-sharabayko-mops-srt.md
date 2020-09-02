@@ -1930,9 +1930,9 @@ data packets based on a difference in time between an ACK packet is
 sent out and a corresponding ACKACK packet is received back by the
 SRT receiver.
 
-An ACK sent by the receiver triggers sending an ACKACK by the sender
-with minimal processing delay. The receiver is expected to receive the ACKACK response
-roughly one RTT after the corresponding ACK was sent.
+An ACK sent by the receiver triggers an ACKACK from the sender with 
+minimal processing delay. The ACKACK response is expected to arrive 
+at the receiver roughly one RTT after the corresponding ACK was sent.
 
 The SRT receiver records the time when an ACK is sent out. The ACK carries
 a unique sequence number (independent of the data packet sequence number).
@@ -1967,7 +1967,7 @@ without processing. Upon an ACK reception, the SRT sender updates its own RTT an
 values using the same formulas as above, in which case rtt is the most recent value it receives,
 i.e., carried by an incoming ACK.
 
-Note that SRT socket can both send and receive data packets. RTT and RTTVar are updated by the socket both as a sender algorithm (via ACK packet), and as a receiver algorithm (via ACK-ACKACK pair).
+Note that an SRT socket can both send and receive data packets. RTT and RTTVar are updated by the socket based on algorithms for the sender (using ACK packets) and for the receiver (using ACK-ACKACK pairs).
 When an SRT socket receives data, it updates its local RTT and RTTVar, which can be used for its own sender as well.
 
 ## Congestion Control
