@@ -150,34 +150,35 @@ and a mechanism for data encryption.
 
 ## Motivation 
 
-The demand for live video streaming has been increasing steadily for many years. With 
-the emergence of cloud technologies, many video processing pipeline components have 
-transitioned from on-premises appliances to software running on cloud instances. While 
-real-time streaming over TCP-based protocols like RTMP{{RTMP}} is possible at low bitrates and 
-on a small scale, the exponential growth of the streaming market has created a need for 
-more powerful solutions. 
+The demand for live video streaming has been increasing steadily for many years. With
+the emergence of cloud technologies, many video processing pipeline components have
+transitioned from on-premises appliances to software running on cloud instances. While
+real-time streaming over TCP-based protocols like RTMP{{RTMP}} is possible at low bitrates and
+on a small scale, the exponential growth of the streaming market has created a need for
+more powerful solutions.
 
-To improve scalability on the delivery side, content delivery networks (CDNs) at one 
+To improve scalability on the delivery side, content delivery networks (CDNs) at one
 point transitioned to segmentation-based technologies like HLS (HTTP Live Streaming){{RFC8216}}
-and DASH (Dynamic Adaptive Streaming over HTTP){{ISO23009}}. This move increased the end-to-end 
-latency of live streaming to over 30 seconds, which makes it unattractive for many 
-use cases. Over time, the industry optimized these delivery methods, bringing the 
+and DASH (Dynamic Adaptive Streaming over HTTP){{ISO23009}}. This move increased the end-to-end
+latency of live streaming to over 30 seconds, which makes it unattractive for many
+use cases. Over time, the industry optimized these delivery methods, bringing the
 latency down to 3 seconds.  
 
-While the delivery side scaled up, improvements to video transcoding became a necessity. 
-Viewers watch video streams on a variety of different devices, connected over different 
-types of networks. Since upload bandwidth from on-premises locations is often limited, 
-video transcoding moved to the cloud. 
+While the delivery side scaled up, improvements to video transcoding became a necessity.
+Viewers watch video streams on a variety of different devices, connected over different
+types of networks. Since upload bandwidth from on-premises locations is often limited,
+video transcoding moved to the cloud.
 
-RTMP became the de facto standard for contribution over the public Internet. But there 
-are limitations for the payload to be transmitted, since RTMP as a media specific 
-protocol only supports two audio channels and a restricted set of audio and video codecs, 
-lacking support for newer formats such as HEVC{{H.265}}, VP9{{VP9}}, or AV1{{AV1}}.
+RTMP became the de facto standard for contribution over the public Internet. But there
+are limitations for the payload to be transmitted, since RTMP as a media specific
+protocol only supports two audio channels and a restricted set of audio and video codecs,
+lacking support for newer formats such as HEVC{{H.265}},
+VP9{{VP9}}, or AV1{{AV1}}.
 
-Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee acceptable 
-reliability over connections with low RTTs, and can not use the bandwidth of network 
-connections to their full extent due to limitations imposed by congestion control. 
-Notably, QUIC{{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery 
+Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee acceptable
+reliability over connections with low RTTs, and can not use the bandwidth of network
+connections to their full extent due to limitations imposed by congestion control.
+Notably, QUIC{{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery
 protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT{{SRTSRC}} uses UDP instead of the TCP transport protocol,
 but assures more reliable delivery using Automatic Repeat Request (ARQ), packet acknowledgments,
 end-to-end latency management, etc.
@@ -248,8 +249,8 @@ PRNG:
 
 # Packet Structure {#packet-structure}
 
-SRT packets are transmitted in UDP packets {{RFC0768}}. Every UDP packet carrying SRT 
-traffic contains an SRT header (immediately after the UDP header).
+SRT packets are transmitted as UDP payload {{RFC0768}}. Every UDP packet carrying SRT
+traffic contains an SRT header immediately after the UDP header ({{srt-in-udp}}).
 
 ~~~
  0                   1                   2                   3
@@ -281,7 +282,7 @@ The structure of the SRT packet is shown in {{srtpacket}}.
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Destination Socket ID                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- CIF -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
 +                        Packet Contents                        |
 |                  (depends on the packet type)                 +
@@ -462,12 +463,12 @@ Version (32 bits):
   Values greater than 5 are reserved for future use.
 
 Encryption Field (16 bits):
-: Block cipher family and block size. The values of this field are
-  described in {{handshake-encr-fld}}.
+: Block cipher family and key size. The values of this field are
+  described in {{handshake-encr-fld}}. The default value is AES-128.
 
- | Value | Cipher family and block size |
+ | Value | Cipher family and key size |
  | ----- | :--------------------------: |
- |     0 | No Encryption                |
+ |     0 | No Encryption Advertised     |
  |     2 | AES-128                      |
  |     3 | AES-192                      |
  |     4 | AES-256                      |
@@ -495,7 +496,7 @@ Initial Packet Sequence Number (32 bits):
 : The sequence number of the very first data packet to be sent.
 
 Maximum Transmission Unit Size (32 bits):
-: This value is typically set to 1500, which is the default Maximum Transmission Unit (MTU) 
+: This value is typically set to 1500, which is the default Maximum Transmission Unit (MTU)
   size for Ethernet, but can be less.
 
 Maximum Flow Window Size (32 bits):
@@ -893,8 +894,13 @@ Control Information Field (CIF): n bits. Value: {none}
 ### ACK (Acknowledgment) {#ctrl-pkt-ack}
 
 Acknowledgment control packets are used to provide delivery status of data packets.
-These packets may also carry some additional information from the receiver like
-RTT, bandwidth, receiving speed, etc. The CIF portion of the ACK control packet is 
+By acknowled reception of data packets up to the acknowledged packet sequence number
+the receiver notifies the sender that all prior packets were received or, in case of
+live transmission mode ({{transmission-mode-live}}), preceeeding missing packets if any
+were dropped as too late to be delivered.
+
+ACK packets may also carry some additional information from the receiver like
+RTT, bandwidth, receiving speed, etc. The CIF portion of the ACK control packet is
 expanded as follows:
 
 ~~~
@@ -903,7 +909,7 @@ expanded as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
 |1|        Control Type         |           Reserved            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                   Type-specific Information                   |
+|                    Acknowledgement Number                     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Time Stamp                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -926,12 +932,12 @@ expanded as follows:
 ~~~
 {: #ack-control-packet title="ACK control packet"}
 
-Type-specific Information (32 bits):
-: The time-specific Information ({{controlpacket}}) of the ACK packet stores the
-  sequential number of the full ACK packet starting from 1.
+Acknowledgement Number (32 bits):
+: This field contains the sequential number of the full acknowledgment packet starting from 1.
 
 Last Acknowledged Packet Sequence Number (32 bits):
-: The sequence number of the last acknowledged data packet +1.
+: This field contains the sequence number of the last data packet being acknowledged plus one.
+  In other words, if it the sequence number of the first unacknowledged packet.
 
 RTT (32 bits):
 : RTT value (in microseconds) estimated by the receiver based on the previous ACK-ACKACK
@@ -990,9 +996,9 @@ An SRT NAK packet is formatted as follows:
 +-+-+-+-+-+-+-+-+-+-+-+- CIF (Loss List) -+-+-+-+-+-+-+-+-+-+-+-+
 |0|                 Lost packet sequence number                 |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|1|                    List of lost packets                     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
-|0|                            Up to                            |
+|1|         Range of lost packets from sequence number          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|0|                    Up to sequence number                    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |0|                 Lost packet sequence number                 |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1006,7 +1012,7 @@ Type-specific Information:
 : This field is reserved for future definition.
 
 Control Information Field (CIF):
-: A single value or a list of lost packets sequence numbers. See packet sequence number 
+: A single value or a range of lost packets sequence numbers. See packet sequence number
 coding in {{packet-seq-list-coding}}.
 
 ### Shutdown {#ctrl-pkt-shutdown}
@@ -1054,7 +1060,7 @@ An SRT ACKACK Control packet is formatted as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
 |1|        Control Type         |           Reserved            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                   Type-specific Information                   |
+|                     Acknowledgement Number                    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Time Stamp                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1068,9 +1074,9 @@ An SRT ACKACK Control packet is formatted as follows:
 Control Type:
 : The type value of ACKACK control packet is "6".
 
-Type-specific Information: 
-: ACK Sequence Number. This field is used for the sequence number of
-  the ACK packet being acknowledged.
+Acknowledgement Number:
+: This field contains the Acknowledgement Number of the full ACK packet
+  the reception of which is being acknowledged by this ACKACK packet.
 
 Control Information Field:
 : This field must not appear in ACKACK control packets.
@@ -2547,7 +2553,7 @@ the first bit of a to "1".
 |0|                   Sequence Number b (last)                  |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #list-sequence-numbers title="List of sequence numbers coding"}
+{: #list-sequence-numbers title="Range of sequence numbers coding"}
 
 # SRT Access Control {#sec-srt-access-control}
 
