@@ -76,7 +76,7 @@ informative:
         name: Robert L. Grossman
     date: October, 2004
   BBR:
-    title: BBR: Congestion-Based Congestion Control
+    title: "BBR: Congestion-Based Congestion Control"
     author:
       - 
         name: Neal Cardwell
@@ -1987,7 +1987,7 @@ at the time of sending the Periodic NAK report.
 SRT Periodic NAK reports are sent with a period of
 (RTT + 4 * RTTVar) / 2 (so called NAKInterval), with a 20
 milliseconds floor, where RTT and RTTVar are defined in section
-{{default-liveCC}}. A NAK control packet contains a compressed
+{{rtt}}. A NAK control packet contains a compressed
 list of the lost packets. Therefore, only lost packets are
 retransmitted. By using NAKInterval for the NAK reports period, it
 may happen that lost packets are retransmitted more than once,
@@ -2010,7 +2010,7 @@ are sent directly and processed upon reception, but ACKACK processing time is ne
 
 Once an SRT connection is established, both peers can send data packets simultaneously.
 
-## Round-Trip Time Estimation
+## Round-Trip Time Estimation {#rtt}
 
 Round-trip time (RTT) in SRT is estimated during the transmission of
 data packets based on a difference in time between an ACK packet is
