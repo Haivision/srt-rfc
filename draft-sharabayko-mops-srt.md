@@ -2474,7 +2474,7 @@ This specifies that the file is expected to be transmitted from the caller to th
 
 # Changelog
 
-## Since [draft-sharabayko-mops-srt-00](https://tools.ietf.org/html/draft-sharabayko-mops-srt-00)
+## Since version 00
 
 - Improved and extended the description of "Encryption" section,
 - Improved and extended the description of "Round-Trip Time Estimation" section,
