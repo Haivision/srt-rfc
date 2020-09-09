@@ -44,13 +44,18 @@ normative:
   RFC0768:
 
 informative:
+  AES:
+    target: http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
+    title: "FIPS Pub 197: Advanced Encryption Standard (AES)"
+    author:
+      org: National Institute of Standards and Technology
+    date: 26 November, 2001
+  RFC2104:
+  RFC2898:
   RFC8174:
   RFC8216:
   RFC3031:
   RFC3394:
-  RFC3547:
-  RFC3711:
-  RFC3830:
   RFC8312:
   RFC4987:
   GHG04b:
@@ -567,8 +572,6 @@ Peer IP Address: 128 bits
 
 Extension Type: 16 bits
 : The value of this field is used to process an integrated handshake.
-  There are two extensions: Handshake Extension Message ({{handshake-extension-msg}})
-  and Key Material Exchange ({{key-material-exchange}}).
   Each extension can have a pair of request and response types.
 
 | Value   | Extension Type       | HS Extension Flag |
@@ -657,13 +660,116 @@ Otherwise, message mode ({{transmission-mode-msg}}) is to be used.
 
 - PACKET_FILTER flag indicates if the peer supports packet filter.
 
-#### Key Material Exchange {#key-material-exchange}
+#### Key Material Extension Message {#sec-hsext-km}
 
-The purpose of the Key Material Exchange extension of a Handshake packet
-is to let peers exchange and negotiate encryption-related information to be used to encrypt and decrypt the payload of the stream.
+If an encrypted connection is being established, the Key Material (KM) is first transmitted as a 
+Handshake Extension message. This extension is not supplied for unprotected connections.
+The purpose of the extension is to let peers exchange and negotiate encryption-related information
+to be used to encrypt and decrypt the payload of the stream.
+
 The extension can be supplied with the Handshake Extension Type field set
 to either SRT_CMD_KMREQ or SRT_CMD_HSRSP (see {{handshake-ext-type}} in {{ctrl-pkt-handshake}}).
 For more details refer to {{handshake-messages}}.
+
+The KM message is placed in the Extension Contents. See {{sec-ctrlpkt-km}} for the structure of the KM message.
+
+#### Stream ID Extension Message {#sec-hsext-streamid}
+
+The Stream ID handshake extension message can be used to identify the stream content. 
+The Stream ID value can be free-form, but there is also a recommended convention
+that can be used to achieve interoperability.
+
+The Stream ID handshake extension message has SRT_CMD_SID extension type (see {{handshake-ext-type}}.
+The extension contents are a sequence of UTF-8 characters. The maximum allowed size of the
+StreamID extension is 512 bytes.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
+|                           Stream ID                           |
+                               ...
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #fig-hsext-streamid title="Stream ID Extension Message"}
+
+The Extension Contents field holds a sequence of UTF-8 characters (see {{fig-hsext-streamid}}).
+The maximum allowed size of the StreamID extension is 512 bytes. The actual size is determined
+by the Extension Length field ({{handshake-packet-structure}}), which defines the length in
+four byte blocks. If the actual payload is less than the declared length, the remaining bytes are set to zeros.
+
+The content is stored as 32-bit little endian words.
+
+#### Group Membership Extension
+
+The Group Membership handshake extension is used to distinguish single SRT connections
+and bonded SRT connections (group connections).
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Group ID                            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     Type    |     Flags     |             Weight              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #fig-hsext-group title="Group Membership Extension Message"}
+
+GroupID (32 bits):
+: The identifier of a group whose members include the sender socket that is making a connection.
+  The target socket that should interpret it should belong to the corresponding group on its side
+  (or should create one, if it doesn't exist).
+
+Type (8 bits):
+: Group type, as per SRT_GTYPE_ enumeration.
+
+- 0: undefined group type,
+- 1: broadcast group type,
+- 2: main/backup group type
+- 3: balancing group type (reserved for future use)
+- 4: multicast group type (reserved for future use)
+
+Flags (8 bits):
+: Special flags mostly reserved for the future. See {{fig-hsext-group-flags}}.
+
+Weight (16 bits):
+: Special value with interpretation depending on the Type field value.
+
+- Not used with broadcast groups.
+- Defines the link priority in backup groups.
+- Not yet defined (reserved for future) for any other cases.
+
+~~~
+ 0 1 2 3 4 5 6 7 
++-+-+-+-+-+-+-+
+|   (zero)  |M|
++-+-+-+-+-+-+-+
+~~~
+{: #fig-hsext-group-flags title="Group Membership Extension Flags"}
+
+M (1 bit):
+: When set, defines synchronization on message numbers, otherwise transmission is synchronized on sequence numbers.
+
+### Key Material {#sec-ctrlpkt-km}
+
+The purpose of the Key Material Message
+is to let peers exchange encryption-related information to be used to encrypt and decrypt the payload of the stream.
+
+This message can be supplied in two possible ways:
+
+- as a Handshake Extension, see {{sec-hsext-km}},
+
+- in the Content Information Field of the User-Defined control packet (described below).
+
+When the Key Material is transmitted as a control packet, the Control Type field of the SRT packet header
+is set to User-Defined Type (see {{srt-ctrl-pkt-type-table}}), the Subtype field of the header
+is set to SRT_CMD_KMREQ for key-refresh request and SRT_CMD_KMRSP for key-refresh response ({{handshake-ext-type}}).
+The KM Refresh mechanism is described in {{sec-crypt-km-refresh}}.
+
+The structure of the Key Material message is illustrated in {{fig-km-msg}}.
 
 
 ~~~
@@ -676,7 +782,7 @@ For more details refer to {{handshake-messages}}.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |     Cipher    |      Auth     |       SE      |     Resv2     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|             Resv3             |      SLen     |      KLen     |
+|             Resv3             |     SLen/4    |     KLen/4    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                              Salt                             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -685,10 +791,10 @@ For more details refer to {{handshake-messages}}.
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~~
-{: #keymaterial-extension-structure title="Key Material Extension structure"}
+{: #fig-km-msg title="Key Material Message structure"}
 
-S ( ): 1 bit. Value: {0}  
-: This is a fixed-width field that is a remnant from the header of a previous design.
+S ( ): 1 bit. Value: {0}
+: This is a fixed-width field that is reserved for future usage.
 
 Version (V): 3 bits. Value: {1}
 : This is a fixed-width field that indicates the SRT version:
@@ -704,7 +810,7 @@ Packet Type (PT): 4 bits. Value: {2}
   - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)
 
 Sign (Sign): 16 bits. Value: {0x2029}  
-: This is a fixed-width field that contains the signature ‘HAI‘ encoded as a 
+: This is a fixed-width field that contains the signature ‘HAI‘ encoded as a
   PnP Vendor ID ({{PNPID}}) (in big-endian order)
 
 Resv1 ( ): 6 bits. Value: {0}  
@@ -732,7 +838,6 @@ Cipher ( ): 8 bits. Value: {0..2}
 : This is a fixed-width field for specifying encryption cipher and mode:
 
   - 0: None or KEKI indexed crypto context
-  - 1: AES-ECB (not supported in SRT)
   - 2: AES-CTR {{SP800-38A}}
 
 Authentication (Auth): 8 bits. Value: {0}  
@@ -753,20 +858,21 @@ Resv2 ( ): 8 bits. Value: {0}
 Resv3 ( ): 16 bits. Value: {0}  
 : This is a fixed-width field reserved for future use.
 
-Slen ( ): 8 bits. Value: {0..255}  
-: This is a fixed-width field for specifying salt length in bytes divided by 4.
-  Can be zero if no salt/IV present
+SLen/4 ( ): 8 bits. Value: {4}  
+: This is a fixed-width field for specifying salt length SLen in bytes divided by 4.
+  Can be zero if no salt/IV present. The only valid length of salt defined is 128 bits.
 
-Klen ( ): 8 bits. Value: {4,6,8}
+KLen/4 ( ): 8 bits. Value: {4,6,8}
 : This is a fixed-width field for specifying SEK length in bytes divided by 4.
-  Size of one key even if two keys present.
+  Size of one key even if two keys present. MUST match the key size specified in the Encryption Field
+  of the handshake packet {{handshake-encr-fld}}.
 
-Salt (Slen): Slen * 4 * 8 bits. Value: { }  
+Salt (SLen): SLen * 8 bits. Value: { }  
 : This is a variable-width field that complements the keying material by specifying a salt key.
 
-Wrap ( ): (64+n * Klen * 4 * 8) bits. Value: { }
+Wrap ( ): (64+n * KLen * 8) bits. Value: { }
 : This is a variable-width field for specifying Wrapped key(s), where n = (KK + 1)/2 and
-  the size of the wrap field is ((n * Klen * 4) + 8) bytes.
+  the size of the wrap field is ((n * KLen) + 8) bytes.
 
 ~~~
  0                   1                   2                   3
@@ -791,91 +897,10 @@ ICV (64 bits):
 xSEK (variable width):
 : This field identifies an odd or even SEK. If only one key is present, the bit set in the KK field tells which SEK is provided.
   If both keys are present, then this field is eSEK (even key) and it is followed by odd key oSEK.
-  The length of this field is calculated as KLen * 4 * 8.
+  The length of this field is calculated as KLen * 8.
 
 oSEK (variable width):
 : This field with the odd key is present only when the message carries the two SEKs (identified by he KK field).
-
-#### Stream ID Extension Message {#sec-hsext-streamid}
-
-The Stream ID handshake extension message can be used to identify the stream content, 
-The Stream ID value can be used as free-form, but there is also recommended convention
-that can be used to achieve interoperability.
-
-The Stream ID handshake extension message has SRT_CMD_SID extension type (see {{handshake-ext-type}}.
-The extension contents holds a sequence of UTF-8 characters. The maximum allowed size of the
-SrteamID extension is 512 bytes.
-
-~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                                                               |
-|                           Stream ID                           |
-                               ...
-|                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-~~~
-{: #fig-hsext-streamid title="Stream ID Extension Message"}
-
-The Extension Contents field holds a sequence of UTF-8 characters (see {{fig-hsext-streamid}}).
-The maximum allowed size of the SrteamID extension is 512 bytes. The actual size is determined
-by the Extension Length field ({{handshake-packet-structure}}), which defines the length in
-four byte blocks. If the actual payload is less than the declared length, the remaining bytes are set to zeros.
-
-The content is stored as 32-bit little endian words.
-
-#### Group Membership Extension
-
-The Group Membership handshake extension is used to distinguish single SRT connections
-and bonded SRT connections (group connections).
-
-~~~
-0                   1                   2                   3
-0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Group ID                            |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|     Type    |     Flags     |             Weight              |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-~~~
-{: #fig-hsext-group title="Group Membership Extension Message"}
-
-GroupID (32 bits):
-: The group identifier of a group to which there belongs the socket that is making the connection at the sending side.
-  The target socket that should interpret it should belong to the corresponding group on its side
-  (or should create one, if it doesn't exist).
-
-Type (8 bits):
-: Group type, as per SRT_GTYPE_ enumeration.
-
-- 0: undefined group type,
-- 1: broadcast group type,
-- 2: main/backup group type
-- 3: balancing group type (reserved for future use)
-- 4: multicast group type (reserved for future use)
-
-Flags (8 bits):
-: Special flags mostly reserved for the future. See {{fig-hsext-group-flags}}.
-
-Weight (16 bits):
-: Special value with interpretation depending on the Type field value.
-
-- Not used in case of broadcast group.
-- In backup group defines the link priority.
-- In the rest cases the meaning is not yet defined (reserved for future).
-
-~~~
-0 1 2 3 4 5 6 7 
-+-+-+-+-+-+-+-+
-+-+-+-+-+-+-+-+
-|   (zero)  |M|
-+-+-+-+-+-+-+-+
-~~~
-{: #fig-hsext-group-flags title="Group Membership Extension Flags"}
-
-M (1 bit):
-: When set, defines synchronization on message numbers, otherwise transmission is synchronized on sequence numbers.
   
 ### Keep-Alive {#ctrl-pkt-keepalive}
 
@@ -2193,380 +2218,207 @@ with a key establishment method.
 
 ## Overview
 
-AES in counter mode (AES-CTR) is used with a short-lived key to encrypt the media stream.
-This cipher is suitable for random access of a continuous stream, content protection
-(used by HDCP 2.0), and strong confidentiality when the counter is managed properly.
-SRT implements encryption using AES-CTR mode, effectively using encryption to decrypt
-an encrypted packet.
+SRT implements encryption using AES {{AES}} in counter mode (AES-CTR) {{SP800-38A}} with a short-lived key
+to encrypt and decrypt the media stream. The AES-CTR cipher is suitable for continuous stream encryption
+that permits decryption from any point, without access to start of the stream (random access),
+and for the same reason tolerates packet loss. It also offers strong confidentiality when the counter is managed properly.
 
-<!-- TODO: [[reference for AES-CTR, HDCP 2.0??]] -->
+### Encryption Scope
 
-<!-- # TODO: [[Figure]] -->
+SRT encrypts only the payload of SRT data packets ({{data-pkt}}), while the header is left unencrypted.
+The unencrypted header contains the Packet Sequence Number field used to keep the synchronization
+of the cipher counter between the encrypting sender and the decrypting receiver.
+No constraints apply to the payload of SRT data packets as no padding of the payload is required by counter mode ciphers.
 
-SRT encrypts the media stream at the Transmission Payload level
-(UDP payload of MPEG-TS/UDP encapsulation, which is about 7 MPEG-TS packets of 188 bytes each).
-A small packet header is required to keep the synchronization of the cipher counter
-between the encoder and the decoders. No padding is required by counter mode ciphers.
-
-What is encrypted is a 128-bit counter, which is then used to do an XOR with each block
-of 128 bits in a packet, resulting in the ciphertext to transmit (this is the XOR technique 
-for counter mode).
+### AES Counter
 
 The counter for AES-CTR is the size of the cipher's block, i.e. 128 bits. It is derived from
-a 128-bit sequence consisting of (1) a block counter in the least significant 16 bits, 
-which counts the blocks in a packet, (2) a packet index - based on the packet sequence number
-in the UDT header - in the next 32 bits, and (3) eighty bits that are zeroes.
-The upper 112 bits of this sequence are XORed with an initialization vector (IV)
-to produce a unique counter for each crypto block. Note that the block counter is unique for 
-the duration of the session. The same counter cannot be used twice.
+a 128-bit sequence consisting of
 
-This key used for encryption is called the "Stream Encrypting Key" (SEK), which is used for
-2^25 packets.
-The short-lived SEK is generated by the sender using a pseudo-random number generator (PRNG),
-and transmitted within the stream (KM Tx Period), wrapped with another longer-term key,
-the Key Encrypting Key (KEK), using a known AES key wrap protocol.
+- a block counter in the least significant 16 bits, which counts the blocks in a packet,
 
-<!-- TODO: [[Figure]] -->
+- a packet index - based on the packet sequence number in the SRT header - in the next 32 bits,
 
-For connection-oriented transport such as SRT, there is no need to periodically transmit
-the short-lived key since no party can join the stream at any time. The keying material
-is transmitted within the connection handshake packets, and for a short period
-when rekeying occurs.
+- eighty zeroed bits.
 
-The KEK is derived from a secret shared (e.g. passphrase) between the sender and the receiver.
-The shared secret provides access to the stream key, which provides access to the protected
-media stream. The distribution and management of the secret is more flexible than the stream
-encrypting key. The KEK has to be at least as long as the SEK.
+The upper 112 bits of this sequence are XORed with an Initialization Vector (IV)
+to produce a unique counter for each crypto block. The IV is derived from the Salt
+provided in the Keying Material ({{sec-ctrlpkt-km}}):
 
-The KEK is generated by a password-based key generation function (PBKDF2)<!-- [PCKS5] -->,
-which uses the passphrase, a number of iterations (2048), a keyed-hash (HMAC-SHA1), and
-a length KEYLEN. The PBKDF2 function hashes the passphrase to make a long string,
-by repetition or padding. The number of iterations is based on how much time can be given to
-the process without it becoming disruptive.
-
-<!-- TODO: PCKS5 reference, HMAC-SHA1 reference -->
-
-The KEK is used to generate a wrap {{RFC3394}} that is put in a key material (KM) message
-to send to the receiver. The KM message contains the key length,
-the salt (one of the arguments provided to the PBKDF2 function), the protocol being used
-(AES-256 in this case) and the AES counter (which will eventually change).
-
-On the other side, the receiver attempts to decode the wrap to obtain the key. In the protocol
-for the wrap there is a padding, which is a known template, so the receiver knows from the KM
-that it has the right KEK to decode the SEK.
-The SEK (generated and transmitted by the sender) is random, and cannot be known in advance.
-The KEK formula is calculated on both sides, with the difference that the receiver gets
-the key length (KEYLEN) from the sender via the key material (KM).
-It is the sender who decides on the configured length. The receiver obtains it from
-the material sent by the sender. This is why the length is not configured on a decoder,
-thus avoiding the need to match.
-
-The receiver returns the same KM message to show that it has the same information as the sender,
-and that the encoded material will be decrypted. If the receiver does not return this status,
-this means that any encrypted packets from the sender will be lost. Even if they are transmitted
-successfully, the receiver will be unable to decrypt them, and so will be dropped.
-In the UDT design, even if one peer could not decrypt, this did not mean that others should not 
-receive the information. In UDT, the key exchange is a one way process, where the key is
-regularly injected into a stream so that it can be received at any time. But with SRT the connection
-is established in the beginning, so the key exchange happens then.
-It cannot be done just anywhere in the stream.
-
-The short lived SEK is regenerated for cryptographic reasons when enough packets have been
-encrypted with it by implementation of either side. One example implementation has default
-value of 2^25, with a pre-announcement period of 4000 packets (i.e. a new key is generated,
-wrapped, and sent at 2^25 minus 4000 packets). Even and odd keys are alternated this way.
-The packets with the earlier key (we will call it key #1, or "odd") will continue to be sent.
-The receiver will receive the new key #2 (even), then decrypt and unwrap it.
-The receiver will reply to the sender if it is able to understand.
-Once the sender gets to the 2^25 packet using the odd key (key #1), it will then start to
-send packets with the even key (key #2). It knows that the receiver has what it needs to
-decrypt that even key (key #2). This happens transparently, from one packet to the next.
-At 2^25 plus 4000 packets the first key will be decommissioned automatically in this example
-implementation.
-
-<!-- TODO: [[Refreshing rate is not a parameter of the protocol, but a parameter for the current implementation. This is not crticial for interoperability, so this part was rephrased as an example implementation.]] -->
-
-<!-- TODO: [[Figure]] -->
-
-The keys live in parallel for a certain period of time. A bit before and a bit after the given
-refresh point (in the previous example, the 2^25) there are two keys that exist in parallel,
-in case there is retransmission. It is possible for packets with the older key to arrive
-at the receiver a bit late. Each packet contains a description of which key it requires,
-so the receiver will still have the ability to decrypt it.
-
-During handshake process, keying materials piggyback on the second round-trip,
-including the response. The handshake initiator sends the key length,
-and then the key material exchange happens on the last trip.
-
-<!-- TODO: [[Figure]] -->
-
-##Definitions for encryption mechanism
-
-###Ciphers (AES-CTR)
-
-<!-- TODO: format of item title? -->
-
-The payload is encrypted with a cipher in counter mode (AES-CTR).
-The AES counter mode is one of the only cipher modes suitable for continuous stream encryption
-that permits decryption from any point, without access to start of the stream (random access),
-and for the same reason tolerates packet lost.
-The Electronic Code Book (ECB) mode also has these characteristics but does not provide serious
-confidentiality and is not recommended in cryptography.
-
-Integrity protection might eventually be achieved with an Authenticated Encryption with
-Associated Data (AEAD) cipher such as AES-CCM or AES-GCM.
-These cipher modes remove the need of a separate message authentication protocol such as SHA-2.
-
-<!-- TODO: [[not sure if this definition is necessary. But if it is to be included, references are needed for ECB, AEAD, AES-GCM, SHA-2..]] -->
-
-### Media Stream Message (MSmsg)
-
-The Media Stream message is formed from the SRT media stream (data) packets with some elements of
-the SRT header used for the cryptography. An SRT header already carries a 32-bit packet sequence
-number that is used for the cipher's counter (ctr), with 2 bits taken from the header's message number
-(which is thereby reduced to 27 bits) for the encryption key (odd/even) indicator.
-Note that the message number field is used when the message is larger than the MTU are send,
-which is not the case for MPEG-TS/SRT so the reduction to 27 bits is without consequence.
-
-<!-- TODO: [[reference for MPEG-TS?]] -->
-<!-- TODO: [[message number is reduced to 26 bits in the end..because of 'R' retransmission flag]] -->
-
-### Keying Material
-
-For each stream, the sender generates a Stream Encrypting Key (SEK) and a Salt.
-For the initial implementation and for most envisioned scenarios where no separate
-authentication algorithm is used for message integrity, the SEK is used directly
-to encrypt the media stream. The Initial Vector (IV) for the counter is derived from the Salt only.
-In other scenarios, the SEK can be used along with the Salt as a key generating material
-to produce distinct encryption, authentication, and salt keys.
+~~~~
+IV = MSB(112, Salt): Most significant 112 bits of the salt.
+~~~~
 
 ### Stream Encrypting Key (SEK)
 
-The Stream Encrypting Key (SEK) is pseudo-random and different for each stream.
-It must be 128, 192, or 256 bits long for the AES-CTR ciphers.
-It is non-persistent and relatively short lived.
-In a typical scenario the SEK is expected to last, in cryptographic terms,
-around 37 days for a 31-bit counter (2^31 packets / 667 packets/second).
+The key used for AES-CTR encryption is called the "Stream Encrypting Key" (SEK). It is used for
+up to 2^25 packets with further rekeying.
+The short-lived SEK is generated by the sender using a pseudo-random number generator (PRNG),
+and transmitted within the stream, wrapped with another longer-term key,
+the Key Encrypting Key (KEK), using a known AES key wrap protocol.
 
-The SEK is regenerated every time a stream starts and does not survive system reboot.
-It must be discarded before 2^31 packets are encrypted (31-bit packet index) according
-to an implementation example of SRT and replaced seamlessly using an odd/even
-key mechanism described below.
-Reusing an IV with the same key on different clear text is a known catastrophic issue
-of counter mode ciphers. By regenerating the SEK each time a stream starts we remove
-the need for elaborate management of the IV to ensure uniqueness.
-
-### Initialization Vector (IV)
-
-The IV (also called "nonce" in the AES-CTR context) is a 112-bit random number.
-For the initial implementation of SRT and for most envisioned scenarios
-where no separate authentication algorithm is used for message integrity (Auth=0),
-the IV is derived from the salt only.
-
-IV = MSB(112, Salt):
-: Most significant 112 bits of the salt.
-
-### Counter (ctr)
-
-The counter for AES-CTR is the size of the cipher's block, i.e. 128 bits.
-It is based on a block counter in the least significant 16 bits, for counting blocks
-of a packet, a packet index in the next 32 bits, and 80 zeroed bits.
-The upper 112 bits are XORed with the IV to produce a unique counter for each crypto block.
-
-<!-- TODO: [[Figure]] -->
-
-The block counter (bctr) is incremented for each cipher block while producing the key stream.
-The packet index is incremented for each packet submitted to the cipher.
-The IV is derived from the Salt provided with the Keying Material.
-
-### Keying Material message (KMmsg)
-
-The SEK and a salt are transported in-stream, in a Keying Material message (KMmsg),
-implemented as a custom SRT control packet, wrapped with a longer term Key Encrypting Key (KEK)
-using AES key wrap {{RFC3394}}.
-
-The connection-oriented SRT KM control packet is transmitted at the start of the connection,
-before any data packet. In most cases, if the control packet is not lost, the receiver
-is able to decrypt starting with the first packet. Otherwise, the initial packets are dropped
-(or stored for later decryption) until the KM control packet is received
-(the SRT control packet is retransmitted until acknowledged by the receiver).
-
-### Odd/Even Stream Encrypting Key (oSEK/eSEK)
-
-To ensure seamless rekeying for cryptographic (counter exhausted) or access control reasons,
-SRT employs a two-key mechanism, similar to the one used with DVB systems.
-The two keys are identified as the odd key and the even key (oSEK/eSEK).
-An odd/even flag in the SRT data header tells which key is in use. 
-The next key to be used is transmitted in advance to the receivers in an SRT control packet.
-When rekeying occurs, the SRT data header odd/even flag flips, and the receiver already has
-the new key in hand to continue decrypting the stream without missing a packet.
-
-<!-- TODO: [[reference for DVB system?]] -->
-
-<!-- TODO: [[Figure]] -->
-
+For connection-oriented transport such as SRT, there is no need to periodically transmit
+the short-lived key since no additional party can join a stream in progress. The keying material
+is transmitted within the connection handshake packets, and for a short period
+when rekeying occurs.
 
 ### Key Encrypting Key (KEK)
 
-The Key Encrypting Key (KEK) is used by the sender to wrap the SEK, and by the receiver to
-unwrap it and then decrypt the stream. The KEK must be at least the size of the key it protects,
-the SEK. The KEK is derived from a shared secret, a pre-shared password by default.
+The Key Encrypting Key (KEK) is derived from a secret (passphrase) shared between the sender and the receiver.
+The KEK provides access to the Stream Encrypting Key, which in turn provides access
+to the protected payload of SRT data packets. The KEK has to be at least as long as the SEK.
 
-The KEK is derived with the PBKDF2 <!--{{PCKS5}} --> derivation function with the stream
-Salt and the shared secret for input.
-Each stream then uses a unique KEK to encrypt its Keying Material.
-A compromised KEK does not compromise other streams protected with the same shared secret
-(but a compromised shared secret compromises all streams protected with KEK derived from it).
-Late derivation of the KEK using stream Salt also permits the generation
-of a KEK of the proper size, based on the size of the key it protects.
+The KEK is generated by a password-based key generation function (PBKDF2) {{RFC2898}},
+using the passphrase, a number of iterations (2048), a keyed-hash (HMAC-SHA1) {{RFC2104}}, and
+a key length value (KLen). The PBKDF2 function hashes the passphrase to make a long string,
+by repetition or padding. The number of iterations is based on how much time can be given to
+the process without it becoming disruptive.
 
-The shared secret can be pre-shared; password derived PKCS5;
-distributed using a proprietary mechanism, or by using a standard key distribution mechanism
-such as GDOI {{RFC3547}} or MIKEY {{RFC3830}}.
+### Key Material Exchange
 
-The cryptographic usage limit of the KEK is 248 wraps (AESKW) which means virtual infinity
-at the expected SEK rekeying rate (90,000 years to rekey 100 keys every second).
+The KEK is used to generate a wrap {{RFC3394}} that is put in a key material (KM) message
+by the initiator of a connection (i.e. caller in caller-listener handshake and initiator
+in the rendezvous handshake, see {{handshake-messages}}) to send to the responder (listener).
+The KM message contains the key length,
+the salt (one of the arguments provided to the PBKDF2 function), the protocol being used
+(e.g. AES-256) and the AES counter (which will eventually change, see {{sec-crypt-km-refresh}}).
 
-## Encryption Process Walkthrough
+On the other side, the responder attempts to decode the wrap to obtain the Stream Encrypting Key.
+In the protocol for the wrap there is a padding, which is a known template, so the responder
+knows from the KM that it has the right KEK to decode the SEK.
+The SEK (generated and transmitted by the initiator) is random, and cannot be known in advance.
+The KEK formula is calculated on both sides, with the difference that the responder gets
+the key length (KLen) from the initiator via the key material (KM).
+It is the initiator who decides on the configured length. The responder obtains it from
+the material sent by the initiator.
 
-### Stream configuration
+The responder returns the same KM message to show that it has the same information as the initiator,
+and that the encoded material will be decrypted. If the responder does not return this status,
+this means that it does not have the SEK. All incoming encrypted packets received by the responder
+will be lost (undecrypted). Even if they are transmitted
+successfully, the receiver will be unable to decrypt them, and so packets will be dropped.
+All data packets coming from responder will be unencrypted.
 
-In the simplest stream protection form, a stream is configured with a password
-(preferably a passphrase) to enable encryption. The sender decides to protect or not.
-On the receiver, a configured passphrase is used only if the incoming media stream is encrypted.
-A receiver knows that a received stream is encrypted and how (cipher/key length),
-based on the received stream itself - not because it has a password configured.
+### KM Refresh {#sec-crypt-km-refresh}
 
-In the absence of security policies, operators and admins can perform this task.
-The only other parameter to set in the initial implementation of SRT, which uses only AES-CTR,
-is the key size: 128, 192, or 256.
+The short lived SEK is regenerated for cryptographic reasons when a pre-determined number of packets has been
+encrypted. The KM refresh period is determined by the implementation.
+The receiver knows which SEK (odd or even) was used to encrypt the packet
+by means of the KK field of the SRT Data Packet ({{data-pkt}}).
 
-A system-wide stream protection passphrase (and other crypto parameters) can also be set
-by a Security Officer. On the sender, a stream can be protected by only enabling encryption
-(using a system-wide passphrase derived key).
-On the receiver, no specific setting is required if the decoder detects encryption
-from the received stream and has access to the system-wide passphrase to decrypt it.
+There are two variables used to determine the KM Refresh timing:
 
-### Keying Material Generation
+- KM Refresh Period specifies the number of packets to be sent before switching to the new SEK,
 
-#### SEK, Salt, and KEK
+- KM Pre-Announcement Period specifies when a new key is announced in a number of packets before key switchover.
+  The same value is used to determine when to decommission the old key after switchover.
 
-For each protected stream, the encoder generates a random SEK and Salt.
-In the case of a pre-shared password derived key, it derives the KEK from 
-the pre-shared secret and the 64 least significant bits of the Salt.
+The recommended KM Refresh Period is after 2^25 packets encrypted with the same SEK are sent.
+The recommended KM Pre-Announcement Period is 4000 packets (i.e. a new key is generated,
+wrapped, and sent at 2^25 minus 4000 packets; the old key is decommissioned at 2^25 plus 4000 packets).
+
+Even and odd keys are alternated during transmission the following way.
+The packets with the earlier key #1 (let it be the odd key) will continue to be sent.
+The receiver will receive the new key #2 (even), then decrypt and unwrap it.
+The receiver will reply to the sender if it is able to understand.
+Once the sender gets to the 2^25th packet using the odd key (key #1), it will then start to
+send packets with the even key (key #2), knowing that the receiver has what it needs to
+decrypt them. This happens transparently, from one packet to the next.
+At 2^25 plus 4000 packets the first key will be decommissioned automatically.
+
+Both keys live in parallel for two times the Pre-Announcement Period (e.g. 4000 packets before the key switch, and 4000 packets after). This is to allow for packet retransmission. It is possible for packets with the older key to arrive
+at the receiver a bit late. Each packet contains a description of which key it requires,
+so the receiver will still have the ability to decrypt it.
+
+## Encryption Process
+
+### Generating the Stream Encrypting Key
+
+On the sending side SEK, Salt and KEK are generated the following way:
 
 ~~~~~~~~~~~
-SEK = PRNG(Klen)
+SEK  = PRNG(KLen)
 Salt = PRNG(128)
-KEK = PBKDF2(password, LSB(64,Salt), Iter, Klen)
+KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, Klen)
 ~~~~~~~~~~~
 
-PRNG is a pseudo-random number generator, Klen is the key length (128, 192, 256), 
-PBKDF2 is the Password Based Key Derivation Function 2.0 <!-- [PKCS5] -->,
-and Iter is the iteration count (2048).
-For proper protection, the KEK must be at least as long as the key it protects.
+where
 
-#### KMmsg
-
-The encoder assembles the Keying Material message once for the life of the SEK and transmits
-it periodically. It may be assembled twice if the 2nd key (odd and even) is later added
-and transmitted in the same message for seamless rekeying (SEK = eSEK || oSEK).
+- PBKDF2 is the PKCS#5 Password Based Key Derivation Function,
+- passphrase is the pre-shared passphrase,
+- Salt is the field of the KM message,
+- LSB(n, v) is the function taking n least significant bits of v,
+- Iter=2048 defines the number of iterations for PBKDF2,
+- KLen is the field of the KM message.
 
 ~~~~~~~~~~~
 Wrap = AESkw(KEK, SEK)
-KMmsg = Header || CryptoInfo || Wrap
 ~~~~~~~~~~~
 
-#### Encryption and Transmission
+where AESkw(KEK, SEK) is the key wrapping function {{RFC3394}}.
 
-<!-- TODO: [[Figure]] -->
-<!-- TODO: [[This figure seems somehow duplicated before... Need to sort it out and keep one instance only. Maybe first instance?]] -->
+### Encrypting the Payload
 
-#### KMmsg Transmission (KM Tx Period)
-
-The sender transmits the KMmsg periodically, for example, every second.
-
-#### Key Stream Generation
-
-When a co-processor is used for cryptography the key stream can be generated in parallel,
-in advance of the media stream. The initial counter is generated from the IV and the Salt.
+The encryption of the payload of the SRT DATA packet is done with AES-CTR
 
 ~~~~~~~~~~~
-IV = MSB(112, Salt)
-ctr = (IV112 || 016) XOR (index32 || 016)
-KeyStream[index] = AES(SEK, ctr) || AES(SEK, ctr+1) || ... || AES(SEK, ctr+n-1)
-index = index + 1
+EncryptedPayload = AES_CTR_Encrypt(SEK, IV, UnencryptedPayload)
 ~~~~~~~~~~~
 
-'n' is the number of 128 bits block in the payload.
-
-#### Media Stream Message Generation
-The MPEG-TS/UDP payload is XORed with the Key stream:
+where the Initialization Vector is derived as
 
 ~~~~~~~~~~~
-MSmsg[index] = Header || index || (KeyStream[index] XOR payload[index])
+IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 ~~~~~~~~~~~
 
-####Reception and Decryption
+- PktSeqNo is the value of the Packet Sequence Number field of the SRT data packet.
 
-<!-- TODO: [[Figure]] -->
+## Decryption Process
 
-#### Detect Encryption
-The receiver of a stream can detect from the message whether or not the stream is encrypted.
+### Restoring the Stream Encrypting Key
 
-#### Regenerate the KEK, SEK and IV
+For the receiver to be able to decrypt the incoming stream it has to know the stream encrypting key (SEK)
+used by the sender. The receiver MUST know the passphrase used by the sender. The remaining information can
+be extracted from the Keying Material message.
 
-If the receiver does not have the Keying Material,
-it waits for a KMmsg to extract the Salt and Wrap.
-With the pre-shared password and the Salt it regenerates the KEK and
-then unwrap the SEK. It checks the Wrap integrity from the Integrity Check Vector.
+The Keying Material message contains the AES-wrapped {{RFC3394}} SEK used by the encoder.
+The Key-Encryption Key (KEK) required to unwrap the SEK is calculated as:
 
 ~~~~~~~~~~~
-KEK = PBKDF2(password, Salt, Iter, Klen)
-ICV || SEK = AESkw(KEK, Wrap)
+KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
 ~~~~~~~~~~~
 
-#### Generate Key Stream
+where
 
-With the next stream message (MSmsg) the receiver grabs the packet counter and odd/even
-key flag from the clear text header and prepares the cipher to generate a key stream for some
-packets in advance.
+- PBKDF2 is the PKCS#5 Password Based Key Derivation Function,
+- passphrase is the pre-shared passphrase,
+- Salt is the field of the KM message,
+- LSB(n, v) is the function taking n least significant bits of v,
+- Iter=2048 defines the number of iterations for PBKDF2,
+- KLen is the field of the KM message.
 
-#### Counter Preset
+~~~~~~~~~~~
+SEK = AESkuw(KEK, Wrap)
+~~~~~~~~~~~
 
-As an optimization, while waiting for the first KMmsg, the decoder can grab the packet counter
-and odd/even flag from the stream message (MSmsg) received before the KMmsg and know
-what the packet counter of the next MSmsg should be, then prepares the cipher earlier.
+where AESkuw(KEK, Wrap) is the key unwrapping function.
 
-#### Early Frames vs. Latency
+### Decrypting the Payload
 
-If the key stream is generated in any arrangement where a crypto processor can process
-the key stream in parallel, there is a choice between displaying the earlier frames received or
-achieving low latency.
+The decryption of the payload of the SRT data packet is done with AES-CTR
 
-When a decoder has prepared the cipher to generate the key stream, it has the choice to (1) store
-the received stream packets until the key stream is ready, and then display the earliest received
-frame with some latency (the lag between the first packet buffered and the first packet
-decrypted and displayed), or (2) drop the early packets until the key stream is ready, and then
-achieve lower latency. It is assumed here that the crypto engine can thereafter generate the key
-stream as fast as it receives MSmsg.
+~~~~~~~~~~~
+DecryptedPayload = AES_CTR_Encrypt(SEK, IV, EncryptedPayload)
+~~~~~~~~~~~
 
-While it would be possible to buffer the received stream packets before receiving the KMmsg,
-there is no guarantee that the odd or even key used to encrypt these messages is the one
-encrypted in the KMmsg received after, especially if backward secrecy is achieved (where a new
-receiver cannot decrypt an earlier stream).
+where the Initialization Vector is derived as
 
-## TO Remove
+~~~~~~~~~~~
+IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
+~~~~~~~~~~~
 
-### KEKI (to be moved to a relevan section)
+- PktSeqNo is the value of the Packet Sequence Number field of the SRT data packet.
 
-<!-- TODO: Move the following paragraph to some description section -->
-
-If it is required to seamlessly change the KEK for good security practice (key lifetime elapsed),
-to preserve backward/forward secrecy when a new receiver joins/leaves,
-for a security breach (compromised KEK or device),
-or if there are multiple sensitive streams to protect (e.g. secret, sensitive, public, etc.),
-then the system needs to manage multiple keys and this fields tells which one to use.
 
 # Security Considerations
 
