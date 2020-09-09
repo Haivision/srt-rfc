@@ -2218,17 +2218,16 @@ encrypted. The KM refresh period is determined by the implementation.
 The receiver knows which SEK (odd or even) was used to encrypt the packet
 by means of the KK field of the SRT Data Packet ({{data-pkt}}).
 
-There are two variables used to determige the KM Refresh timing:
+There are two variables used to determine the KM Refresh timing:
 
-- KM Refresh Period detemines the number of packets to be sent between two consecutive
-  switch points,
+- KM Refresh Period specifies the number of packets to be sent before switching to the new SEK,
 
-- KM Pre-Announcement Period determines the number of packets before switch point when
-  the new key is announced., and after the switch point to decommission the old key.
+- KM Pre-Announcement Period specifies when a new key is announced in a number of packets before key switchover.
+  The same value is used to determine when to decommission the old key after switchover.
 
-The recommended value of the KM Refresh Period is after 2^25 packets encrypted with the same SEK are sent.
+The recommended KM Refresh Period is after 2^25 packets encrypted with the same SEK are sent.
 The recommended KM Pre-Announcement Period is 4000 packets (i.e. a new key is generated,
-wrapped, and sent at 2^25 minus 4000 packets).
+wrapped, and sent at 2^25 minus 4000 packets; the old key is decommissioned at 2^25 plus 4000 packets).
 
 Even and odd keys are alternated during transmission the following way.
 The packets with the earlier key #1 (let it be the odd key) will continue to be sent.
