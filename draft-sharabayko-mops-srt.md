@@ -1557,7 +1557,7 @@ The chances of the parallel handshake flow are very low, but still it may
 occur if the handshake messages with WAVEAHAND are sent and received by both peers
 at precisely the same time.
 
-The resulting flow is very much like Bob's behavior in the serial handshake flow,
+The resulting flow is very much like Bob's behaviour in the serial handshake flow,
 but for both parties. Alice and Bob will go through the same state transitions:
 
     Waving -> Attention -> Initiated -> Connected
@@ -1660,10 +1660,10 @@ acknowledgment (ACK) is missing or late for more than the configured latency, th
 is dropped from the sender buffer. A packet can be retransmitted as long as it remains
 in the buffer for the duration of the latency window. On the receiver, packets are 
 delivered to an application from a buffer after the latency interval has passed. This 
-helps to recover from potential packet losses. See sections {{tsbpd}}, 
+helps to recover from potential packet losses. See {{tsbpd}}, 
 {{too-late-packet-drop}} for details.
 
-Latency is a value (specified in milliseconds) that can cover the time to transmit 
+Latency is a value, in milliseconds, that can cover the time to transmit 
 hundreds or even thousands of packets at high bitrate. Latency can be thought of as a 
 window that slides over time, during which a number of activities take place, such as 
 the reporting of acknowledged packets (ACKs) ({{packet-acks}}) and unacknowledged 
@@ -1671,7 +1671,7 @@ packets (NAKs)({{packet-naks}}).
 
 Latency is configured through the exchange of capabilities during the extended handshake 
 process between initiator and responder. The Handshake Extension Message ({{handshake-extension-msg}}) 
-has TSBPD delay information (in milliseconds) from the SRT receiver and sender. The 
+has TSBPD delay information, in milliseconds, from the SRT receiver and sender. The 
 latency for a connection will be established as the maximum value of latencies proposed 
 by the initiator and responder.
 
@@ -1694,10 +1694,10 @@ uniform packet drop rate, or a larger packet burst drop. Packets received after 
 "play time" are dropped if the Too-Late Packet Drop feature is enabled 
 (see {{too-late-packet-drop}}).
 
-The packet timestamp (in microseconds) is relative to the SRT connection creation time. 
-Packets are inserted based on the sequence number in the header field. The origin time 
-(in microseconds) of the packet is already sampled when a packet is first submitted by 
-the application to the SRT sender. The TSBPD feature uses this time to stamp the packet 
+The packet timestamp, in microseconds, is relative to the SRT connection creation time. 
+Packets are inserted based on the sequence number in the header field. The origin time, 
+in microseconds, of the packet is already sampled when a packet is first submitted by 
+the application to the SRT sender unless explicitly provided. The TSBPD feature uses this time to stamp the packet 
 for first transmission and any subsequent retransmission. This timestamp and the 
 configured SRT latency ({{srt-latency}}) control the recovery buffer size and the 
 instant that packets are delivered at the destination (the aforementioned "play time" 
@@ -1800,6 +1800,7 @@ During the transmission process, the value of TSBPD time base may be adjusted in
    The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value
    of a packet and ends once the packet with timestamp within (30, 60) seconds interval
    is delivered (read from the buffer). The updated value of TsbpdTimeBase will be recalculated as follows:
+
    ~~~
    TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
    ~~~
@@ -1999,7 +2000,7 @@ packets, but there's no place for them, so they will end up being thrown away.
 This condition where packets are unsent does not happen often. There is a maximum number of
 packets held in the send buffer based on the configured latency. Older packets that have no
 chance to be retransmitted and played in time are dropped, making room for newer real-time
-packets produced by the sending application. See sections {{tsbpd}}, {{too-late-packet-drop}} for details.
+packets produced by the sending application. See {{tsbpd}}, {{too-late-packet-drop}} for details.
 
 In addition to the regular NAKs, the Periodic NAK report mechanism can be used to send NAK reports periodically.
 The NAK packet in that case will have all the packets that the receiver considers being lost
@@ -2067,7 +2068,7 @@ Both RTT and RTTVar are measured in microseconds. The initial value
 of RTT is 100 milliseconds, RTTVar is 50 milliseconds.
 
 The smoothed RTT calculated by the receiver as well as the RTT variance
-RTTVar are sent with the next full acknowledgement packet (see section
+RTTVar are sent with the next full acknowledgement packet (see
 {{ctrl-pkt-ack}}). Note that the first ACK in an SRT session might
 contain an initial RTT value of 100 milliseconds, because the
 early calculations may not be precise.
@@ -2481,6 +2482,7 @@ This specifies that the file is expected to be transmitted from the caller to th
 - Extended the description of "Handshake" section with "Stream ID Extension Message", "Group Membership Extension" subsections,
 - Extended "Handshake Messages" section with the detailed description of handshake procedure,
 - Improved "Key Material" section description,
-- Did packet structure formatting for "Packet Structure" section,
+- Changed packet structure formatting for "Packet Structure" section,
 - Did minor additions to the "Acknowledgement and Lost Packet Handling" section,
+- Fixed broken links,
 - Extended the list of references.
