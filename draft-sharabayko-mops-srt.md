@@ -321,17 +321,17 @@ The structure of the SRT packet is shown in {{srtpacket}}.
 ~~~
 {: #srtpacket title="SRT packet structure"}
 
-F: 1 bit
+F: 1 bit.
 : Packet Type Flag. The control packet has this flag set to "1".
   The data packet has this flag set to "0".
 
-Timestamp: 32 bits
+Timestamp: 32 bits.
 : The timestamp of the packet, in microseconds.
   The value is relative to the time the SRT connection was established.
   Depending on the transmission mode ({{data-transmission-mode}}),
   the field stores the packet send time or the packet origin time.
 
-Destination Socket ID: 32 bits
+Destination Socket ID: 32 bits.
 : A fixed-width field providing the SRT socket ID to which a packet should be dispatched.
   The field may have the special value "0" when the packet is a connection request.
 
@@ -358,40 +358,40 @@ The structure of the SRT data packet is shown in {{srtdatapacket}}.
 ~~~
 {: #srtdatapacket title="Data packet structure"}
 
-Packet Sequence Number: 31 bits
+Packet Sequence Number: 31 bits.
 : The sequential number of the data packet.
 
-PP: 2 bits
+PP: 2 bits.
 : Packet Position Flag. This field indicates the position of the data packet in the message.
   The value "10b" (binary) means the first packet of the message. "00b" indicates a packet 
   in the middle. "01b" designates the last packet. If a single data packet forms the whole 
   message, the value is "11b".
 
-O: 1 bit
+O: 1 bit.
 : Order Flag. Indicates whether the message should be delivered by the receiver in order (1) 
   or not (0). Certain restrictions apply depending on the data transmission mode used 
   ({{data-transmission-mode}}).
 
-KK: 2 bits
+KK: 2 bits.
 : Key-based Encryption Flag. The flag bits indicate whether or not data is encrypted.
   The value "00b" (binary) means data is not encrypted. "01b" indicates that data is
   encrypted with an even key, and "10b" is used for odd key encryption. Refer to {{encryption}}.
   The value "11b" is only used in control packets.
 
-R: 1 bit
+R: 1 bit.
 : Retransmitted Packet Flag. This flag is clear when a packet is transmitted the first time.
   The flag is set to "1" when a packet is retransmitted.
 
-Message Number: 26 bits
+Message Number: 26 bits.
 : The sequential number of consecutive data packets that form a message (see PP field).
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Data: variable length
+Data: variable length.
 : The payload of the data packet. The length of the data is the remaining length of 
   the UDP packet.
 
@@ -418,25 +418,25 @@ An SRT control packet has the following structure.
 ~~~
 {: #controlpacket title="Control packet structure"}
 
-Control Type: 15 bits
+Control Type: 15 bits.
 : Control Packet Type. The use of these bits is determined
   by the control packet type definition. See {{srt-ctrl-pkt-type-table}}.
 
-Subtype: 16 bits
+Subtype: 16 bits.
 : This field specifies an additional subtype for specific packets.
   See {{srt-ctrl-pkt-type-table}}.
 
-Type-specific Information: 32 bits
+Type-specific Information: 32 bits.
 : The use of this field depends on the particular control
   packet type. Handshake packets do not use this field.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Control Information Field (CIF): variable length
+Control Information Field (CIF): variable length.
 : The use of this field is defined by the Control Type field of the control packet.
 
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
@@ -500,11 +500,11 @@ in {{handshake-packet-structure}}.
 ~~~
 {: #handshake-packet-structure title="Handshake packet structure"}
 
-Version: 32 bits
+Version: 32 bits.
 : A base protocol version number. Currently used values are 4 and 5.
   Values greater than 5 are reserved for future use.
 
-Encryption Field: 16 bits
+Encryption Field: 16 bits.
 : Block cipher family and key size. The values of this field are
   described in {{handshake-encr-fld}}. The default value is AES-128.
 
@@ -516,7 +516,7 @@ Encryption Field: 16 bits
  |     4 | AES-256                      |
 {: #handshake-encr-fld title="Handshake Encryption Field Values"}
 
-Extension Field: 16 bits
+Extension Field: 16 bits.
 : This field is message specific extension related to Handshake Type field.
   The value must be set to 0 except for the following cases.
 
@@ -534,18 +534,18 @@ Extension Field: 16 bits
 | 0x00000004 | CONFIG            |
 {: #hs-ext-flags title="Handshake Extension Flags"}
 
-Initial Packet Sequence Number: 32 bits
+Initial Packet Sequence Number: 32 bits.
 : The sequence number of the very first data packet to be sent.
 
-Maximum Transmission Unit Size: 32 bits
+Maximum Transmission Unit Size: 32 bits.
 : This value is typically set to 1500, which is the default Maximum Transmission Unit (MTU)
   size for Ethernet, but can be less.
 
-Maximum Flow Window Size: 32 bits
+Maximum Flow Window Size: 32 bits.
 : The value of this field is the maximum number of data packets allowed to be "in flight"  
   (i.e. the number of sent packets for which an ACK control packet has not yet been received).
 
-Handshake Type: 32 bits
+Handshake Type: 32 bits.
 : This field indicates the handshake packet type.
   The possible values are described in {{handshake-type}}.
   For more details refer to {{handshake-messages}}.
@@ -559,18 +559,18 @@ Handshake Type: 32 bits
 | 0x00000001 | INDUCTION                    |
 {: #handshake-type title="Handshake Type"}
 
-SRT Socket ID: 32 bits
+SRT Socket ID: 32 bits.
 : This field holds the ID of the source SRT socket from which a handshake packet is issued.
 
-SYN Cookie: 32 bits
+SYN Cookie: 32 bits.
 : Randomized value for processing a handshake. The value of this field is specified
   by the handshake message type. See {{handshake-messages}}.
 
-Peer IP Address: 128 bits
+Peer IP Address: 128 bits.
 : IPv4 or IPv6 address of the packet's sender. The value consists of four 32-bit fields.
   In the case of IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
 
-Extension Type: 16 bits
+Extension Type: 16 bits.
 : The value of this field is used to process an integrated handshake.
   Each extension can have a pair of request and response types.
 
@@ -586,10 +586,10 @@ Extension Type: 16 bits
 |       8 | SRT_CMD_GROUP        | CONFIG            |
 {: #handshake-ext-type title="Handshake Extension Type values"}
 
-Extension Length: 16 bits
+Extension Length: 16 bits.
 : The length of the Extension Contents field in four-byte blocks.
 
-Extension Contents: variable length
+Extension Contents: variable length.
 : The payload of the extension.
 
 #### Handshake Extension Message {#handshake-extension-msg}
@@ -613,16 +613,16 @@ The Extension Contents field of a Handshake Extension Message is structured as f
 ~~~
 {: #handshake-extension-msg-structure title="Handshake Extension Message structure"}
 
-SRT Version: 32 bits
+SRT Version: 32 bits.
 : SRT library version MUST be formed as major * 0x10000 + minor * 0x100 + patch.
 
-SRT Flags: 32 bits
+SRT Flags: 32 bits.
 : SRT configuration flags (see {{hs-ext-msg-flags}}).
 
-Receiver TSBPD Delay: 16 bits
+Receiver TSBPD Delay: 16 bits.
 : Timestamp-Based Packet Delivery (TSBPD) Delay of the receiver. Refer to {{tsbpd}}.
 
-Sender TSBPD Delay: 16 bits
+Sender TSBPD Delay: 16 bits.
 : TSBPD of the sender. Refer to {{tsbpd}}.
 
 ##### Handshake Extension Message Flags {#hs-ext-msg-flags}
@@ -718,12 +718,12 @@ and bonded SRT connections (group connections).
 ~~~
 {: #fig-hsext-group title="Group Membership Extension Message"}
 
-GroupID: 32 bits
+GroupID: 32 bits.
 : The identifier of a group whose members include the sender socket that is making a connection.
   The target socket that should interpret it should belong to the corresponding group on its side
   (or should create one, if it doesn't exist).
 
-Type: 8 bits
+Type: 8 bits.
 : Group type, as per SRT_GTYPE_ enumeration.
 
 - 0: undefined group type,
@@ -732,10 +732,10 @@ Type: 8 bits
 - 3: balancing group type (reserved for future use)
 - 4: multicast group type (reserved for future use)
 
-Flags: 8 bits
+Flags: 8 bits.
 : Special flags mostly reserved for the future. See {{fig-hsext-group-flags}}.
 
-Weight: 16 bits
+Weight: 16 bits.
 : Special value with interpretation depending on the Type field value.
 
 - Not used with broadcast groups.
@@ -750,7 +750,7 @@ Weight: 16 bits
 ~~~
 {: #fig-hsext-group-flags title="Group Membership Extension Flags"}
 
-M: 1 bit
+M: 1 bit.
 : When set, defines synchronization on message numbers, otherwise transmission is synchronized on sequence numbers.
 
 ### Key Material {#sec-ctrlpkt-km}
@@ -792,15 +792,15 @@ The structure of the Key Material message is illustrated in {{fig-km-msg}}.
 ~~~~
 {: #fig-km-msg title="Key Material Message structure"}
 
-S: 1 bit, value = {0}
+S: 1 bit, value = {0}.
 : This is a fixed-width field that is reserved for future usage.
 
-Version (V): 3 bits, value = {1}
+Version (V): 3 bits, value = {1}.
 : This is a fixed-width field that indicates the SRT version:
 
   - 1: initial version
 
-Packet Type (PT): 4 bits, value = {2}
+Packet Type (PT): 4 bits, value = {2}.
 : This is a fixed-width field that indicates the Packet Type:
 
   - 0: Reserved
@@ -808,14 +808,14 @@ Packet Type (PT): 4 bits, value = {2}
   - 2: Keying Material Message (KMmsg)
   - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)
 
-Sign: 16 bits, value = {0x2029}
+Sign: 16 bits, value = {0x2029}.
 : This is a fixed-width field that contains the signature ‘HAI‘ encoded as a
   PnP Vendor ID ({{PNPID}}) (in big-endian order)
 
-Resv1: 6 bits, value = {0}
+Resv1: 6 bits, value = {0}.
 : This is a fixed-width field reserved for flag extension or other usage.
 
-Key-based Encryption (KK): 2 bits
+Key-based Encryption (KK): 2 bits.
 : This is a fixed-width field that indicates which SEKs (odd and/or even) are provided in the extension:
 
   - 00b: no SEK is provided (invalid extension format)
@@ -823,7 +823,7 @@ Key-based Encryption (KK): 2 bits
   - 10b: odd key is provided
   - 11b: both even and odd keys are provided
 
-Key Encryption Key Index (KEKI): 32 bits, value = {0}
+Key Encryption Key Index (KEKI): 32 bits, value = {0}.
 : This is a fixed-width field for specifying the KEK index (big-endian order)
   was used to wrap (and optionally authenticate) the SEK(s).
   The value 0 is used to indicate the default key of the current stream.
@@ -833,43 +833,43 @@ Key Encryption Key Index (KEKI): 32 bits, value = {0}
   - 0: Default stream associated key (stream/system default)
   - 1..255: Reserved for manually indexed keys
 
-Cipher: 8 bits, value = {0..2}
+Cipher: 8 bits, value = {0..2}.
 : This is a fixed-width field for specifying encryption cipher and mode:
 
   - 0: None or KEKI indexed crypto context
   - 2: AES-CTR {{SP800-38A}}
 
-Authentication (Auth): 8 bits, value = {0}
+Authentication (Auth): 8 bits, value = {0}.
 : This is a fixed-width field for specifying a message authentication code algorithm:
 
   - 0: None or KEKI indexed crypto context
 
-Stream Encapsulation (SE): 8 bits, value = {2}
+Stream Encapsulation (SE): 8 bits, value = {2}.
 : This is a fixed-width field for describing the stream encapsulation:
 
   - 0: Unspecified or KEKI indexed crypto context
   - 1: MPEG-TS/UDP
   - 2: MPEG-TS/SRT
 
-Resv2: 8 bits, value = {0}
+Resv2: 8 bits, value = {0}.
 : This is a fixed-width field reserved for future use.
 
-Resv3: 16 bits, value = {0}
+Resv3: 16 bits, value = {0}.
 : This is a fixed-width field reserved for future use.
 
-SLen/4: 8 bits, value = {4}
+SLen/4: 8 bits, value = {4}.
 : This is a fixed-width field for specifying salt length SLen in bytes divided by 4.
   Can be zero if no salt/IV present. The only valid length of salt defined is 128 bits.
 
-KLen/4: 8 bits, value = {4,6,8}
+KLen/4: 8 bits, value = {4,6,8}.
 : This is a fixed-width field for specifying SEK length in bytes divided by 4.
   Size of one key even if two keys present. MUST match the key size specified in the Encryption Field
   of the handshake packet {{handshake-encr-fld}}.
 
-Salt (SLen): SLen * 8 bits, value = { }
+Salt (SLen): SLen * 8 bits, value = { }.
 : This is a variable-width field that complements the keying material by specifying a salt key.
 
-Wrap: (64 + n * KLen * 8) bits, value = { }
+Wrap: (64 + n * KLen * 8) bits, value = { }.
 : This is a variable-width field for specifying Wrapped key(s), where n = (KK + 1)/2 and
   the size of the wrap field is ((n * KLen) + 8) bytes.
 
@@ -888,17 +888,17 @@ Wrap: (64 + n * KLen * 8) bits, value = { }
 ~~~
 {: #unwrapped-key-structure title="Unwrapped key structure"}
 
-ICV: 64 bits
+ICV: 64 bits.
 : 64-bit Integrity Check Vector(AES key wrap integrity).
   This field is used to detect if the keys were unwrapped properly.
   If the KEK in hand is invalid, validation fails and unwrapped keys are discarded.
 
-xSEK: variable width
+xSEK: variable width.
 : This field identifies an odd or even SEK. If only one key is present, the bit set in the KK field tells which SEK is provided.
   If both keys are present, then this field is eSEK (even key) and it is followed by odd key oSEK.
   The length of this field is calculated as KLen * 8.
 
-oSEK: variable width
+oSEK: variable width.
 : This field with the odd key is present only when the message carries the two SEKs (identified by he KK field).
   
 ### Keep-Alive {#ctrl-pkt-keepalive}
@@ -926,23 +926,23 @@ An SRT keep-alive packet is formatted as follows:
 ~~~~
 {: #keepalive-structure title="Keep-Alive control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of a keep-alive control packet is "1".
 
-Control Type: 15 bits, value = KEEPALIVE{0x0001}
+Control Type: 15 bits, value = KEEPALIVE{0x0001}.
 : The control type value of a keep-alive control packet is "1".
 
-Reserved: 16 bits, value = 0
+Reserved: 16 bits, value = 0.
 : This is a fixed-width field reserved for future use.
 
-Type-specific Information:
+Type-specific Information.
 : This field is reserved for future definition.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
 Keep-alive controls packet do not contain Control Information Field (CIF).
 
@@ -987,46 +987,46 @@ expanded as follows:
 ~~~
 {: #ack-control-packet title="ACK control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of an ACK control packet is "1".
 
-Control Type: 15 bits, value = ACK{0x0002}
+Control Type: 15 bits, value = ACK{0x0002}.
 : The control type value of an ACK control packet is "2".
 
-Reserved: 16 bits, value = 0
+Reserved: 16 bits, value = 0.
 : This is a fixed-width field reserved for future use.
 
-Acknowledgement Number: 32 bits
+Acknowledgement Number: 32 bits.
 : This field contains the sequential number of the full acknowledgment packet starting from 1.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Last Acknowledged Packet Sequence Number: 32 bits
+Last Acknowledged Packet Sequence Number: 32 bits.
 : This field contains the sequence number of the last data packet being acknowledged plus one.
   In other words, if it the sequence number of the first unacknowledged packet.
 
-RTT: 32 bits
-: RTT value (in microseconds) estimated by the receiver based on the previous ACK-ACKACK
+RTT: 32 bits.
+: RTT value, in microseconds, estimated by the receiver based on the previous ACK-ACKACK
 packet exchange.
 
-RTT Variance: 32 bits
-: The variance of the RTT estimation (in microseconds).
+RTT Variance: 32 bits.
+: The variance of the RTT estimation, in microseconds.
 
-Available Buffer Size: 32 bits
-: Available size of the receiver's buffer (in packets).
+Available Buffer Size: 32 bits.
+: Available size of the receiver's buffer, in packets.
 
-Packets Receiving Rate: 32 bits
-: The rate at which packets are being received (in packets per second).
+Packets Receiving Rate: 32 bits.
+: The rate at which packets are being received, in packets per second.
 
-Estimated Link Capacity: 32 bits
-: Estimated bandwidth of the link (in packets per second).
+Estimated Link Capacity: 32 bits.
+: Estimated bandwidth of the link, in packets per second.
 
-Receiving Rate: 32 bits
-: Estimated receiving rate (in bytes per second).
+Receiving Rate: 32 bits.
+: Estimated receiving rate, in bytes per second.
 
 There are several types of ACK packets:
 
@@ -1075,25 +1075,25 @@ An SRT NAK packet is formatted as follows:
 ~~~
 {: #nak-control-packet title="NAK control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of a NAK control packet is "1".
 
-Control Type: 15 bits, value = NAK{0x0003}
+Control Type: 15 bits, value = NAK{0x0003}.
 : The control type value of a NAK control packet is "3".
 
-Reserved: 16 bits, value = 0
+Reserved: 16 bits, value = 0.
 : This is a fixed-width field reserved for future use.
 
-Type-specific Information: 32 bits
+Type-specific Information: 32 bits.
 : This field is reserved for future definition.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Control Information Field (CIF):
+Control Information Field (CIF).
 : A single value or a range of lost packets sequence numbers. See packet sequence number
 coding in {{packet-seq-list-coding}}.
 
@@ -1118,19 +1118,19 @@ An SRT shutdown control packet is formatted as follows:
 ~~~
 {: #shutdown-control-packet title="Shutdown control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of a shutdown control packet is "1".
 
-Control Type: 15 bits, value = SHUTDOWN{0x0005}
+Control Type: 15 bits, value = SHUTDOWN{0x0005}.
 : The control type value of a shutdown control packet is "5".
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Type-specific Information: 
+Type-specific Information.
 : This field is reserved for future definition.
 
 Shutdown control packets do not contain Control Information Field (CIF).
@@ -1157,21 +1157,21 @@ An SRT ACKACK Control packet is formatted as follows:
 ~~~
 {: #ackack-control-packet title="ACKACK control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of an ACKACK control packet is "1".
 
-Control Type: 15 bits, value = ACKACK{0x0006}
+Control Type: 15 bits, value = ACKACK{0x0006}.
 : The control type value of an ACKACK control packet is "6".
 
-Acknowledgement Number:
+Acknowledgement Number.
 : This field contains the Acknowledgement Number of the full ACK packet
   the reception of which is being acknowledged by this ACKACK packet.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
 ACKACK control packets do not contain Control Information Field (CIF).
 
@@ -2474,7 +2474,7 @@ This specifies that the file is expected to be transmitted from the caller to th
 
 # Changelog
 
-## Since version 00
+## Since Version 00
 
 - Improved and extended the description of "Encryption" section,
 - Improved and extended the description of "Round-Trip Time Estimation" section,
