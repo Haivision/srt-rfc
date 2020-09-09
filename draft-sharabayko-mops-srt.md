@@ -182,13 +182,13 @@ and a mechanism for data encryption.
 The demand for live video streaming has been increasing steadily for many years. With
 the emergence of cloud technologies, many video processing pipeline components have
 transitioned from on-premises appliances to software running on cloud instances. While
-real-time streaming over TCP-based protocols like RTMP{{RTMP}} is possible at low bitrates and
+real-time streaming over TCP-based protocols like RTMP {{RTMP}} is possible at low bitrates and
 on a small scale, the exponential growth of the streaming market has created a need for
 more powerful solutions.
 
 To improve scalability on the delivery side, content delivery networks (CDNs) at one
-point transitioned to segmentation-based technologies like HLS (HTTP Live Streaming){{RFC8216}}
-and DASH (Dynamic Adaptive Streaming over HTTP){{ISO23009}}. This move increased the end-to-end
+point transitioned to segmentation-based technologies like HLS (HTTP Live Streaming) {{RFC8216}}
+and DASH (Dynamic Adaptive Streaming over HTTP) {{ISO23009}}. This move increased the end-to-end
 latency of live streaming to over 30 seconds, which makes it unattractive for many
 use cases. Over time, the industry optimized these delivery methods, bringing the
 latency down to 3 seconds.  
@@ -201,30 +201,30 @@ video transcoding moved to the cloud.
 RTMP became the de facto standard for contribution over the public Internet. But there
 are limitations for the payload to be transmitted, since RTMP as a media specific
 protocol only supports two audio channels and a restricted set of audio and video codecs,
-lacking support for newer formats such as HEVC{{H.265}},
-VP9{{VP9}}, or AV1{{AV1}}.
+lacking support for newer formats such as HEVC {{H.265}},
+VP9 {{VP9}}, or AV1 {{AV1}}.
 
 Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee acceptable
 reliability over connections with low RTTs, and can not use the bandwidth of network
 connections to their full extent due to limitations imposed by congestion control.
-Notably, QUIC{{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery
-protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT{{SRTSRC}} uses UDP instead of the TCP transport protocol,
+Notably, QUIC {{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery
+protocols in HTTP/3 {{I-D.ietf-quic-http}}. Like QUIC, SRT {{SRTSRC}} uses UDP instead of the TCP transport protocol,
 but assures more reliable delivery using Automatic Repeat Request (ARQ), packet acknowledgments,
 end-to-end latency management, etc.
 
 ## Secure Reliable Transport Protocol 
 
 Low latency video transmissions across reliable (usually local) IP based networks 
-typically take the form of MPEG-TS{{ISO13818-1}} unicast or multicast streams using the UDP/RTP 
+typically take the form of MPEG-TS {{ISO13818-1}} unicast or multicast streams using the UDP/RTP 
 protocol, where any packet loss can be mitigated by enabling forward error correction 
 (FEC). Achieving the same low latency between sites in different cities, countries or 
 even continents is more challenging. While it is possible with satellite links or 
-dedicated MPLS{{RFC3031}} networks, these are expensive solutions. The use of public Internet 
+dedicated MPLS {{RFC3031}} networks, these are expensive solutions. The use of public Internet 
 connectivity, while less expensive, imposes significant bandwidth overhead to achieve 
 the necessary level of packet loss recovery. Introducing selective packet retransmission 
 (reliable UDP) to recover from packet loss removes those limitations.  
 
-Derived from the UDP-based Data Transfer protocol{{GHG04b}} (UDT), SRT is a user-level protocol 
+Derived from the UDP-based Data Transfer (UDT) protocol {{GHG04b}}, SRT is a user-level protocol 
 that retains most of the core concepts and mechanisms while introducing several 
 refinements and enhancements, including control packet modifications, improved flow 
 control for handling live streaming, enhanced congestion control, and a mechanism for 
