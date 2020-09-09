@@ -2229,7 +2229,7 @@ KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, Klen)
 
 where
 
-- PBKDF2 is the PKCS#5 Password Based Key Derivation Function,
+- PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}},
 - passphrase is the pre-shared passphrase,
 - Salt is the field of the KM message,
 - LSB(n, v) is the function taking n least significant bits of v,
@@ -2275,7 +2275,7 @@ KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
 
 where
 
-- PBKDF2 is the PKCS#5 Password Based Key Derivation Function,
+- PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}},
 - passphrase is the pre-shared passphrase,
 - Salt is the field of the KM message,
 - LSB(n, v) is the function taking n least significant bits of v,
