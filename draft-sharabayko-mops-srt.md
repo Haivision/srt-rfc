@@ -756,8 +756,8 @@ The structure of the Key Material message is illustrated in {{fig-km-msg}}.
 ~~~~
 {: #fig-km-msg title="Key Material Message structure"}
 
-S ( ): 1 bit. Value: {0}  
-: This is a fixed-width field that is a remnant from the header of a previous design.
+S ( ): 1 bit. Value: {0}
+: This is a fixed-width field that is reserved for future usage.
 
 Version (V): 3 bits. Value: {1}
 : This is a fixed-width field that indicates the SRT version:
@@ -773,7 +773,7 @@ Packet Type (PT): 4 bits. Value: {2}
   - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)
 
 Sign (Sign): 16 bits. Value: {0x2029}  
-: This is a fixed-width field that contains the signature ‘HAI‘ encoded as a 
+: This is a fixed-width field that contains the signature ‘HAI‘ encoded as a
   PnP Vendor ID ({{PNPID}}) (in big-endian order)
 
 Resv1 ( ): 6 bits. Value: {0}  
