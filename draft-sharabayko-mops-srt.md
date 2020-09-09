@@ -625,8 +625,8 @@ Otherwise, message mode ({{transmission-mode-msg}}) is to be used.
 
 #### Key Material Extension Message {#sec-hsext-km}
 
-If an encrypted connection is being established, the Key Material (KM) is first transmitted as Handshake Extension message.
-In case of unprotected connection this extension is not supplied.
+If an encrypted connection is being established, the Key Material (KM) is first transmitted as a 
+Handshake Extension message. This extension is not supplied for unprotected connections.
 The purpose of the extension is to let peers exchange and negotiate encryption-related information
 to be used to encrypt and decrypt the payload of the stream.
 
@@ -638,13 +638,13 @@ The KM message is placed in the Extension Contents. See {{sec-ctrlpkt-km}} for t
 
 #### Stream ID Extension Message {#sec-hsext-streamid}
 
-The Stream ID handshake extension message can be used to identify the stream content, 
-The Stream ID value can be used as free-form, but there is also recommended convention
+The Stream ID handshake extension message can be used to identify the stream content. 
+The Stream ID value can be free-form, but there is also a recommended convention
 that can be used to achieve interoperability.
 
 The Stream ID handshake extension message has SRT_CMD_SID extension type (see {{handshake-ext-type}}.
-The extension contents holds a sequence of UTF-8 characters. The maximum allowed size of the
-SrteamID extension is 512 bytes.
+The extension contents are a sequence of UTF-8 characters. The maximum allowed size of the
+StreamID extension is 512 bytes.
 
 ~~~
  0                   1                   2                   3
@@ -659,7 +659,7 @@ SrteamID extension is 512 bytes.
 {: #fig-hsext-streamid title="Stream ID Extension Message"}
 
 The Extension Contents field holds a sequence of UTF-8 characters (see {{fig-hsext-streamid}}).
-The maximum allowed size of the SrteamID extension is 512 bytes. The actual size is determined
+The maximum allowed size of the StreamID extension is 512 bytes. The actual size is determined
 by the Extension Length field ({{handshake-packet-structure}}), which defines the length in
 four byte blocks. If the actual payload is less than the declared length, the remaining bytes are set to zeros.
 
@@ -671,8 +671,8 @@ The Group Membership handshake extension is used to distinguish single SRT conne
 and bonded SRT connections (group connections).
 
 ~~~
-0                   1                   2                   3
-0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Group ID                            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -682,7 +682,7 @@ and bonded SRT connections (group connections).
 {: #fig-hsext-group title="Group Membership Extension Message"}
 
 GroupID (32 bits):
-: The group identifier of a group to which there belongs the socket that is making the connection at the sending side.
+: The identifier of a group whose members include the sender socket that is making a connection.
   The target socket that should interpret it should belong to the corresponding group on its side
   (or should create one, if it doesn't exist).
 
@@ -701,12 +701,12 @@ Flags (8 bits):
 Weight (16 bits):
 : Special value with interpretation depending on the Type field value.
 
-- Not used in case of broadcast group.
-- In backup group defines the link priority.
-- In the rest cases the meaning is not yet defined (reserved for future).
+- Not used with broadcast groups.
+- Defines the link priority in backup groups.
+- Not yet defined (reserved for future) for any other cases.
 
 ~~~
-0 1 2 3 4 5 6 7 
+ 0 1 2 3 4 5 6 7 
 +-+-+-+-+-+-+-+
 |   (zero)  |M|
 +-+-+-+-+-+-+-+
@@ -2137,10 +2137,10 @@ and for the same reason tolerates packet loss. It also offers strong confidentia
 
 ### Encryption Scope
 
-SRT encrypts only the payload of SRT data packet ({{data-pkt}}), while the header is left unencrypted.
+SRT encrypts only the payload of SRT data packets ({{data-pkt}}), while the header is left unencrypted.
 The unencrypted header contains the Packet Sequence Number field used to keep the synchronization
 of the cipher counter between the encrypting sender and the decrypting receiver.
-No constraints apply to the payload of SRT data packet as no padding of the payload is required by counter mode ciphers.
+No constraints apply to the payload of SRT data packets as no padding of the payload is required by counter mode ciphers.
 
 ### AES Counter
 
@@ -2170,19 +2170,19 @@ and transmitted within the stream, wrapped with another longer-term key,
 the Key Encrypting Key (KEK), using a known AES key wrap protocol.
 
 For connection-oriented transport such as SRT, there is no need to periodically transmit
-the short-lived key since no party can join the stream at any time. The keying material
+the short-lived key since no additional party can join a stream in progress. The keying material
 is transmitted within the connection handshake packets, and for a short period
 when rekeying occurs.
 
 ### Key Encrypting Key (KEK)
 
-The KEK is derived from a secret (passphrase) shared between the sender and the receiver.
-The Key Encrypting Key provides access to the Stream Encrypting Key, which in turn provides access
+The Key Encrypting Key (KEK) is derived from a secret (passphrase) shared between the sender and the receiver.
+The KEK provides access to the Stream Encrypting Key, which in turn provides access
 to the protected payload of SRT data packets. The KEK has to be at least as long as the SEK.
 
 The KEK is generated by a password-based key generation function v2.0 (PBKDF2) {{RFC2898}},
 using the passphrase, a number of iterations (2048), a keyed-hash (HMAC-SHA1) {{RFC2104}}, and
-a key length value KLen. The PBKDF2 function hashes the passphrase to make a long string,
+a key length value (KLen). The PBKDF2 function hashes the passphrase to make a long string,
 by repetition or padding. The number of iterations is based on how much time can be given to
 the process without it becoming disruptive.
 
@@ -2213,7 +2213,7 @@ All data packets coming from responder will be unencrypted.
 
 ### KM Refresh {#sec-crypt-km-refresh}
 
-The short lived SEK is regenerated for cryptographic reasons when enough packets have been
+The short lived SEK is regenerated for cryptographic reasons when a pre-determined number of packets has been
 encrypted. The KM refresh period is determined by the implementation.
 The receiver knows which SEK (odd or even) was used to encrypt the packet
 by means of the KK field of the SRT Data Packet ({{data-pkt}}).
@@ -2234,20 +2234,18 @@ Even and odd keys are alternated during transmission the following way.
 The packets with the earlier key #1 (let it be the odd key) will continue to be sent.
 The receiver will receive the new key #2 (even), then decrypt and unwrap it.
 The receiver will reply to the sender if it is able to understand.
-Once the sender gets to the 2^25 packet using the odd key (key #1), it will then start to
-send packets with the even key (key #2). It knows that the receiver has what it needs to
-decrypt that even key (key #2). This happens transparently, from one packet to the next.
-At 2^25 plus 4000 packets the first key will be decommissioned automatically in this example.
+Once the sender gets to the 2^25th packet using the odd key (key #1), it will then start to
+send packets with the even key (key #2), knowing that the receiver has what it needs to
+decrypt them. This happens transparently, from one packet to the next.
+At 2^25 plus 4000 packets the first key will be decommissioned automatically.
 
-Both keys live in parallel for the doubled Pre-Announcement Period: one period of the
-KM Pre-Announcement before the key switch and one period after. The period after the switch is needed in case of
-packet retransmission. It is possible for packets with the older key to arrive
+Both keys live in parallel for two times the Pre-Announcement Period (e.g. 4000 packets before the key switch, and 4000 packets after). This is to allow for packet retransmission. It is possible for packets with the older key to arrive
 at the receiver a bit late. Each packet contains a description of which key it requires,
 so the receiver will still have the ability to decrypt it.
 
 ## Encryption Process
 
-### Generating Stream Encrypting Key
+### Generating the Stream Encrypting Key
 
 On the sending side SEK, Salt and KEK are generated the following way:
 
@@ -2286,18 +2284,18 @@ where the Initialization Vector is derived as
 IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 ~~~~~~~~~~~
 
-- PktSeqNo is the value of the Packet Sequence Number field of SRT DATA packet.
+- PktSeqNo is the value of the Packet Sequence Number field of the SRT data packet.
 
 ## Decryption Process
 
-### Restoring Stream Encrypting Key
+### Restoring the Stream Encrypting Key
 
 For the receiver to be able to decrypt the incoming stream it has to know the stream encrypting key (SEK)
-used by the sender. The receiver MUST know the passphrase used by the sender. The rest information can
+used by the sender. The receiver MUST know the passphrase used by the sender. The remaining information can
 be extracted from the Keying Material message.
 
 The Keying Material message contains the AES-wrapped {{RFC3394}} SEK used by the encoder.
-The Key-Encryption Key (KEK) is required to unwrap
+The Key-Encryption Key (KEK) required to unwrap the SEK is calculated as:
 
 ~~~~~~~~~~~
 KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
@@ -2320,7 +2318,7 @@ where AESkuw(KEK, Wrap) is the key unwrapping function.
 
 ### Decrypting the Payload
 
-The decryption of the payload of the SRT DATA packet is done with AES CTR
+The decryption of the payload of the SRT data packet is done with AES-CTR
 
 ~~~~~~~~~~~
 DecryptedPayload = AES_CTR_Encrypt(SEK, IV, EncryptedPayload)
@@ -2332,7 +2330,7 @@ where the Initialization Vector is derived as
 IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 ~~~~~~~~~~~
 
-- PktSeqNo is the value of the Packet Sequence Number field of SRT DATA packet.
+- PktSeqNo is the value of the Packet Sequence Number field of the SRT data packet.
 
 
 # Security Considerations
