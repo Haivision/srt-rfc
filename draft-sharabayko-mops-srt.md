@@ -2349,7 +2349,7 @@ TODO acknowledge.
 
 --- back
 
-# Packet Sequence List coding {#packet-seq-list-coding}
+# Packet Sequence List Coding {#packet-seq-list-coding}
 
 For any single packet sequence number,
 it uses the original sequence number in the field. The first bit 
@@ -2471,3 +2471,16 @@ It specifies the username and the resource name of the stream to be served to th
 ~~~
 
 This specifies that the file is expected to be transmitted from the caller to the listener and its name is results.csv.
+
+# Changelog
+
+## Since [draft-sharabayko-mops-srt-00](https://tools.ietf.org/html/draft-sharabayko-mops-srt-00)
+
+- Improved and extended the description of "Encryption" section,
+- Improved and extended the description of "Round-Trip Time Estimation" section,
+- Extended the description of "Handshake" section with "Stream ID Extension Message", "Group Membership Extension" subsections,
+- Extended "Handshake Messages" section with the detailed description of handshake procedure,
+- Improved "Key Material" section description,
+- Did packet structure formatting for "Packet Structure" section,
+- Did minor additions to the "Acknowledgement and Lost Packet Handling" section,
+- Extended the list of references.
