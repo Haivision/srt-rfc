@@ -518,7 +518,7 @@ Encryption Field: 16 bits.
 
 Extension Field: 16 bits.
 : This field is message specific extension related to Handshake Type field.
-  The value must be set to 0 except for the following cases.
+  The value MUST be set to 0 except for the following cases.
 
   (1) If the handshake control packet is the INDUCTION message, this field is
   sent back by the Listener.
@@ -1183,7 +1183,7 @@ and data packets during the transmission process.
 After the handshake and exchange of capabilities is completed, packet data 
 can be sent and received over the established connection. To fully utilize 
 the features of low latency and error recovery provided by SRT, the sender 
-and receiver MUST handle control packets, timers, and buffers for the connection
+and receiver must handle control packets, timers, and buffers for the connection
 as specified in this section.
 
 ## Stream Multiplexing
@@ -1223,7 +1223,7 @@ sending instruction passes exactly one piece of data that has boundaries (a mess
 This message may span across multiple UDP packets (and multiple SRT data packets). The 
 only size limitation is that it shall fit as a whole in the buffers of the sender and the 
 receiver. Although internally all operations (e.g. ACK, NAK) on data packets are performed 
-independently, an application MUST send and receive the whole message. Until the message 
+independently, an application must send and receive the whole message. Until the message 
 is complete (all packets are received) the application will not be allowed to read it.
 
 When the Order Flag of a Data packet is set to 1, this imposes a sequential reading order
@@ -1332,7 +1332,7 @@ connection. See the list of error codes in {{hs-rej-reason}}.
 {: #hs-rej-reason title="Handshake Rejection Reason Codes"}
 
 The specification of the cipher family and block size is decided by the data Sender.
-When the transmission is bidirectional, this value must be agreed upon at the outset
+When the transmission is bidirectional, this value MUST be agreed upon at the outset
 because when both are set the Responder wins. For Caller-Listener connections it is
 reasonable to set this value on the Listener only. In the case of Rendezvous the only
 reasonable approach is to decide upon the correct value from the different sources and to 
@@ -1353,7 +1353,7 @@ perpetrated by flooding the Listener with handshake commands.
 The Caller begins by sending the INDUCTION handshake, which contains the following
 (significant) fields:
 
-- Version: must always be 4
+- Version: MUST always be 4
 - Encryption Field: 0
 - Extension Field: 2
 - Handshake Type: INDUCTION
@@ -1567,7 +1567,7 @@ roles. In contrast to serial flows,
 which are mostly based on request-response cycles, here everything
 happens completely asynchronously: the state switches upon reception
 of a particular handshake message with appropriate contents (the
-Initiator must attach the HSREQ extension, and Responder must attach the
+Initiator MUST attach the HSREQ extension, and Responder MUST attach the
 `HSRSP` extension).
 
 Here's how the parallel handshake flow works, based on roles:
@@ -1627,7 +1627,7 @@ never become aware. The missing packet problem is resolved this way:
    CONCLUSION + HSREQ does it respond with CONCLUSION + HSRSP.
 
 2. If the Initiator misses the CONCLUSION + HSRSP response from the
-   Responder, it continues sending CONCLUSION + HSREQ. The Responder must
+   Responder, it continues sending CONCLUSION + HSREQ. The Responder MUST
    always respond with CONCLUSION + HSRSP when the Initiator sends
    CONCLUSION + HSREQ, even if it has already received and interpreted it.
 
@@ -2264,7 +2264,7 @@ IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 ### Restoring the Stream Encrypting Key
 
 For the receiver to be able to decrypt the incoming stream it has to know the stream encrypting key (SEK)
-used by the sender. The receiver MUST know the passphrase used by the sender. The remaining information can
+used by the sender. The receiver must know the passphrase used by the sender. The remaining information can
 be extracted from the Keying Material message.
 
 The Keying Material message contains the AES-wrapped {{RFC3394}} SEK used by the encoder.
@@ -2354,7 +2354,7 @@ TODO acknowledge.
 
 For any single packet sequence number,
 it uses the original sequence number in the field. The first bit 
-must start with "0".
+MUST start with "0".
 
 ~~~
  0                   1                   2                   3
@@ -2425,7 +2425,7 @@ All single letter key definitions, including those not listed in this section, a
 Users can additionally use custom key definitions with user_* or companyname_* prefixes,
 where user and companyname are to be replaced with an actual user or company name.
 
-The existing key values must not be extended, and must not differ from those described in this section.
+The existing key values MUST not be extended, and MUST not differ from those described in this section.
 
 The following keys are standard:
 
