@@ -182,13 +182,13 @@ and a mechanism for data encryption.
 The demand for live video streaming has been increasing steadily for many years. With
 the emergence of cloud technologies, many video processing pipeline components have
 transitioned from on-premises appliances to software running on cloud instances. While
-real-time streaming over TCP-based protocols like RTMP{{RTMP}} is possible at low bitrates and
+real-time streaming over TCP-based protocols like RTMP {{RTMP}} is possible at low bitrates and
 on a small scale, the exponential growth of the streaming market has created a need for
 more powerful solutions.
 
 To improve scalability on the delivery side, content delivery networks (CDNs) at one
-point transitioned to segmentation-based technologies like HLS (HTTP Live Streaming){{RFC8216}}
-and DASH (Dynamic Adaptive Streaming over HTTP){{ISO23009}}. This move increased the end-to-end
+point transitioned to segmentation-based technologies like HLS (HTTP Live Streaming) {{RFC8216}}
+and DASH (Dynamic Adaptive Streaming over HTTP) {{ISO23009}}. This move increased the end-to-end
 latency of live streaming to over 30 seconds, which makes it unattractive for many
 use cases. Over time, the industry optimized these delivery methods, bringing the
 latency down to 3 seconds.  
@@ -201,30 +201,30 @@ video transcoding moved to the cloud.
 RTMP became the de facto standard for contribution over the public Internet. But there
 are limitations for the payload to be transmitted, since RTMP as a media specific
 protocol only supports two audio channels and a restricted set of audio and video codecs,
-lacking support for newer formats such as HEVC{{H.265}},
-VP9{{VP9}}, or AV1{{AV1}}.
+lacking support for newer formats such as HEVC {{H.265}},
+VP9 {{VP9}}, or AV1 {{AV1}}.
 
 Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee acceptable
 reliability over connections with low RTTs, and can not use the bandwidth of network
 connections to their full extent due to limitations imposed by congestion control.
-Notably, QUIC{{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery
-protocols in HTTP/3{{I-D.ietf-quic-http}}. Like QUIC, SRT{{SRTSRC}} uses UDP instead of the TCP transport protocol,
+Notably, QUIC {{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery
+protocols in HTTP/3 {{I-D.ietf-quic-http}}. Like QUIC, SRT {{SRTSRC}} uses UDP instead of the TCP transport protocol,
 but assures more reliable delivery using Automatic Repeat Request (ARQ), packet acknowledgments,
 end-to-end latency management, etc.
 
 ## Secure Reliable Transport Protocol 
 
 Low latency video transmissions across reliable (usually local) IP based networks 
-typically take the form of MPEG-TS{{ISO13818-1}} unicast or multicast streams using the UDP/RTP 
+typically take the form of MPEG-TS {{ISO13818-1}} unicast or multicast streams using the UDP/RTP 
 protocol, where any packet loss can be mitigated by enabling forward error correction 
 (FEC). Achieving the same low latency between sites in different cities, countries or 
 even continents is more challenging. While it is possible with satellite links or 
-dedicated MPLS{{RFC3031}} networks, these are expensive solutions. The use of public Internet 
+dedicated MPLS {{RFC3031}} networks, these are expensive solutions. The use of public Internet 
 connectivity, while less expensive, imposes significant bandwidth overhead to achieve 
 the necessary level of packet loss recovery. Introducing selective packet retransmission 
 (reliable UDP) to recover from packet loss removes those limitations.  
 
-Derived from the UDP-based Data Transfer protocol{{GHG04b}} (UDT), SRT is a user-level protocol 
+Derived from the UDP-based Data Transfer (UDT) protocol {{GHG04b}}, SRT is a user-level protocol 
 that retains most of the core concepts and mechanisms while introducing several 
 refinements and enhancements, including control packet modifications, improved flow 
 control for handling live streaming, enhanced congestion control, and a mechanism for 
@@ -321,17 +321,17 @@ The structure of the SRT packet is shown in {{srtpacket}}.
 ~~~
 {: #srtpacket title="SRT packet structure"}
 
-F: 1 bit
+F: 1 bit.
 : Packet Type Flag. The control packet has this flag set to "1".
   The data packet has this flag set to "0".
 
-Timestamp: 32 bits
+Timestamp: 32 bits.
 : The timestamp of the packet, in microseconds.
   The value is relative to the time the SRT connection was established.
   Depending on the transmission mode ({{data-transmission-mode}}),
   the field stores the packet send time or the packet origin time.
 
-Destination Socket ID: 32 bits
+Destination Socket ID: 32 bits.
 : A fixed-width field providing the SRT socket ID to which a packet should be dispatched.
   The field may have the special value "0" when the packet is a connection request.
 
@@ -358,40 +358,40 @@ The structure of the SRT data packet is shown in {{srtdatapacket}}.
 ~~~
 {: #srtdatapacket title="Data packet structure"}
 
-Packet Sequence Number: 31 bits
+Packet Sequence Number: 31 bits.
 : The sequential number of the data packet.
 
-PP: 2 bits
+PP: 2 bits.
 : Packet Position Flag. This field indicates the position of the data packet in the message.
   The value "10b" (binary) means the first packet of the message. "00b" indicates a packet 
   in the middle. "01b" designates the last packet. If a single data packet forms the whole 
   message, the value is "11b".
 
-O: 1 bit
+O: 1 bit.
 : Order Flag. Indicates whether the message should be delivered by the receiver in order (1) 
   or not (0). Certain restrictions apply depending on the data transmission mode used 
   ({{data-transmission-mode}}).
 
-KK: 2 bits
+KK: 2 bits.
 : Key-based Encryption Flag. The flag bits indicate whether or not data is encrypted.
   The value "00b" (binary) means data is not encrypted. "01b" indicates that data is
   encrypted with an even key, and "10b" is used for odd key encryption. Refer to {{encryption}}.
   The value "11b" is only used in control packets.
 
-R: 1 bit
+R: 1 bit.
 : Retransmitted Packet Flag. This flag is clear when a packet is transmitted the first time.
   The flag is set to "1" when a packet is retransmitted.
 
-Message Number: 26 bits
+Message Number: 26 bits.
 : The sequential number of consecutive data packets that form a message (see PP field).
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Data: variable length
+Data: variable length.
 : The payload of the data packet. The length of the data is the remaining length of 
   the UDP packet.
 
@@ -418,25 +418,25 @@ An SRT control packet has the following structure.
 ~~~
 {: #controlpacket title="Control packet structure"}
 
-Control Type: 15 bits
+Control Type: 15 bits.
 : Control Packet Type. The use of these bits is determined
   by the control packet type definition. See {{srt-ctrl-pkt-type-table}}.
 
-Subtype: 16 bits
+Subtype: 16 bits.
 : This field specifies an additional subtype for specific packets.
   See {{srt-ctrl-pkt-type-table}}.
 
-Type-specific Information: 32 bits
+Type-specific Information: 32 bits.
 : The use of this field depends on the particular control
   packet type. Handshake packets do not use this field.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Control Information Field (CIF): variable length
+Control Information Field (CIF): variable length.
 : The use of this field is defined by the Control Type field of the control packet.
 
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
@@ -500,11 +500,11 @@ in {{handshake-packet-structure}}.
 ~~~
 {: #handshake-packet-structure title="Handshake packet structure"}
 
-Version: 32 bits
+Version: 32 bits.
 : A base protocol version number. Currently used values are 4 and 5.
   Values greater than 5 are reserved for future use.
 
-Encryption Field: 16 bits
+Encryption Field: 16 bits.
 : Block cipher family and key size. The values of this field are
   described in {{handshake-encr-fld}}. The default value is AES-128.
 
@@ -516,9 +516,9 @@ Encryption Field: 16 bits
  |     4 | AES-256                      |
 {: #handshake-encr-fld title="Handshake Encryption Field Values"}
 
-Extension Field: 16 bits
+Extension Field: 16 bits.
 : This field is message specific extension related to Handshake Type field.
-  The value must be set to 0 except for the following cases.
+  The value MUST be set to 0 except for the following cases.
 
   (1) If the handshake control packet is the INDUCTION message, this field is
   sent back by the Listener.
@@ -534,18 +534,18 @@ Extension Field: 16 bits
 | 0x00000004 | CONFIG            |
 {: #hs-ext-flags title="Handshake Extension Flags"}
 
-Initial Packet Sequence Number: 32 bits
+Initial Packet Sequence Number: 32 bits.
 : The sequence number of the very first data packet to be sent.
 
-Maximum Transmission Unit Size: 32 bits
+Maximum Transmission Unit Size: 32 bits.
 : This value is typically set to 1500, which is the default Maximum Transmission Unit (MTU)
   size for Ethernet, but can be less.
 
-Maximum Flow Window Size: 32 bits
+Maximum Flow Window Size: 32 bits.
 : The value of this field is the maximum number of data packets allowed to be "in flight"  
   (i.e. the number of sent packets for which an ACK control packet has not yet been received).
 
-Handshake Type: 32 bits
+Handshake Type: 32 bits.
 : This field indicates the handshake packet type.
   The possible values are described in {{handshake-type}}.
   For more details refer to {{handshake-messages}}.
@@ -559,18 +559,18 @@ Handshake Type: 32 bits
 | 0x00000001 | INDUCTION                    |
 {: #handshake-type title="Handshake Type"}
 
-SRT Socket ID: 32 bits
+SRT Socket ID: 32 bits.
 : This field holds the ID of the source SRT socket from which a handshake packet is issued.
 
-SYN Cookie: 32 bits
+SYN Cookie: 32 bits.
 : Randomized value for processing a handshake. The value of this field is specified
   by the handshake message type. See {{handshake-messages}}.
 
-Peer IP Address: 128 bits
+Peer IP Address: 128 bits.
 : IPv4 or IPv6 address of the packet's sender. The value consists of four 32-bit fields.
   In the case of IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
 
-Extension Type: 16 bits
+Extension Type: 16 bits.
 : The value of this field is used to process an integrated handshake.
   Each extension can have a pair of request and response types.
 
@@ -586,10 +586,10 @@ Extension Type: 16 bits
 |       8 | SRT_CMD_GROUP        | CONFIG            |
 {: #handshake-ext-type title="Handshake Extension Type values"}
 
-Extension Length: 16 bits
+Extension Length: 16 bits.
 : The length of the Extension Contents field in four-byte blocks.
 
-Extension Contents: variable length
+Extension Contents: variable length.
 : The payload of the extension.
 
 #### Handshake Extension Message {#handshake-extension-msg}
@@ -613,16 +613,16 @@ The Extension Contents field of a Handshake Extension Message is structured as f
 ~~~
 {: #handshake-extension-msg-structure title="Handshake Extension Message structure"}
 
-SRT Version: 32 bits
+SRT Version: 32 bits.
 : SRT library version MUST be formed as major * 0x10000 + minor * 0x100 + patch.
 
-SRT Flags: 32 bits
+SRT Flags: 32 bits.
 : SRT configuration flags (see {{hs-ext-msg-flags}}).
 
-Receiver TSBPD Delay: 16 bits
+Receiver TSBPD Delay: 16 bits.
 : Timestamp-Based Packet Delivery (TSBPD) Delay of the receiver. Refer to {{tsbpd}}.
 
-Sender TSBPD Delay: 16 bits
+Sender TSBPD Delay: 16 bits.
 : TSBPD of the sender. Refer to {{tsbpd}}.
 
 ##### Handshake Extension Message Flags {#hs-ext-msg-flags}
@@ -718,12 +718,12 @@ and bonded SRT connections (group connections).
 ~~~
 {: #fig-hsext-group title="Group Membership Extension Message"}
 
-GroupID (32 bits):
+GroupID: 32 bits.
 : The identifier of a group whose members include the sender socket that is making a connection.
   The target socket that should interpret it should belong to the corresponding group on its side
   (or should create one, if it doesn't exist).
 
-Type (8 bits):
+Type: 8 bits.
 : Group type, as per SRT_GTYPE_ enumeration.
 
 - 0: undefined group type,
@@ -732,10 +732,10 @@ Type (8 bits):
 - 3: balancing group type (reserved for future use)
 - 4: multicast group type (reserved for future use)
 
-Flags (8 bits):
+Flags: 8 bits.
 : Special flags mostly reserved for the future. See {{fig-hsext-group-flags}}.
 
-Weight (16 bits):
+Weight: 16 bits.
 : Special value with interpretation depending on the Type field value.
 
 - Not used with broadcast groups.
@@ -750,7 +750,7 @@ Weight (16 bits):
 ~~~
 {: #fig-hsext-group-flags title="Group Membership Extension Flags"}
 
-M (1 bit):
+M: 1 bit.
 : When set, defines synchronization on message numbers, otherwise transmission is synchronized on sequence numbers.
 
 ### Key Material {#sec-ctrlpkt-km}
@@ -770,7 +770,6 @@ is set to SRT_CMD_KMREQ for key-refresh request and SRT_CMD_KMRSP for key-refres
 The KM Refresh mechanism is described in {{sec-crypt-km-refresh}}.
 
 The structure of the Key Material message is illustrated in {{fig-km-msg}}.
-
 
 ~~~
  0                   1                   2                   3
@@ -793,15 +792,15 @@ The structure of the Key Material message is illustrated in {{fig-km-msg}}.
 ~~~~
 {: #fig-km-msg title="Key Material Message structure"}
 
-S ( ): 1 bit. Value: {0}
+S: 1 bit, value = {0}.
 : This is a fixed-width field that is reserved for future usage.
 
-Version (V): 3 bits. Value: {1}
+Version (V): 3 bits, value = {1}.
 : This is a fixed-width field that indicates the SRT version:
 
   - 1: initial version
 
-Packet Type (PT): 4 bits. Value: {2}  
+Packet Type (PT): 4 bits, value = {2}.
 : This is a fixed-width field that indicates the Packet Type:
 
   - 0: Reserved
@@ -809,11 +808,11 @@ Packet Type (PT): 4 bits. Value: {2}
   - 2: Keying Material Message (KMmsg)
   - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)
 
-Sign (Sign): 16 bits. Value: {0x2029}  
+Sign: 16 bits, value = {0x2029}.
 : This is a fixed-width field that contains the signature ‘HAI‘ encoded as a
   PnP Vendor ID ({{PNPID}}) (in big-endian order)
 
-Resv1 ( ): 6 bits. Value: {0}  
+Resv1: 6 bits, value = {0}.
 : This is a fixed-width field reserved for flag extension or other usage.
 
 Key-based Encryption (KK): 2 bits.
@@ -824,7 +823,7 @@ Key-based Encryption (KK): 2 bits.
   - 10b: odd key is provided
   - 11b: both even and odd keys are provided
 
-Key Encryption Key Index (KEKI): 32 bits. Value: {0}
+Key Encryption Key Index (KEKI): 32 bits, value = {0}.
 : This is a fixed-width field for specifying the KEK index (big-endian order)
   was used to wrap (and optionally authenticate) the SEK(s).
   The value 0 is used to indicate the default key of the current stream.
@@ -834,43 +833,43 @@ Key Encryption Key Index (KEKI): 32 bits. Value: {0}
   - 0: Default stream associated key (stream/system default)
   - 1..255: Reserved for manually indexed keys
 
-Cipher ( ): 8 bits. Value: {0..2}
+Cipher: 8 bits, value = {0..2}.
 : This is a fixed-width field for specifying encryption cipher and mode:
 
   - 0: None or KEKI indexed crypto context
   - 2: AES-CTR {{SP800-38A}}
 
-Authentication (Auth): 8 bits. Value: {0}  
+Authentication (Auth): 8 bits, value = {0}.
 : This is a fixed-width field for specifying a message authentication code algorithm:
 
   - 0: None or KEKI indexed crypto context
 
-Stream Encapsulation (SE): 8 bits. Value: {2}  
+Stream Encapsulation (SE): 8 bits, value = {2}.
 : This is a fixed-width field for describing the stream encapsulation:
 
   - 0: Unspecified or KEKI indexed crypto context
   - 1: MPEG-TS/UDP
   - 2: MPEG-TS/SRT
 
-Resv2 ( ): 8 bits. Value: {0}  
+Resv2: 8 bits, value = {0}.
 : This is a fixed-width field reserved for future use.
 
-Resv3 ( ): 16 bits. Value: {0}  
+Resv3: 16 bits, value = {0}.
 : This is a fixed-width field reserved for future use.
 
-SLen/4 ( ): 8 bits. Value: {4}  
+SLen/4: 8 bits, value = {4}.
 : This is a fixed-width field for specifying salt length SLen in bytes divided by 4.
   Can be zero if no salt/IV present. The only valid length of salt defined is 128 bits.
 
-KLen/4 ( ): 8 bits. Value: {4,6,8}
+KLen/4: 8 bits, value = {4,6,8}.
 : This is a fixed-width field for specifying SEK length in bytes divided by 4.
   Size of one key even if two keys present. MUST match the key size specified in the Encryption Field
   of the handshake packet {{handshake-encr-fld}}.
 
-Salt (SLen): SLen * 8 bits. Value: { }  
+Salt (SLen): SLen * 8 bits, value = { }.
 : This is a variable-width field that complements the keying material by specifying a salt key.
 
-Wrap ( ): (64+n * KLen * 8) bits. Value: { }
+Wrap: (64 + n * KLen * 8) bits, value = { }.
 : This is a variable-width field for specifying Wrapped key(s), where n = (KK + 1)/2 and
   the size of the wrap field is ((n * KLen) + 8) bytes.
 
@@ -889,17 +888,17 @@ Wrap ( ): (64+n * KLen * 8) bits. Value: { }
 ~~~
 {: #unwrapped-key-structure title="Unwrapped key structure"}
 
-ICV (64 bits):
+ICV: 64 bits.
 : 64-bit Integrity Check Vector(AES key wrap integrity).
   This field is used to detect if the keys were unwrapped properly.
   If the KEK in hand is invalid, validation fails and unwrapped keys are discarded.
 
-xSEK (variable width):
+xSEK: variable width.
 : This field identifies an odd or even SEK. If only one key is present, the bit set in the KK field tells which SEK is provided.
   If both keys are present, then this field is eSEK (even key) and it is followed by odd key oSEK.
   The length of this field is calculated as KLen * 8.
 
-oSEK (variable width):
+oSEK: variable width.
 : This field with the odd key is present only when the message carries the two SEKs (identified by he KK field).
   
 ### Keep-Alive {#ctrl-pkt-keepalive}
@@ -927,23 +926,23 @@ An SRT keep-alive packet is formatted as follows:
 ~~~~
 {: #keepalive-structure title="Keep-Alive control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of a keep-alive control packet is "1".
 
-Control Type: 15 bits, value = KEEPALIVE{0x0001}
+Control Type: 15 bits, value = KEEPALIVE{0x0001}.
 : The control type value of a keep-alive control packet is "1".
 
-Reserved: 16 bits, value = 0
+Reserved: 16 bits, value = 0.
 : This is a fixed-width field reserved for future use.
 
-Type-specific Information:
+Type-specific Information.
 : This field is reserved for future definition.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
 Keep-alive controls packet do not contain Control Information Field (CIF).
 
@@ -988,46 +987,46 @@ expanded as follows:
 ~~~
 {: #ack-control-packet title="ACK control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of an ACK control packet is "1".
 
-Control Type: 15 bits, value = ACK{0x0002}
+Control Type: 15 bits, value = ACK{0x0002}.
 : The control type value of an ACK control packet is "2".
 
-Reserved: 16 bits, value = 0
+Reserved: 16 bits, value = 0.
 : This is a fixed-width field reserved for future use.
 
-Acknowledgement Number: 32 bits
+Acknowledgement Number: 32 bits.
 : This field contains the sequential number of the full acknowledgment packet starting from 1.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Last Acknowledged Packet Sequence Number: 32 bits
+Last Acknowledged Packet Sequence Number: 32 bits.
 : This field contains the sequence number of the last data packet being acknowledged plus one.
   In other words, if it the sequence number of the first unacknowledged packet.
 
-RTT: 32 bits
-: RTT value (in microseconds) estimated by the receiver based on the previous ACK-ACKACK
+RTT: 32 bits.
+: RTT value, in microseconds, estimated by the receiver based on the previous ACK-ACKACK
 packet exchange.
 
-RTT Variance: 32 bits
-: The variance of the RTT estimation (in microseconds).
+RTT Variance: 32 bits.
+: The variance of the RTT estimation, in microseconds.
 
-Available Buffer Size: 32 bits
-: Available size of the receiver's buffer (in packets).
+Available Buffer Size: 32 bits.
+: Available size of the receiver's buffer, in packets.
 
-Packets Receiving Rate: 32 bits
-: The rate at which packets are being received (in packets per second).
+Packets Receiving Rate: 32 bits.
+: The rate at which packets are being received, in packets per second.
 
-Estimated Link Capacity: 32 bits
-: Estimated bandwidth of the link (in packets per second).
+Estimated Link Capacity: 32 bits.
+: Estimated bandwidth of the link, in packets per second.
 
-Receiving Rate: 32 bits
-: Estimated receiving rate (in bytes per second).
+Receiving Rate: 32 bits.
+: Estimated receiving rate, in bytes per second.
 
 There are several types of ACK packets:
 
@@ -1076,25 +1075,25 @@ An SRT NAK packet is formatted as follows:
 ~~~
 {: #nak-control-packet title="NAK control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of a NAK control packet is "1".
 
-Control Type: 15 bits, value = NAK{0x0003}
+Control Type: 15 bits, value = NAK{0x0003}.
 : The control type value of a NAK control packet is "3".
 
-Reserved: 16 bits, value = 0
+Reserved: 16 bits, value = 0.
 : This is a fixed-width field reserved for future use.
 
-Type-specific Information: 32 bits
+Type-specific Information: 32 bits.
 : This field is reserved for future definition.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Control Information Field (CIF):
+Control Information Field (CIF).
 : A single value or a range of lost packets sequence numbers. See packet sequence number
 coding in {{packet-seq-list-coding}}.
 
@@ -1119,19 +1118,19 @@ An SRT shutdown control packet is formatted as follows:
 ~~~
 {: #shutdown-control-packet title="Shutdown control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of a shutdown control packet is "1".
 
-Control Type: 15 bits, value = SHUTDOWN{0x0005}
+Control Type: 15 bits, value = SHUTDOWN{0x0005}.
 : The control type value of a shutdown control packet is "5".
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
-Type-specific Information: 
+Type-specific Information.
 : This field is reserved for future definition.
 
 Shutdown control packets do not contain Control Information Field (CIF).
@@ -1158,21 +1157,21 @@ An SRT ACKACK Control packet is formatted as follows:
 ~~~
 {: #ackack-control-packet title="ACKACK control packet"}
 
-Packet Type: 1 bit, value = 1
+Packet Type: 1 bit, value = 1.
 : The packet type value of an ACKACK control packet is "1".
 
-Control Type: 15 bits, value = ACKACK{0x0006}
+Control Type: 15 bits, value = ACKACK{0x0006}.
 : The control type value of an ACKACK control packet is "6".
 
-Acknowledgement Number:
+Acknowledgement Number.
 : This field contains the Acknowledgement Number of the full ACK packet
   the reception of which is being acknowledged by this ACKACK packet.
 
-Timestamp: 32 bits
-: See section {{packet-structure}}.
+Timestamp: 32 bits.
+: See {{packet-structure}}.
 
-Destination Socket ID: 32 bits
-: See section {{packet-structure}}.
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
 ACKACK control packets do not contain Control Information Field (CIF).
 
@@ -1184,7 +1183,7 @@ and data packets during the transmission process.
 After the handshake and exchange of capabilities is completed, packet data 
 can be sent and received over the established connection. To fully utilize 
 the features of low latency and error recovery provided by SRT, the sender 
-and receiver MUST handle control packets, timers, and buffers for the connection
+and receiver must handle control packets, timers, and buffers for the connection
 as specified in this section.
 
 ## Stream Multiplexing
@@ -1224,7 +1223,7 @@ sending instruction passes exactly one piece of data that has boundaries (a mess
 This message may span across multiple UDP packets (and multiple SRT data packets). The 
 only size limitation is that it shall fit as a whole in the buffers of the sender and the 
 receiver. Although internally all operations (e.g. ACK, NAK) on data packets are performed 
-independently, an application MUST send and receive the whole message. Until the message 
+independently, an application must send and receive the whole message. Until the message 
 is complete (all packets are received) the application will not be allowed to read it.
 
 When the Order Flag of a Data packet is set to 1, this imposes a sequential reading order
@@ -1333,7 +1332,7 @@ connection. See the list of error codes in {{hs-rej-reason}}.
 {: #hs-rej-reason title="Handshake Rejection Reason Codes"}
 
 The specification of the cipher family and block size is decided by the data Sender.
-When the transmission is bidirectional, this value must be agreed upon at the outset
+When the transmission is bidirectional, this value MUST be agreed upon at the outset
 because when both are set the Responder wins. For Caller-Listener connections it is
 reasonable to set this value on the Listener only. In the case of Rendezvous the only
 reasonable approach is to decide upon the correct value from the different sources and to 
@@ -1354,7 +1353,7 @@ perpetrated by flooding the Listener with handshake commands.
 The Caller begins by sending the INDUCTION handshake, which contains the following
 (significant) fields:
 
-- Version: must always be 4
+- Version: MUST always be 4
 - Encryption Field: 0
 - Extension Field: 2
 - Handshake Type: INDUCTION
@@ -1558,7 +1557,7 @@ The chances of the parallel handshake flow are very low, but still it may
 occur if the handshake messages with WAVEAHAND are sent and received by both peers
 at precisely the same time.
 
-The resulting flow is very much like Bob's behavior in the serial handshake flow,
+The resulting flow is very much like Bob's behaviour in the serial handshake flow,
 but for both parties. Alice and Bob will go through the same state transitions:
 
     Waving -> Attention -> Initiated -> Connected
@@ -1568,7 +1567,7 @@ roles. In contrast to serial flows,
 which are mostly based on request-response cycles, here everything
 happens completely asynchronously: the state switches upon reception
 of a particular handshake message with appropriate contents (the
-Initiator must attach the HSREQ extension, and Responder must attach the
+Initiator MUST attach the HSREQ extension, and Responder MUST attach the
 `HSRSP` extension).
 
 Here's how the parallel handshake flow works, based on roles:
@@ -1628,7 +1627,7 @@ never become aware. The missing packet problem is resolved this way:
    CONCLUSION + HSREQ does it respond with CONCLUSION + HSRSP.
 
 2. If the Initiator misses the CONCLUSION + HSRSP response from the
-   Responder, it continues sending CONCLUSION + HSREQ. The Responder must
+   Responder, it continues sending CONCLUSION + HSREQ. The Responder MUST
    always respond with CONCLUSION + HSRSP when the Initiator sends
    CONCLUSION + HSREQ, even if it has already received and interpreted it.
 
@@ -1661,10 +1660,10 @@ acknowledgment (ACK) is missing or late for more than the configured latency, th
 is dropped from the sender buffer. A packet can be retransmitted as long as it remains
 in the buffer for the duration of the latency window. On the receiver, packets are 
 delivered to an application from a buffer after the latency interval has passed. This 
-helps to recover from potential packet losses. See sections {{tsbpd}}, 
+helps to recover from potential packet losses. See {{tsbpd}}, 
 {{too-late-packet-drop}} for details.
 
-Latency is a value (specified in milliseconds) that can cover the time to transmit 
+Latency is a value, in milliseconds, that can cover the time to transmit 
 hundreds or even thousands of packets at high bitrate. Latency can be thought of as a 
 window that slides over time, during which a number of activities take place, such as 
 the reporting of acknowledged packets (ACKs) ({{packet-acks}}) and unacknowledged 
@@ -1672,7 +1671,7 @@ packets (NAKs)({{packet-naks}}).
 
 Latency is configured through the exchange of capabilities during the extended handshake 
 process between initiator and responder. The Handshake Extension Message ({{handshake-extension-msg}}) 
-has TSBPD delay information (in milliseconds) from the SRT receiver and sender. The 
+has TSBPD delay information, in milliseconds, from the SRT receiver and sender. The 
 latency for a connection will be established as the maximum value of latencies proposed 
 by the initiator and responder.
 
@@ -1695,10 +1694,10 @@ uniform packet drop rate, or a larger packet burst drop. Packets received after 
 "play time" are dropped if the Too-Late Packet Drop feature is enabled 
 (see {{too-late-packet-drop}}).
 
-The packet timestamp (in microseconds) is relative to the SRT connection creation time. 
-Packets are inserted based on the sequence number in the header field. The origin time 
-(in microseconds) of the packet is already sampled when a packet is first submitted by 
-the application to the SRT sender. The TSBPD feature uses this time to stamp the packet 
+The packet timestamp, in microseconds, is relative to the SRT connection creation time. 
+Packets are inserted based on the sequence number in the header field. The origin time, 
+in microseconds, of the packet is already sampled when a packet is first submitted by 
+the application to the SRT sender unless explicitly provided. The TSBPD feature uses this time to stamp the packet 
 for first transmission and any subsequent retransmission. This timestamp and the 
 configured SRT latency ({{srt-latency}}) control the recovery buffer size and the 
 instant that packets are delivered at the destination (the aforementioned "play time" 
@@ -1795,17 +1794,16 @@ exchange.
 During the transmission process, the value of TSBPD time base may be adjusted in two cases:
 
 1. During the TSBPD wrapping period.
+   The TSBPD wrapping period happens every 01:11:35 hours. This time corresponds
+   to the maximum timestamp value of a packet (MAX_TIMESTAMP). MAX_TIMESTAMP is equal
+   to 0xFFFFFFFF, or the maximum value of 32-bit unsigned integer, in microseconds ({{packet-structure}}).
+   The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value
+   of a packet and ends once the packet with timestamp within (30, 60) seconds interval
+   is delivered (read from the buffer). The updated value of TsbpdTimeBase will be recalculated as follows:
 
-The TSBPD wrapping period happens every 01:11:35 hours. This time corresponds
-to the maximum timestamp value of a packet (MAX_TIMESTAMP). MAX_TIMESTAMP is equal
-to 0xFFFFFFFF, or the maximum value of 32-bit unsigned integer, in microseconds ({{packet-structure}}).
-The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value
-of a packet and ends once the packet with timestamp within (30, 60) seconds interval
-is delivered (read from the buffer). The updated value of TsbpdTimeBase will be recalculated as follows:
-
-~~~
-TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
-~~~
+   ~~~
+   TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
+   ~~~
 
 2. By drift tracer. See {{drift-management}} for details.
 
@@ -1964,7 +1962,6 @@ received that the ACK position on the sender does not advance quickly enough. To
 after 64 packets (even if the ACK period has not fully elapsed) the receiver sends a light ACK.
 A light ACK is a shorter ACK (SRT header  and one 32-bit field). It does not trigger an ACKACK.
 
-
 When a receiver encounters the situation where the next packet to be played was not
 successfully received from the sender, it will "skip" this packet (see {{too-late-packet-drop}})
 and send a fake ACK. To the sender, this fake ACK is a real ACK, and so it just behaves as if the packet had been received.
@@ -2003,7 +2000,7 @@ packets, but there's no place for them, so they will end up being thrown away.
 This condition where packets are unsent does not happen often. There is a maximum number of
 packets held in the send buffer based on the configured latency. Older packets that have no
 chance to be retransmitted and played in time are dropped, making room for newer real-time
-packets produced by the sending application. See sections {{tsbpd}}, {{too-late-packet-drop}} for details.
+packets produced by the sending application. See {{tsbpd}}, {{too-late-packet-drop}} for details.
 
 In addition to the regular NAKs, the Periodic NAK report mechanism can be used to send NAK reports periodically.
 The NAK packet in that case will have all the packets that the receiver considers being lost
@@ -2071,7 +2068,7 @@ Both RTT and RTTVar are measured in microseconds. The initial value
 of RTT is 100 milliseconds, RTTVar is 50 milliseconds.
 
 The smoothed RTT calculated by the receiver as well as the RTT variance
-RTTVar are sent with the next full acknowledgement packet (see section
+RTTVar are sent with the next full acknowledgement packet (see
 {{ctrl-pkt-ack}}). Note that the first ACK in an SRT session might
 contain an initial RTT value of 100 milliseconds, because the
 early calculations may not be precise.
@@ -2091,124 +2088,13 @@ which can be used for its own sender as well.
 
 ## Congestion Control
 
-SRT provides certain mechanisms for the sender to get some feedback
-from the receiving side through the ACK packets ({{ctrl-pkt-ack}}).
-Every 10 ms the sender receives the latest values of RTT and RTT variance,
-Available Buffer Size, Packets Receiving Rate and Estimated Link Capacity.
-Upon reception of the NAK packet ({{ctrl-pkt-nak}}) the sender can detect
-packet losses during the transmission.
-These mechanisms provide a solid background for various congestion control
-algorithms.
+SRT provides certain mechanisms for the sender to get some feedback from the receiving side through the ACK packets ({{ctrl-pkt-ack}}). Every 10 ms the sender receives the latest values of RTT and RTT variance, Available Buffer Size, Packets Receiving Rate and Estimated Link Capacity. Upon reception of the NAK packet ({{ctrl-pkt-nak}}) the sender can detect packet losses during the transmission. These mechanisms provide a solid background for various congestion control algorithms.
 
-Given that SRT can operate in live and file transfer modes, there are two possible groups
-of congestion control algorithms.
+Given that SRT can operate in live and file transfer modes, there are two groups of congestion control algorithms possible.
 
-### Live Congestion Control (LiveCC)
+For live transmission mode ({{transmission-mode-live}}) the congestion control algorithm does not need to control the sending pace of the data packets, as the sending timing is provided by the live input. Although certain limitations on the minimal inter-sending time of consecutive packets can be applied in order to avoid congestion during fluctuations of the source bitrate. Also it is allowed to drop those packets that can not be delivered in time.
 
-For live transmission mode ({{transmission-mode-live}}) the congestion control algorithm
-does not need to control the sending pace of the data packets, as the sending timing
-is provided by the live input source. It is mainly a reactor on network events. Certain
-limitations on the minimal inter-sending time of consecutive packets can be applied in order
-to avoid congestion during fluctuations of the source bitrate.
-LiveCC determines the minimum time between consecutive packets are sent.
-Also, it is allowed to drop those packets that can not be delivered in time.
-
-On the receiving side, LiveCC may decide when an ACK is needed prior to ACK timeout.
-It also determines the interval of periodic NAK packets to be reported to the sender.
-
-### File Transfer Congestion Control (FileCC)
-
-For file transfer, any known File Congestion Control algorithms, like CUBIC {{RFC8312}}, can apply,
-including the congestion control mechanism proposed in UDT {{GHG04b}}.
-The UDT congestion control relies on the available link capacity, packet loss reports (NAK)
-and packet acknowledgments (ACKs).
-It then slows down the output of packets as needed by adjusting the packet sending pace.
-In periods of congestion, it can block the main stream and focus on the lost packets.
-
-The algorithm consists of three states: slow start, congestion avoidance and slow down.
-Starting with no information, the congestion control module probes the network to
-determine the available bandwidth and the sending pace for the desired operation mode: congestion avoidance.
-In this state, if there is no congestion detected via Loss reports, the sending pace is gradually increased.
-On the other side, if congestion is detected in the network the state is changed to slow down and
-the sending pace is decreased to reduce packet loss.
-
-#### Slow Start
-
-Slow start state has a limit on the number of data packets that can be sent before
-acknowledgment of those segments is received. File CC starts with 16 DATA packets (CWND_SIZE=16)
-sent with minimum possible interval.
-
-CWND_SIZE is increased by the difference between the acknowledged sequence number since last ACK processing
-and the sequence number being acknowledged:
- 
-~~~
-CWND_SIZE += LAST_ACK_SEQNO - ACK_SEQNO
-~~~
-
-When the congestion window size exceeds its maximum set value (MAX_CWND_SIZE), slow start period ends. Note
-that this congestion maximum window size is equal to the flow window size (FLOW_WND_SIZE). If a delivery
-rate was reported by the receiver the inter sending interval is set as:
-
-~~~
-PKT_SND_PERIOD = 1000000.0 / DELIVERY_RATE
-~~~
-
-If delivery rate has not been reported, the sending period is set to:
-
-~~~
-PKT_SND_PERIOD = CWND_SIZE / (RTT + RC_INTERVAL)
-~~~
-
-#### Congestion Avoidance
-At the end of the slow start state, the congestion avoidance state begins. If the estimated bandwidth (B) is
-smaller than the actual sending rate (1/PKT_SND_PERIOD), the increase (inc) is equal to the inverse of MSS.
-
-If not the increase is computed as:
-
-~~~
-inc = max(10 ^ ceil(log10( B * MSS * 8 ) * Beta / MSS, 1/MSS)
-~~~
-
-With beta being a constant set to 1.5 * 10^(-6). The variable inc is capped at 1/MSS.
-
-The new sending period is then calculated as:
-
-~~~
-PKT_SND_PERIOD = (PKT_SND_PERIOD * RC_INTERVAL) / (PKT_SND_PERIOD * inc + RC_INTERVAL)
-~~~
-
-#### Slow Down
-
-Upon the arrival of a NACK a congestion period is started if the lost packet sequence in the NACK
-is bigger than the largest sequence number sent so far (LastDecSeq).
-
-The decreasing sending rate is computed with the following variables:
-
-* AvgNAKNum: The average number of NACKs. Initial value: 1.
-* NAKCount: Number of NACKs received in the current congestion period. Initial value: 1.
-* DecCount: Number of times the sending period has been increased in the former congestion period.
-Initial value: 0.
-* DecRandom: Uniformly distributed random number to avoid global synchronization. Ranges from 1 to AvgNAKNum.
-
-When a new congestion period is started the previously enumerated variables are reset and the
-packet sending period is increased as:
-
-~~~
-PKT_SND_PERIOD = PKT_SND_PERIOD * 1.125
-~~~
-
-If the following statement is true:
-
-~~~
-DecCount <= 5 and NAKCount == DecCount * DecRandom
-~~~
-
-The PKT_SND_PERIOD and DecCount are increased: 
-
-~~~
-PKT_SND_PERIOD = PKT_SND_PERIOD * 1.125
-DecCount += 1 
-~~~
+For file transfer, any known File Congestion Control algorithms like CUBIC {{RFC8312}} and BBR {{BBR}} can apply, including the congestion control mechanism proposed in UDT {{GHG04b}}, {{GuAnAO}}. The UDT congestion control relies on the available link capacity, packet loss reports (NAK) and packet acknowledgements (ACKs). It then slows down the output of packets as needed by adjusting the packet sending pace. In periods of congestion, it can block the main stream and focus on the lost packets.
 
 # Encryption {#encryption}
 
@@ -2344,7 +2230,7 @@ KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, Klen)
 
 where
 
-- PBKDF2 is the PKCS#5 Password Based Key Derivation Function,
+- PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}},
 - passphrase is the pre-shared passphrase,
 - Salt is the field of the KM message,
 - LSB(n, v) is the function taking n least significant bits of v,
@@ -2378,7 +2264,7 @@ IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 ### Restoring the Stream Encrypting Key
 
 For the receiver to be able to decrypt the incoming stream it has to know the stream encrypting key (SEK)
-used by the sender. The receiver MUST know the passphrase used by the sender. The remaining information can
+used by the sender. The receiver must know the passphrase used by the sender. The remaining information can
 be extracted from the Keying Material message.
 
 The Keying Material message contains the AES-wrapped {{RFC3394}} SEK used by the encoder.
@@ -2390,7 +2276,7 @@ KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
 
 where
 
-- PBKDF2 is the PKCS#5 Password Based Key Derivation Function,
+- PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}},
 - passphrase is the pre-shared passphrase,
 - Salt is the field of the KM message,
 - LSB(n, v) is the function taking n least significant bits of v,
@@ -2464,11 +2350,11 @@ TODO acknowledge.
 
 --- back
 
-# Packet Sequence List coding {#packet-seq-list-coding}
+# Packet Sequence List Coding {#packet-seq-list-coding}
 
 For any single packet sequence number,
 it uses the original sequence number in the field. The first bit 
-must start with "0".
+MUST start with "0".
 
 ~~~
  0                   1                   2                   3
@@ -2539,7 +2425,7 @@ All single letter key definitions, including those not listed in this section, a
 Users can additionally use custom key definitions with user_* or companyname_* prefixes,
 where user and companyname are to be replaced with an actual user or company name.
 
-The existing key values must not be extended, and must not differ from those described in this section.
+The existing key values MUST not be extended, and MUST not differ from those described in this section.
 
 The following keys are standard:
 
@@ -2586,3 +2472,17 @@ It specifies the username and the resource name of the stream to be served to th
 ~~~
 
 This specifies that the file is expected to be transmitted from the caller to the listener and its name is results.csv.
+
+# Changelog
+
+## Since Version 00
+
+- Improved and extended the description of "Encryption" section,
+- Improved and extended the description of "Round-Trip Time Estimation" section,
+- Extended the description of "Handshake" section with "Stream ID Extension Message", "Group Membership Extension" subsections,
+- Extended "Handshake Messages" section with the detailed description of handshake procedure,
+- Improved "Key Material" section description,
+- Changed packet structure formatting for "Packet Structure" section,
+- Did minor additions to the "Acknowledgement and Lost Packet Handling" section,
+- Fixed broken links,
+- Extended the list of references.
