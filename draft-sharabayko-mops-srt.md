@@ -718,12 +718,12 @@ and bonded SRT connections (group connections).
 ~~~
 {: #fig-hsext-group title="Group Membership Extension Message"}
 
-GroupID (32 bits):
+GroupID: 32 bits
 : The identifier of a group whose members include the sender socket that is making a connection.
   The target socket that should interpret it should belong to the corresponding group on its side
   (or should create one, if it doesn't exist).
 
-Type (8 bits):
+Type: 8 bits
 : Group type, as per SRT_GTYPE_ enumeration.
 
 - 0: undefined group type,
@@ -732,10 +732,10 @@ Type (8 bits):
 - 3: balancing group type (reserved for future use)
 - 4: multicast group type (reserved for future use)
 
-Flags (8 bits):
+Flags: 8 bits
 : Special flags mostly reserved for the future. See {{fig-hsext-group-flags}}.
 
-Weight (16 bits):
+Weight: 16 bits
 : Special value with interpretation depending on the Type field value.
 
 - Not used with broadcast groups.
@@ -750,7 +750,7 @@ Weight (16 bits):
 ~~~
 {: #fig-hsext-group-flags title="Group Membership Extension Flags"}
 
-M (1 bit):
+M: 1 bit
 : When set, defines synchronization on message numbers, otherwise transmission is synchronized on sequence numbers.
 
 ### Key Material {#sec-ctrlpkt-km}
@@ -770,7 +770,6 @@ is set to SRT_CMD_KMREQ for key-refresh request and SRT_CMD_KMRSP for key-refres
 The KM Refresh mechanism is described in {{sec-crypt-km-refresh}}.
 
 The structure of the Key Material message is illustrated in {{fig-km-msg}}.
-
 
 ~~~
  0                   1                   2                   3
@@ -793,15 +792,15 @@ The structure of the Key Material message is illustrated in {{fig-km-msg}}.
 ~~~~
 {: #fig-km-msg title="Key Material Message structure"}
 
-S ( ): 1 bit. Value: {0}
+S: 1 bit, value = {0}
 : This is a fixed-width field that is reserved for future usage.
 
-Version (V): 3 bits. Value: {1}
+Version (V): 3 bits, value = {1}
 : This is a fixed-width field that indicates the SRT version:
 
   - 1: initial version
 
-Packet Type (PT): 4 bits. Value: {2}  
+Packet Type (PT): 4 bits, value = {2}
 : This is a fixed-width field that indicates the Packet Type:
 
   - 0: Reserved
@@ -809,14 +808,14 @@ Packet Type (PT): 4 bits. Value: {2}
   - 2: Keying Material Message (KMmsg)
   - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)
 
-Sign (Sign): 16 bits. Value: {0x2029}  
+Sign: 16 bits, value = {0x2029}
 : This is a fixed-width field that contains the signature ‘HAI‘ encoded as a
   PnP Vendor ID ({{PNPID}}) (in big-endian order)
 
-Resv1 ( ): 6 bits. Value: {0}  
+Resv1: 6 bits, value = {0}
 : This is a fixed-width field reserved for flag extension or other usage.
 
-Key-based Encryption (KK): 2 bits.
+Key-based Encryption (KK): 2 bits
 : This is a fixed-width field that indicates which SEKs (odd and/or even) are provided in the extension:
 
   - 00b: no SEK is provided (invalid extension format)
@@ -824,7 +823,7 @@ Key-based Encryption (KK): 2 bits.
   - 10b: odd key is provided
   - 11b: both even and odd keys are provided
 
-Key Encryption Key Index (KEKI): 32 bits. Value: {0}
+Key Encryption Key Index (KEKI): 32 bits, value = {0}
 : This is a fixed-width field for specifying the KEK index (big-endian order)
   was used to wrap (and optionally authenticate) the SEK(s).
   The value 0 is used to indicate the default key of the current stream.
@@ -834,43 +833,43 @@ Key Encryption Key Index (KEKI): 32 bits. Value: {0}
   - 0: Default stream associated key (stream/system default)
   - 1..255: Reserved for manually indexed keys
 
-Cipher ( ): 8 bits. Value: {0..2}
+Cipher: 8 bits, value = {0..2}
 : This is a fixed-width field for specifying encryption cipher and mode:
 
   - 0: None or KEKI indexed crypto context
   - 2: AES-CTR {{SP800-38A}}
 
-Authentication (Auth): 8 bits. Value: {0}  
+Authentication (Auth): 8 bits, value = {0}
 : This is a fixed-width field for specifying a message authentication code algorithm:
 
   - 0: None or KEKI indexed crypto context
 
-Stream Encapsulation (SE): 8 bits. Value: {2}  
+Stream Encapsulation (SE): 8 bits, value = {2}
 : This is a fixed-width field for describing the stream encapsulation:
 
   - 0: Unspecified or KEKI indexed crypto context
   - 1: MPEG-TS/UDP
   - 2: MPEG-TS/SRT
 
-Resv2 ( ): 8 bits. Value: {0}  
+Resv2: 8 bits, value = {0}
 : This is a fixed-width field reserved for future use.
 
-Resv3 ( ): 16 bits. Value: {0}  
+Resv3: 16 bits, value = {0}
 : This is a fixed-width field reserved for future use.
 
-SLen/4 ( ): 8 bits. Value: {4}  
+SLen/4: 8 bits, value = {4}
 : This is a fixed-width field for specifying salt length SLen in bytes divided by 4.
   Can be zero if no salt/IV present. The only valid length of salt defined is 128 bits.
 
-KLen/4 ( ): 8 bits. Value: {4,6,8}
+KLen/4: 8 bits, value = {4,6,8}
 : This is a fixed-width field for specifying SEK length in bytes divided by 4.
   Size of one key even if two keys present. MUST match the key size specified in the Encryption Field
   of the handshake packet {{handshake-encr-fld}}.
 
-Salt (SLen): SLen * 8 bits. Value: { }  
+Salt (SLen): SLen * 8 bits, value = { }
 : This is a variable-width field that complements the keying material by specifying a salt key.
 
-Wrap ( ): (64+n * KLen * 8) bits. Value: { }
+Wrap: (64 + n * KLen * 8) bits, value = { }
 : This is a variable-width field for specifying Wrapped key(s), where n = (KK + 1)/2 and
   the size of the wrap field is ((n * KLen) + 8) bytes.
 
@@ -889,17 +888,17 @@ Wrap ( ): (64+n * KLen * 8) bits. Value: { }
 ~~~
 {: #unwrapped-key-structure title="Unwrapped key structure"}
 
-ICV (64 bits):
+ICV: 64 bits
 : 64-bit Integrity Check Vector(AES key wrap integrity).
   This field is used to detect if the keys were unwrapped properly.
   If the KEK in hand is invalid, validation fails and unwrapped keys are discarded.
 
-xSEK (variable width):
+xSEK: variable width
 : This field identifies an odd or even SEK. If only one key is present, the bit set in the KK field tells which SEK is provided.
   If both keys are present, then this field is eSEK (even key) and it is followed by odd key oSEK.
   The length of this field is calculated as KLen * 8.
 
-oSEK (variable width):
+oSEK: variable width
 : This field with the odd key is present only when the message carries the two SEKs (identified by he KK field).
   
 ### Keep-Alive {#ctrl-pkt-keepalive}
