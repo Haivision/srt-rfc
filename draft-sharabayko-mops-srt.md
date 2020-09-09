@@ -1794,17 +1794,15 @@ exchange.
 During the transmission process, the value of TSBPD time base may be adjusted in two cases:
 
 1. During the TSBPD wrapping period.
-
-The TSBPD wrapping period happens every 01:11:35 hours. This time corresponds
-to the maximum timestamp value of a packet (MAX_TIMESTAMP). MAX_TIMESTAMP is equal
-to 0xFFFFFFFF, or the maximum value of 32-bit unsigned integer, in microseconds ({{packet-structure}}).
-The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value
-of a packet and ends once the packet with timestamp within (30, 60) seconds interval
-is delivered (read from the buffer). The updated value of TsbpdTimeBase will be recalculated as follows:
-
-~~~
-TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
-~~~
+   The TSBPD wrapping period happens every 01:11:35 hours. This time corresponds
+   to the maximum timestamp value of a packet (MAX_TIMESTAMP). MAX_TIMESTAMP is equal
+   to 0xFFFFFFFF, or the maximum value of 32-bit unsigned integer, in microseconds ({{packet-structure}}).
+   The TSBPD wrapping period starts 30 seconds before reaching the maximum timestamp value
+   of a packet and ends once the packet with timestamp within (30, 60) seconds interval
+   is delivered (read from the buffer). The updated value of TsbpdTimeBase will be recalculated as follows:
+   ~~~
+   TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
+   ~~~
 
 2. By drift tracer. See {{drift-management}} for details.
 
@@ -1962,7 +1960,6 @@ for a sequence of packets. In a 10 milliseconds interval, there are often so man
 received that the ACK position on the sender does not advance quickly enough. To mitigate this,
 after 64 packets (even if the ACK period has not fully elapsed) the receiver sends a light ACK.
 A light ACK is a shorter ACK (SRT header  and one 32-bit field). It does not trigger an ACKACK.
-
 
 When a receiver encounters the situation where the next packet to be played was not
 successfully received from the sender, it will "skip" this packet (see {{too-late-packet-drop}})
