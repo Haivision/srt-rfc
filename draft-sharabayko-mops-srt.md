@@ -2141,7 +2141,7 @@ to avoid congestion during fluctuations of the source bitrate.
 
 In addition to these mechanisms, in highly variable networks live mode
 fairness can be accomplished outside SRT by controlling the bitrate
-of the encoder at the input of the SRT sender. SRT provides a variaty
+of the encoder at the input of the SRT sender. SRT provides a variety
 of network related statistics such as RTT estimation, the level of
 packet loss, the number of packets dropped by SRT, etc., which can be
 used for making decisions and adjusting the bitrate in real time.
@@ -2226,16 +2226,16 @@ is larger (HYBRIDBW mode). Combining the two methods overcomes
 the deficiencies of each.
 
 The following table shows the summary of modes, variables need to be
-set (✓) or ignored (-) and formula for MAX_BW calculation for a
+set (v) or ignored (-) and formula for MAX_BW calculation for a
 particular mode:
 
 ~~~
 | Mode / Variable | MAX_BW | INPUT_BW | OVERHEAD |
 | --------------- | ------ | -------- | -------- |
-| MAXBW           | ✓      | -        | -        |
-| INPUTBW         | -      | ✓        | ✓        |
-| ESTINPUTBW      | -      | -        | ✓        |
-| HYBRIDBW        | -      | ✓        | ✓        |
+| MAXBW           | v      | -        | -        |
+| INPUTBW         | -      | v        | v        |
+| ESTINPUTBW      | -      | -        | v        |
+| HYBRIDBW        | -      | v        | v        |
 ~~~
 
 ### SRT's Default LiveCC Algorithm {#default-liveCC}
@@ -2319,8 +2319,7 @@ low latency conditions.
 For file transfer ({{transmission-mode-msg}},
 {{transmission-mode-buffer}}), any known file congestion control
 algorithm like CUBIC {{RFC8312}} or BBR {{BBR}} can be applied,
-including SRT's default FileCC algorithm decsribed below
-({{default-fileCC}}).
+including SRT's default FileCC algorithm described below.
 
 ### SRT's Default FileCC Algorithm {#default-fileCC}
 
@@ -2434,11 +2433,13 @@ The maximum and default ACK time interval is SYN.
 See {{packet-acks}} for details.
 
 On a loss report (NAK) packet reception:
+
 - Slow start phase ends;
 - Set the packet sending period PKT_SND_PERIOD as described in Step 5,
 "On an acknowledgement (ACK) packet reception" part.
 
 On a retransmission timeout (RTO) event:
+
 - Slow start phase ends;
 - Set the packet sending period PKT_SND_PERIOD as described in Step 5,
 "On an acknowledgement (ACK) packet reception" part.
@@ -2519,7 +2520,7 @@ calculate PKT_SND_PERIOD as follows:
 where
 
 - LastDecPeriod is the value of PKT_SND_PERIOD right before the last
-sending rate decrease has happend (on a loss report (NAK) packet
+sending rate decrease has happened (on a loss report (NAK) packet
 reception), in microseconds. The initial value of LastDecPeriod
 is set to 1 microsecond;
 - EST_LINK_CAPACITY is the estimated link capacity reported
@@ -2641,7 +2642,7 @@ period is used by the sender as a reference maximum speed
 to continue data transmission without further congestion.
 Link capacity is estimated all the time and used primarily
 (as well as packet loss ratio and other protocol statistics)
-for smoothed sending rate adjustments during the transmition process.
+for smoothed sending rate adjustments during the transmission process.
 
 The receiver records the inter-arrival time of each packet
 (time delta with the previous data packet) which is further
@@ -2651,7 +2652,7 @@ of acknowledgment packets which are sent regularly
 (each 10 milliseconds) and contain some control information
 as well as bandwidth and delivery rate estimations.
 At the sender side, upon receiving a new value, a smoothed average
-is used to update the latest estimation mantained at the sender side.
+is used to update the latest estimation maintained at the sender side.
 
 It is important to note that for bandwidth estimation only data
 probing packets are taken into account while all the data packets
