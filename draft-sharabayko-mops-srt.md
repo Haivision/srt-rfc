@@ -2088,15 +2088,15 @@ which can be used for its own sender as well.
 
 # SRT Packet Pacing and Congestion Control
 
-SRT provides certain mechanisms for the sender to get a feedback
-from the receiving side through acknowledgement (ACK) packets
-({{ctrl-pkt-ack}}). Every 10 milliseconds the sender receives
-the latest values of RTT, RTT variance, available buffer size,
-receiving rate and estimated link capacity. Upon reception of
-an NAK packet ({{ctrl-pkt-nak}}) the sender detects packet loss
-during the transmission. These mechanisms provide a solid background
-for various congestion control algorithms integration in the
-SRT protocol.
+SRT provides certain mechanisms for exchanging feedback on the state of
+packet transmission between sender and receiver. Every 10 milliseconds
+the receiving side sends acknowledgement (ACK) packets ({{ctrl-pkt-ack}})
+to the sender that include the latest values of RTT, RTT variance, available
+buffer size, receiving rate, and estimated link capacity. Similarly, NAK packets
+({{ctrl-pkt-nak}}) from the receiver inform the sender of any packet loss during
+the transmission, triggering an appropriate response. These mechanisms provide
+a solid background for the integration of various congestion control algorithms
+in the SRT protocol.
 
 Given that SRT can operate in live and file transfer modes, there are
 two groups of congestion control algorithms defined in SRT: live
@@ -2105,66 +2105,61 @@ congestion control (LiveCC) and file transfer congestion control
 
 ## SRT Packet Pacing and Live Congestion Control (LiveCC) {#liveCC}
 
-To ensure smooth video playback of a receiving peer, SRT in live mode
-({{transmission-mode-live}}) must control the sender's buffer level to
-prevent overfill and depletion. Pacing control module is
-designed to send packets as fast as they are submitted by the
-application while maintaining relatively stable buffer level.
-While this looks like a simple problem, the sender's constituent
-of the Automatic Repeat Request (ARQ) system between
-input and output of the SRT sender adds some complexity.
+To ensure smooth video playback on a receiving peer, SRT in case of
+live streaming must control the sender's buffer level to
+prevent overfill and depletion. The pacing control module is
+designed to send packets as fast as they are submitted by a
+video application while maintaining a relatively stable buffer level.
+While this looks like a simple problem, the details of the Automatic
+Repeat Request (ARQ) behaviour between input and output of the
+SRT sender add some complexity.
 
 SRT needs a certain amount of bandwidth overhead in order to have
-space to insert retransmitted packets without affecting the SRT
-sender's main stream output rate too much so that packets can be
-transmitted normally.
+space for the sender to insert packets for retransmission with minimum
+impact on the output rate of the main packet transmission.
 
-It is done by adjusting the maximum allowed bandwidth MAX_BW
-({{maxbw}}) which limits the bandwidth usage by SRT and is used
-by live congestion control (LiveCC) module to calculate the minimum
-inter-sending time of consecutive packets PKT_SND_PERIOD.
+This balance is achieved by adjusting the maximum allowed bandwidth MAX_BW
+({{maxbw}}) which limits the bandwidth usage by SRT. The MAX_BW value is used
+by the live congestion control (LiveCC) module to calculate the minimum
+interval between consecutive sent packets PKT_SND_PERIOD.
 In principle, the space between packets determines where
 retransmissions can be inserted, and the overhead represents the
 available margin. There is an empiric calculation that defines the
 interval, in microseconds, between two packets to give a certain
 bitrate. It's a function of the average packet payload (which
-includes video, audio, etc.) and configured maximum bandwidth MAX_BW.
+includes video, audio, etc.) and the configured maximum bandwidth (MAX_BW).
 See {{default-liveCC}} for details.
 
-In live mode, it is allowed to drop those packets that can not be delivered
+In case of live streaming, the sender is allowed to drop packets that cannot be delivered
 in time ({{too-late-packet-drop}}).
 
-To sum up, a combination of pacing control and live
-congestion control (LiveCC) modules controls SRT packets pacing based
-on the input rate and an overhead for packets retransmission in order
-to avoid congestion during fluctuations of the source bitrate.
+The combination of pacing control and live congestion control (LiveCC), based
+on the input rate and an overhead for packets retransmission, helps avoid congestion
+during fluctuations of the source bitrate.
 
-In addition to these mechanisms, in highly variable networks live mode
-fairness can be accomplished outside SRT by controlling the bitrate
-of the encoder at the input of the SRT sender. SRT provides a variety
-of network related statistics such as RTT estimation, the level of
-packet loss, the number of packets dropped by SRT, etc., which can be
-used for making decisions and adjusting the bitrate in real time.
+In case of live streaming over highly variable networks, fairness can be achieved by controlling
+the bitrate of the source encoder at the input of the SRT sender. SRT provides a
+variety of network related statistics, such as RTT estimation, packet loss level,
+the number of packets dropped, etc., which can be used for making decisions
+and adjusting the bitrate in real time.
 
 ### Configuring Maximum Bandwidth {#maxbw}
 
-There are several ways of configuring maximum bandwidth MAX_BW:
+There are several ways of configuring maximum bandwidth (MAX_BW):
 
-1. By means of setting the value of maximum bandwidth MAX_BW
-   explicitly (MAXBW mode).
+1. MAXBW mode: Set the value explicitly.
 
-   The recommended default value is 1 Gbps. Note that the default value
-   is set only for live transmission mode.
+   The recommended default value is 1 Gbps. The default value
+   is set only for live streaming.
 
    Note that this static setting is not well-suited to a variable input,
    like when you change the bitrate on an encoder. Each time the input
    bitrate is configured on the encoder, MAX_BW must also be reconfigured.
 
-   In this mode, SRT does not follow the fluctuations in the encoder input
-   making it not suitable for variable bitrate (VBR) encoding use cases.
+   In MAXBW mode, SRT does not follow any fluctuations in the encoder input
+   making it unsuitable for variable bitrate (VBR) encoding.
 
-2. By means of setting the SRT sender's input rate INPUT_BW and the
-   overhead OVERHEAD (INPUTBW mode).
+2. INPUTBW mode: Set the SRT sender's input rate (INPUT_BW) and overhead (OVERHEAD).
 
    In this mode, SRT calculates the maximum bandwidth as follows:
 
@@ -2174,8 +2169,8 @@ There are several ways of configuring maximum bandwidth MAX_BW:
 
    Note that INPUTBW mode reduces to the MAXBW mode.
 
-3. Measuring SRT sender's input rate internally and setting the
-   overhead OVERHEAD (ESTINPUTBW mode).
+3. ESTINPUTBW mode: Measure the SRT sender's input rate internally and set the
+   overhead (OVERHEAD).
 
    In this mode, SRT adjusts the value of maximum bandwidth each time it
    gets the updated estimation of input rate EST_INPUT_BW:
@@ -2184,9 +2179,9 @@ There are several ways of configuring maximum bandwidth MAX_BW:
    MAX_BW = EST_INPUT_BW * (1 + OVERHEAD /100)
    ~~~
 
-4. A hybrid mode which takes the configured input rate INPUT_BW,
-   compares it against estimated value EST_INPUT_BW, and uses the
-   maximum of two (HYBRIDBW mode):
+4. HYBRIDBW mode: Compare the configured input rate INPUT_BW
+   against the estimated bandwidth EST_INPUT_BW, and use the
+   maximum of two.
 
    ~~~
    MAX_BW = max(INPUT_BW, EST_INPUT_BW) * (1 + OVERHEAD /100)
@@ -2196,7 +2191,7 @@ Note that the units of MAX_BW, INPUT_BW, and EST_INPUT_BW are bytes per
 second. OVERHEAD is defined in %.
 
 Both ESTINPUTBW and HYBRIDBW modes are recommended for setting the
-maximum bandwidth as it (MAX_BW) follows the fluctuations in
+maximum bandwidth (MAX_BW) as it follows the fluctuations in
 SRT sender's input rate. However, there are certain considerations
 that should be taken into account.
 
@@ -2206,7 +2201,7 @@ of bitrate for the packets including audio and overhead). But it is
 normal for an encoder to occasionally overshoot. At low bitrate,
 sometimes an encoder can be too optimistic and will output more bits
 than expected. Under these conditions, SRT packets would not go out
-fast enough due to too low value of the configured bandwidth limitation.
+fast enough because the configured bandwidth limitation would be too low.
 
 This is mitigated by calculating the bitrate internally (ESTINPUTBW
 mode). SRT examines the packets being submitted and calculates the
@@ -2217,17 +2212,16 @@ bitrate being measured, which would in turn reduce the SRT output rate.
 And then, when the video picks up again, the input rate rises sharply.
 SRT would not start up again fast enough on output because of the time
 it takes to measure the speed. Packets might be accumulated in the
-SRT's sender buffer and, as a result, delayed causing their too late
-arrival at the decoder and possible drops by the receiver.
+SRT's sender buffer and delayed as a result, causing them to arrive too late
+at the decoder, and possible drops by the receiver.
 
-A proposed solution is to have SRT take the input rate configuration
-from the encoder, measure the actual input, and use whichever value
-is larger (HYBRIDBW mode). Combining the two methods overcomes
-the deficiencies of each.
+HYBRIDBW mode combines the two methods above and overcomes
+the deficiencies of each. SRT takes the input rate configuration from the
+encoder, measures the actual input, and uses whichever value is larger.
 
-The following table shows the summary of modes, variables need to be
-set (v) or ignored (-) and formula for MAX_BW calculation for a
-particular mode:
+The following table shows a summary of the bandwidth configuration modes,
+the variables that need to be set (✓) or ignored (-), and the formula for
+calculating MAX_BW in each case:
 
 ~~~
 | Mode / Variable | MAX_BW | INPUT_BW | OVERHEAD |
