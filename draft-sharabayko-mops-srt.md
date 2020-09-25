@@ -2086,15 +2086,570 @@ and RTTVar are updated by the socket based on algorithms for the sender
 When an SRT socket receives data, it updates its local RTT and RTTVar,
 which can be used for its own sender as well.
 
-## Congestion Control
+# SRT Packet Pacing and Congestion Control
 
-SRT provides certain mechanisms for the sender to get some feedback from the receiving side through the ACK packets ({{ctrl-pkt-ack}}). Every 10 ms the sender receives the latest values of RTT and RTT variance, Available Buffer Size, Packets Receiving Rate and Estimated Link Capacity. Upon reception of the NAK packet ({{ctrl-pkt-nak}}) the sender can detect packet losses during the transmission. These mechanisms provide a solid background for various congestion control algorithms.
+SRT provides certain mechanisms for exchanging feedback on the state of
+packet transmission between sender and receiver. Every 10 milliseconds
+the receiving side sends acknowledgement (ACK) packets ({{ctrl-pkt-ack}})
+to the sender that include the latest values of RTT, RTT variance, available
+buffer size, receiving rate, and estimated link capacity. Similarly, NAK packets
+({{ctrl-pkt-nak}}) from the receiver inform the sender of any packet loss during
+the transmission, triggering an appropriate response. These mechanisms provide
+a solid background for the integration of various congestion control algorithms
+in the SRT protocol.
 
-Given that SRT can operate in live and file transfer modes, there are two groups of congestion control algorithms possible.
+As SRT is designed both for live streaming and file/message
+transmission {{data-transmission-mode}}, there are two groups of
+congestion control algorithms defined in SRT: live congestion
+control (LiveCC), and file transfer congestion control (FileCC).
 
-For live transmission mode ({{transmission-mode-live}}) the congestion control algorithm does not need to control the sending pace of the data packets, as the sending timing is provided by the live input. Although certain limitations on the minimal inter-sending time of consecutive packets can be applied in order to avoid congestion during fluctuations of the source bitrate. Also it is allowed to drop those packets that can not be delivered in time.
+## SRT Packet Pacing and Live Congestion Control (LiveCC) {#liveCC}
 
-For file transfer, any known File Congestion Control algorithms like CUBIC {{RFC8312}} and BBR {{BBR}} can apply, including the congestion control mechanism proposed in UDT {{GHG04b}}, {{GuAnAO}}. The UDT congestion control relies on the available link capacity, packet loss reports (NAK) and packet acknowledgements (ACKs). It then slows down the output of packets as needed by adjusting the packet sending pace. In periods of congestion, it can block the main stream and focus on the lost packets.
+To ensure smooth video playback on a receiving peer during
+live streaming, SRT must control the sender's buffer level to
+prevent overfill and depletion. The pacing control module is
+designed to send packets as fast as they are submitted by a
+video application while maintaining a relatively stable buffer level.
+While this looks like a simple problem, the details of the Automatic
+Repeat Request (ARQ) behaviour between input and output of the
+SRT sender add some complexity.
+
+SRT needs a certain amount of bandwidth overhead in order to have
+space for the sender to insert packets for retransmission with minimum
+impact on the output rate of the main packet transmission.
+
+This balance is achieved by adjusting the maximum allowed bandwidth MAX_BW
+({{maxbw}}) which limits the bandwidth usage by SRT. The MAX_BW value is used
+by the live congestion control (LiveCC) module to calculate the minimum
+interval between consecutive sent packets PKT_SND_PERIOD.
+In principle, the space between packets determines where
+retransmissions can be inserted, and the overhead represents the
+available margin. There is an empiric calculation that defines the
+interval, in microseconds, between two packets to give a certain
+bitrate. It's a function of the average packet payload (which
+includes video, audio, etc.) and the configured maximum bandwidth (MAX_BW).
+See {{default-liveCC}} for details.
+
+In the case of live streaming, the sender is allowed to drop packets
+that cannot be delivered in time ({{too-late-packet-drop}}).
+
+The combination of pacing control and live congestion control (LiveCC), based
+on the input rate and an overhead for packets retransmission, helps avoid congestion
+during fluctuations of the source bitrate.
+
+During live streaming over highly variable networks, fairness can be achieved by controlling
+the bitrate of the source encoder at the input of the SRT sender. SRT provides a
+variety of network related statistics, such as RTT estimate, packet loss level,
+the number of packets dropped, etc., which can be used for making decisions
+and adjusting the bitrate in real time.
+
+### Configuring Maximum Bandwidth {#maxbw}
+
+There are several ways of configuring maximum bandwidth (MAX_BW):
+
+1. MAXBW_SET mode: Set the value explicitly.
+
+   The recommended default value is 1 Gbps. The default value
+   is set only for live streaming.
+
+   Note that this static setting is not well-suited to a variable input,
+   like when you change the bitrate on an encoder. Each time the input
+   bitrate is configured on the encoder, MAX_BW must also be reconfigured.
+
+2. INPUTBW_SET mode: Set the SRT sender's input rate (INPUT_BW) and overhead (OVERHEAD).
+
+   In this mode, SRT calculates the maximum bandwidth as follows:
+
+   ~~~
+   MAX_BW = INPUT_BW * (1 + OVERHEAD /100)
+   ~~~
+
+   Note that INPUTBW_SET mode reduces to the MAXBW_SET mode and the same restrictions apply.
+
+3. INPUTBW_ESTIMATED mode: Measure the SRT sender's input rate internally and set the
+   overhead (OVERHEAD).
+
+   In this mode, SRT adjusts the value of maximum bandwidth each time it
+   gets the updated estimation of input rate EST_INPUT_BW:
+
+   ~~~
+   MAX_BW = EST_INPUT_BW * (1 + OVERHEAD /100)
+   ~~~
+
+Note that the units of MAX_BW, INPUT_BW, and EST_INPUT_BW are bytes per
+second. OVERHEAD is defined in %.
+
+INPUTBW_ESTIMATED mode is recommended for setting the
+maximum bandwidth (MAX_BW) as it follows the fluctuations in
+SRT sender's input rate. However, there are certain considerations
+that should be taken into account.
+
+In INPUTBW_SET mode, SRT takes as an input the rate that had been
+configured as the expected output rate of an encoder (in terms
+of bitrate for the packets including audio and overhead). But it is
+normal for an encoder to occasionally overshoot. At low bitrate,
+sometimes an encoder can be too optimistic and will output more bits
+than expected. Under these conditions, SRT packets would not go out
+fast enough because the configured bandwidth limitation would be too low.
+
+This is mitigated by calculating the bitrate internally (INPUTBW_ESTIMATED
+mode). SRT examines the packets being submitted and calculates the
+input rate as a moving average. However, this introduces a bit of a
+delay based on the content. It also means that if an encoder encounters
+black screens or still frames, this would dramatically lower the
+bitrate being measured, which would in turn reduce the SRT output rate.
+And then, when the video picks up again, the input rate rises sharply.
+SRT would not start up again fast enough on output because of the time
+it takes to measure the speed. Packets might be accumulated in the
+SRT's sender buffer and delayed as a result, causing them to arrive too late
+at the decoder, and possible drops by the receiver.
+
+We are working on another mode that combines mentioned above approaches
+and overcomes the deficiencies of each.
+
+The following table shows a summary of the bandwidth configuration modes,
+the variables that need to be set (v) or ignored (-), and the formula for
+calculating MAX_BW in each case:
+
+~~~
+| Mode / Variable       | MAX_BW | INPUT_BW | OVERHEAD |
+| --------------------- | ------ | -------- | -------- |
+| MAXBW_SET             | v      | -        | -        |
+| INPUTBW_SET           | -      | v        | v        |
+| INPUTBW_ESTIMATED     | -      | -        | v        |
+~~~
+
+### SRT's Default LiveCC Algorithm {#default-liveCC}
+
+The main goal of the SRT's default LiveCC algorithm is to adjust the
+minimum allowed packet sending period PKT_SND_PERIOD (and, as a result,
+the maximum allowed sending rate) during transmission based on the
+average packet payload size (AvgPayloadSize) and maximum bandwidth
+(MAX_BW).
+
+On the sender side, there are three events that the LiveCC algorithm reacts to:
+(1) sending a data packet, (2) receiving an acknowledgement (ACK) packet,
+and (3) a timeout event as described below.
+
+(1) On sending a data packet (either original or retransmitted), update
+the value of average packet payload size (AvgPayloadSize):
+
+~~~
+AvgPayloadSize = AvgPayloadSize * 0.875 + PacketPayloadSize * 0.125
+~~~
+
+where PacketPayloadSize is the payload size of a sent data packet, in bytes;
+the initial value of AvgPayloadSize is equal to the maximum allowed packet
+payload size, which can't be larger than 1456 bytes.
+
+(2) On an acknowledgement (ACK) packet reception:
+
+Step 1. Calculate SRT packet size (PktSize) as the sum of average payload size
+(AvgPayloadSize) and SRT header size ({{packet-structure}}), in bytes.
+
+Step 2. Calculate the minimum allowed packet sending period (PKT_SND_PERIOD)
+as:
+
+~~~
+PKT_SND_PERIOD = PktSize * 1000000 / MAX_BW
+~~~
+
+where MAX_BW is the configured maximum bandwidth which limits the
+bandwidth usage by SRT, in bytes per second; PKT_SND_PERIOD is
+measured in microseconds.
+
+(3) On a retransmission timeout (RTO) event, follow the same steps as
+described in method (1) above.
+
+RTO is the amount of time within which an acknowledgement is expected after a data packet
+is sent out. If there is no ACK after this amount of time has elapsed, a
+timeout event is triggered. Since SRT only acknowledges every SYN time
+({{packet-acks}}), the value of retransmission timeout is
+defined as follows:
+
+~~~
+RTO = RTT + 4 * RTTVar + 2 * SYN
+~~~
+
+where RTT is the round-trip time estimation, in microseconds, and
+RTTVar is the variance of RTT estimation, in microseconds, reported
+by the receiver and smoothed at the sender side
+(see {{ctrl-pkt-ack}}, {{rtt}}). Here and throughout the current
+section, smoothing means applying an exponentially weighted moving average (EWMA).
+
+Continuous timeout should increase the RTO value. In SRT, a counter
+(RexmitCount) is used to track the number of continuous timeouts:
+
+~~~
+RTO = RexmitCount * (RTT + 4 * RTTVar + 2 * SYN) + SYN
+~~~
+
+On the receiver side, when a loss report is sent, the sending interval of
+periodic NAK reports ({{packet-naks}}) is updated as follows:
+
+~~~
+NAKInterval = min((RTT + 4 * RTTVar) / 2, 20000)
+~~~
+
+where RTT and RTTVar are receiver's estimations (see {{ctrl-pkt-ack}},
+{{rtt}}). The minimum value of NAKInterval is set to 20 milliseconds
+in order to avoid sending periodic NAK reports too often under
+low latency conditions.
+
+## File Transfer Congestion Control (FileCC)
+
+For file/message transfer ({{data-transmission-mode}}), any known congestion control
+algorithm like CUBIC {{RFC8312}} or BBR {{BBR}} can be applied,
+including SRT's default FileCC algorithm described below.
+
+### SRT's Default FileCC Algorithm {#default-fileCC}
+
+SRT's default FileCC algorithm is a modified version of the UDT
+native congestion control algorithm {{GuAnAO}}, {{GHG04b}}
+designed for a bulk data transfer over networks with a large
+bandwidth-delay product (BDP). It's a hybrid Additive Increase
+Multiplicative Decrease (AIMD) algorithm, hence it adjusts both
+congestion window size (CWND_SIZE) and packet sending period
+(PKT_SND_PERIOD). The units of measurement for CWND_SIZE and
+PKT_SND_PERIOD are packets and microseconds, respectively.
+
+The algorithm controls sending rate by tuning the packet sending period
+(i.e. how often packets are sent out). The sending rate is increased
+upon receipt of an acknowledgement (ACK), and decreased when
+receiving a loss report (negative acknowledgement, or NAK).
+Only full ACKs, not light ACKs ({{packet-acks}}), trigger an increase
+in the sending rate.
+
+SRT congestion control has two phases: "Slow Start" and "Congestion
+Avoidance". In the slow start phase the congestion control module
+probes the network to determine available bandwidth and the target
+sending rate for the next (operational) phase, which is congestion
+avoidance. In this phase, if there is no congestion detected via
+loss reports, the sending rate is gradually increased. Conversely,
+if a network congestion is detected, the algorithm decreases the
+sending rate to reduce subsequent packet loss. The slow start phase
+runs exactly once at the beginning of a connection, and stops when
+a packet loss occurs, when the congestion window size reaches its
+maximum value, or on a timeout event.
+
+The detailed algorithm behaviour at both phases is described
+in {{default-fileCC-slow-start}} and
+{{default-fileCC-congestion-avoidance}}, respectively.
+
+As with LiveCC, SRT's default FileCC algorithm reacts to three events:
+(1) sending a data packet, (2) receiving an acknowledgement (ACK) packet,
+and (3) a timeout event. These are described below as they apply to the
+congestion control phases.
+
+#### Slow Start {#default-fileCC-slow-start}
+
+During the slow start phase, the packet sending period PKT_SND_PERIOD
+is kept at 1 microsecond in order to send packets as fast as possible,
+but not at an infinite rate. The initial value of the congestion window
+size (CWND_SIZE) is set to 16 packets. CWND_SIZE has an upper
+threshold, which is the maximum allowed congestion window size
+(MAX_CWND_SIZE), so that even if there is no packet loss, the slow
+start phase has to stop at a certain point. The threshold can be
+set to the maximum receiver buffer size (12 MB).
+
+(1) On an acknowledgement (ACK) packet reception:
+
+Step 1. If the interval since the last time the sending rate was either
+increased or kept (LastRCTime) is less than RC_INTERVAL:
+
+a. Keep the sending rate at the same level;
+
+b. Stop.
+
+    <CODE BEGINS>
+    if (currTime - LastRCTime < RC_INTERVAL)
+    {
+        Keep the sending rate at the same level;
+        Stop;
+    }
+    <CODE ENDS>
+
+where currTime is the current time, in microseconds; LastRCTime is
+the last time the sending rate was either increased, or kept,
+in microseconds.
+
+Step 2. Update the value of LastRCTime to the current time:
+
+~~~
+LastRCTime = currTime
+~~~
+
+Step 3. The size of congestion window CWND_SIZE is increased by the
+difference in sequence numbers of the data packet being acknowledged
+ACK_SEQNO and the last acknowledged data packet LAST_ACK_SEQNO:
+
+~~~
+CWND_SIZE += ACK_SEQNO - LAST_ACK_SEQNO
+~~~
+
+Step 4. The sequence number of the last acknowledged data packet
+LAST_ACK_SEQNO is updated as follows:
+
+~~~
+LAST_ACK_SEQNO = ACK_SEQNO
+~~~
+
+Step 5. If the congestion window size CWND_SIZE calculated at Step 3 is greater
+than the upper threshold MAX_CWND_SIZE, slow start phase ends.
+Set the packet sending period PKT_SND_PERIOD as follows:
+
+    <CODE BEGINS>
+    if (RECEIVING_RATE > 0)
+        PKT_SND_PERIOD = 1000000 / RECEIVING_RATE;
+    else
+        PKT_SND_PERIOD = CWND_SIZE / (RTT + RC_INTERVAL);
+    <CODE ENDS>
+
+where
+
+- RECEIVING_RATE is the rate at which packets are being received,
+in packets per second, reported by the receiver and smoothed at
+the sender side (see {{ctrl-pkt-ack}}, {{bandwidth-estimation}});
+- RTT is the round-trip time estimation, in microseconds,
+reported by the receiver and smoothed at the sender side (see
+{{ctrl-pkt-ack}}, {{rtt}});
+- RC_INTERVAL is the fixed rate control interval, in microseconds.
+RC_INTERVAL of SRT is SYN, or synchronization time interval, which
+is 0.01 second. An ACK in SRT is sent every fixed time interval.
+The maximum and default ACK time interval is SYN.
+See {{packet-acks}} for details.
+
+(2) On a loss report (NAK) packet reception:
+
+- Slow start phase ends;
+- Set the packet sending period PKT_SND_PERIOD as described in Step 5
+of section (1) above.
+
+(3) On a retransmission timeout (RTO) event:
+
+- Slow start phase ends;
+- Set the packet sending period PKT_SND_PERIOD as described in Step 5
+of section (1) above.
+
+#### Congestion Avoidance {#default-fileCC-congestion-avoidance}
+
+Once the slow start phase ends, the algorithm enters the congestion
+avoidance phase and behaves as described below.
+
+(1) On an acknowledgement (ACK) packet reception:
+
+Step 1. If the interval since the last time the sending rate was either
+increased or kept (LastRCTime) is less than RC_INTERVAL:
+
+a. Keep the sending rate at the same level;
+
+b. Stop.
+
+    <CODE BEGINS>
+    if (currTime - LastRCTime < RC_INTERVAL)
+    {
+        Keep the sending rate at the same level;
+        Stop;
+    }
+    <CODE ENDS>
+
+where currTime is the current time, in microseconds; LastRCTime is
+the last time the sending rate was either increased, or kept,
+in microseconds.
+
+Step 2. Update the value of LastRCTime to the current time:
+
+~~~
+LastRCTime = currTime
+~~~
+
+Step 3. Set the congestion window size to:
+
+~~~
+CWND_SIZE = RECEIVING_RATE * (RTT + RC_INTERVAL) / 1000000 + 16
+~~~
+
+Step 4. If there is packet loss reported by the receiver (bLoss=True):
+
+a. Keep the value of PKT_SND_PERIOD at the same level;
+
+b. Set the value of bLoss to False;
+
+c. Stop.
+
+bLoss flag is equal to True if a packet loss has happened since the
+last sending rate increase. Initial value: False.
+
+Step 5. If there is no packet loss reported by the receiver (bLoss=False),
+calculate PKT_SND_PERIOD as follows:
+
+    <CODE BEGINS>
+    inc = 0;
+
+    lossBandwidth = 2 * (1000000 / LastDecPeriod);
+    linkCapacity = min(lossBandwidth, EST_LINK_CAPACITY);
+    B = linkCapacity - 1000000 / PKT_SND_PERIOD;
+
+    if ((PKT_SND_PERIOD > LastDecPeriod) && ((linkCapacity / 9) < B))
+        B = linkCapacity / 9;
+    if (B <= 0)
+        inc = 1 / S;
+    else
+    {
+        inc = pow(10.0, ceil(log10(B * S * 8))) * 0.0000015 / S;
+        inc = max(inc, 1 / S);
+    }
+
+    PKT_SND_PERIOD = (PKT_SND_PERIOD * RC_INTERVAL) / 
+                      (PKT_SND_PERIOD * inc + RC_INTERVAL);
+    <CODE ENDS>
+
+where
+
+- LastDecPeriod is the value of PKT_SND_PERIOD right before the last
+sending rate decrease has happened (on a loss report (NAK) packet
+reception), in microseconds. The initial value of LastDecPeriod
+is set to 1 microsecond;
+- EST_LINK_CAPACITY is the estimated link capacity reported
+by the receiver within an ACK packet and smoothed at the sender side
+({{bandwidth-estimation}), in packets per second;
+- B is the estimated available bandwidth, in packets per second;
+- S is the SRT packet size (in terms of IP payload) in bytes.
+SRT treats 1500 bytes as a standard packet size.
+
+A detailed explanation of the formulas used to calculate the increase
+in sending rate can be found in {{GuAnAO}}. UDT's available
+bandwidth estimation has been modified to take into account the
+bandwidth registered at the moment of packet loss, since the estimated
+link capacity reported by the receiver may
+overestimate the actual link capacity significantly.
+
+Step 6. If the value of maximum bandwidth MAX_BW defined in
+{{liveCC}} is set, limit the value of PKT_SND_PERIOD to the
+minimum allowed period, if necessary:
+
+    <CODE BEGINS>
+    if (MAX_BW)
+        MIN_PERIOD = 1000000 / (MAX_BW / S);
+
+        if (PKT_SND_PERIOD < MIN_PERIOD)
+            PKT_SND_PERIOD = MIN_PERIOD;
+    <CODE ENDS> 
+
+Note that in the case of file/message transmission the the maximum allowed bandwidth (MAX_BW)
+for SRT can be defined. This limits the minimum possible interval between packets
+sent. Only the usage of MAXBW_SET mode is possible ({{maxbw}}). In contrast with
+live streaming, there is no default value set for MAX_BW, and the transmission
+rate is not limited if not set explicitly.
+
+(2) On a loss report (NAK) packet reception:
+
+Step 1. Set the value of flag bLoss equal to True.
+
+Step 2. If the current loss ratio estimated by the sender is less than 2%:
+
+a. Keep the sending rate at the same level;
+
+b. Update the value of LastDecPeriod:
+
+~~~
+LastDecPeriod = PKT_SND_PERIOD
+~~~
+
+c. Stop.
+
+This modification has been introduced to increase the algorithm
+tolerance to a random packet loss specific for public networks, but
+not related to the absence of available bandwidth.
+
+Step 3. If sequence number of a packet being reported as lost is greater
+than the largest sequence number has been sent so far (LastDecSeq),
+i.e. this NAK starts a new congestion period:
+
+a. Set the value of LastDecPeriod to the current packet sending
+period PKT_SND_PERIOD;
+
+b. Increase the value of packet sending period:
+
+~~~
+PKT_SND_PERIOD = PKT_SND_PERIOD * 1.03
+~~~
+
+c. Update AvgNAKNum:
+
+~~~
+AvgNAKNum = AvgNAKNum * 0.97 + NAKCount * 0.03
+~~~
+
+d. Reset NAKCount and DecCount values to 1;
+
+e. Record the current largest sent sequence number LastDecSeq;
+
+f. Compute DecRandom to a random (uniform distribution) number
+between 1 and AvgNAKNum. If DecRandom < 1: DecRandom = 1;
+
+g. Stop;
+
+where
+
+- AvgNAKNum is the average number of NAKs during a congestion period.
+  Initial value: 0;
+- NAKCount is the number of NAKs received so far in the current
+  congestion period. Initial value: 0;
+- DecCount means the number of times that the sending rate has been
+  decreased during the congestion period. Initial value: 0;
+- DecRandom is a random number used to decide if the rate should be
+  decreased or not for the following NAKs (not the first one) during
+  the congestion period. DecRandom is a random number between 1 and
+  the average number of NAKs per congestion period (AvgNAKNum).
+
+Congestion period is defined as the time between two NAKs in which
+the biggest lost packet sequence number carried in the NAK is greater
+than the LastDecSeq.
+
+The coefficients used in the formulas above have been slightly modified 
+to reduce the amount by which the sending rate decreases.
+
+Step 4. If DecCount <= 5, and NAKCount == DecCount * DecRandom:
+
+a. Update SND period: SND = SND * 1.03;
+
+b. Increase DecCount and NAKCount by 1;
+
+c. Record the current largest sent sequence number (LastDecSeq).
+
+#### Link Capacity and Receiving Rate Estimation {#bandwidth-estimation}
+
+Estimates of link capacity and receiving rate, in packets/bytes per second,
+are calculated at the receiver side during file/message transmission
+({{data-transmission-mode}}). It's worth noting
+that the receiving rate estimate, while available during the entire data transmission
+period, is used only during the slow start phase of the congestion control
+algorithm ({{default-fileCC-slow-start}}).
+The latest estimate obtained before the end of the slow start
+period is used by the sender as a reference maximum speed
+to continue data transmission without further congestion.
+Link capacity is estimated all the time and used primarily
+(as well as packet loss ratio and other protocol statistics)
+for sending rate adjustments during the transmission process.
+
+As each data packet arrives, the receiver records the time delta with respect to
+the arrival of the previous data packet, which is used to estimate bandwidth and
+receiving speed (delivery rate). This and other control information is communicated
+to the sender by means of acknowledgment (ACK) packets sent every 10 milliseconds.
+At the sender side, upon receiving a new value, an exponentially weighted moving average (EWMA)
+is applied to update the latest estimate maintained at the sender side.
+
+It is important to note that for bandwidth estimation only data
+probing packets are taken into account, while all data packets
+(both data and data probing) are used for estimating receiving
+speed. Data probing refers to the use of the packet pairs technique,
+whereby pairs of probing packets are sent to a server back-to-back,
+thus making it possible to measure the minimum interval in receiving
+consecutive packets.
+
+The detailed description of models used to estimate link capacity
+and receiving rate can be found in {{GuAnAO}}, {{GHG04b}}.
 
 # Encryption {#encryption}
 
