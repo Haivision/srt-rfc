@@ -2176,18 +2176,10 @@ There are several ways of configuring maximum bandwidth (MAX_BW):
    MAX_BW = EST_INPUT_BW * (1 + OVERHEAD /100)
    ~~~
 
-4. INPUTBW_ADJUSTED mode: Compare the configured input rate INPUT_BW
-   against the estimated bandwidth EST_INPUT_BW, and use the
-   maximum of two.
-
-   ~~~
-   MAX_BW = max(INPUT_BW, EST_INPUT_BW) * (1 + OVERHEAD /100)
-   ~~~
-
 Note that the units of MAX_BW, INPUT_BW, and EST_INPUT_BW are bytes per
 second. OVERHEAD is defined in %.
 
-Both INPUTBW_ESTIMATED and INPUTBW_ADJUSTED modes are recommended for setting the
+INPUTBW_ESTIMATED mode is recommended for setting the
 maximum bandwidth (MAX_BW) as it follows the fluctuations in
 SRT sender's input rate. However, there are certain considerations
 that should be taken into account.
@@ -2212,9 +2204,8 @@ it takes to measure the speed. Packets might be accumulated in the
 SRT's sender buffer and delayed as a result, causing them to arrive too late
 at the decoder, and possible drops by the receiver.
 
-INPUTBW_ADJUSTED mode combines the two methods above and overcomes
-the deficiencies of each. SRT takes the input rate configuration from the
-encoder, measures the actual input, and uses whichever value is larger.
+We are working on another mode that combines mentioned above approaches
+and overcomes the deficiencies of each.
 
 The following table shows a summary of the bandwidth configuration modes,
 the variables that need to be set (✓) or ignored (-), and the formula for
@@ -2226,7 +2217,6 @@ calculating MAX_BW in each case:
 | MAXBW_SET             | v      | -        | -        |
 | INPUTBW_SET           | -      | v        | v        |
 | INPUTBW_ESTIMATED     | -      | -        | v        |
-| INPUTBW_ADJUSTED      | -      | v        | v        |
 ~~~
 
 ### SRT's Default LiveCC Algorithm {#default-liveCC}
