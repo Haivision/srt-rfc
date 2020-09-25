@@ -2098,15 +2098,15 @@ the transmission, triggering an appropriate response. These mechanisms provide
 a solid background for the integration of various congestion control algorithms
 in the SRT protocol.
 
-Given that SRT can operate in live and file transfer modes, there are
-two groups of congestion control algorithms defined in SRT: live
-congestion control (LiveCC) and file transfer congestion control
-(FileCC).
+As SRT is designed both for live streaming and file/message
+transmission {{data-transmission-mode}}, there are two groups of
+congestion control algorithms defined in SRT: live congestion
+control (LiveCC), and file transfer congestion control (FileCC).
 
 ## SRT Packet Pacing and Live Congestion Control (LiveCC) {#liveCC}
 
-To ensure smooth video playback on a receiving peer, SRT in case of
-live streaming must control the sender's buffer level to
+To ensure smooth video playback on a receiving peer during
+live streaming, SRT must control the sender's buffer level to
 prevent overfill and depletion. The pacing control module is
 designed to send packets as fast as they are submitted by a
 video application while maintaining a relatively stable buffer level.
@@ -2130,16 +2130,16 @@ bitrate. It's a function of the average packet payload (which
 includes video, audio, etc.) and the configured maximum bandwidth (MAX_BW).
 See {{default-liveCC}} for details.
 
-In case of live streaming, the sender is allowed to drop packets that cannot be delivered
-in time ({{too-late-packet-drop}}).
+In the case of live streaming, the sender is allowed to drop packets
+that cannot be delivered in time ({{too-late-packet-drop}}).
 
 The combination of pacing control and live congestion control (LiveCC), based
 on the input rate and an overhead for packets retransmission, helps avoid congestion
 during fluctuations of the source bitrate.
 
-In case of live streaming over highly variable networks, fairness can be achieved by controlling
+During live streaming over highly variable networks, fairness can be achieved by controlling
 the bitrate of the source encoder at the input of the SRT sender. SRT provides a
-variety of network related statistics, such as RTT estimation, packet loss level,
+variety of network related statistics, such as RTT estimate, packet loss level,
 the number of packets dropped, etc., which can be used for making decisions
 and adjusting the bitrate in real time.
 
@@ -2147,7 +2147,7 @@ and adjusting the bitrate in real time.
 
 There are several ways of configuring maximum bandwidth (MAX_BW):
 
-1. MAXBW mode: Set the value explicitly.
+1. MAXBW_SET mode: Set the value explicitly.
 
    The recommended default value is 1 Gbps. The default value
    is set only for live streaming.
@@ -2156,10 +2156,7 @@ There are several ways of configuring maximum bandwidth (MAX_BW):
    like when you change the bitrate on an encoder. Each time the input
    bitrate is configured on the encoder, MAX_BW must also be reconfigured.
 
-   In MAXBW mode, SRT does not follow any fluctuations in the encoder input
-   making it unsuitable for variable bitrate (VBR) encoding.
-
-2. INPUTBW mode: Set the SRT sender's input rate (INPUT_BW) and overhead (OVERHEAD).
+2. INPUTBW_SET mode: Set the SRT sender's input rate (INPUT_BW) and overhead (OVERHEAD).
 
    In this mode, SRT calculates the maximum bandwidth as follows:
 
@@ -2167,9 +2164,9 @@ There are several ways of configuring maximum bandwidth (MAX_BW):
    MAX_BW = INPUT_BW * (1 + OVERHEAD /100)
    ~~~
 
-   Note that INPUTBW mode reduces to the MAXBW mode.
+   Note that INPUTBW_SET mode reduces to the MAXBW_SET mode and the same restrictions apply.
 
-3. ESTINPUTBW mode: Measure the SRT sender's input rate internally and set the
+3. INPUTBW_ESTIMATED mode: Measure the SRT sender's input rate internally and set the
    overhead (OVERHEAD).
 
    In this mode, SRT adjusts the value of maximum bandwidth each time it
@@ -2179,7 +2176,7 @@ There are several ways of configuring maximum bandwidth (MAX_BW):
    MAX_BW = EST_INPUT_BW * (1 + OVERHEAD /100)
    ~~~
 
-4. HYBRIDBW mode: Compare the configured input rate INPUT_BW
+4. INPUTBW_ADJUSTED mode: Compare the configured input rate INPUT_BW
    against the estimated bandwidth EST_INPUT_BW, and use the
    maximum of two.
 
@@ -2190,12 +2187,12 @@ There are several ways of configuring maximum bandwidth (MAX_BW):
 Note that the units of MAX_BW, INPUT_BW, and EST_INPUT_BW are bytes per
 second. OVERHEAD is defined in %.
 
-Both ESTINPUTBW and HYBRIDBW modes are recommended for setting the
+Both INPUTBW_ESTIMATED and INPUTBW_ADJUSTED modes are recommended for setting the
 maximum bandwidth (MAX_BW) as it follows the fluctuations in
 SRT sender's input rate. However, there are certain considerations
 that should be taken into account.
 
-In INPUTBW mode, SRT takes as an input the rate that had been
+In INPUTBW_SET mode, SRT takes as an input the rate that had been
 configured as the expected output rate of an encoder (in terms
 of bitrate for the packets including audio and overhead). But it is
 normal for an encoder to occasionally overshoot. At low bitrate,
@@ -2203,7 +2200,7 @@ sometimes an encoder can be too optimistic and will output more bits
 than expected. Under these conditions, SRT packets would not go out
 fast enough because the configured bandwidth limitation would be too low.
 
-This is mitigated by calculating the bitrate internally (ESTINPUTBW
+This is mitigated by calculating the bitrate internally (INPUTBW_ESTIMATED
 mode). SRT examines the packets being submitted and calculates the
 input rate as a moving average. However, this introduces a bit of a
 delay based on the content. It also means that if an encoder encounters
@@ -2215,7 +2212,7 @@ it takes to measure the speed. Packets might be accumulated in the
 SRT's sender buffer and delayed as a result, causing them to arrive too late
 at the decoder, and possible drops by the receiver.
 
-HYBRIDBW mode combines the two methods above and overcomes
+INPUTBW_ADJUSTED mode combines the two methods above and overcomes
 the deficiencies of each. SRT takes the input rate configuration from the
 encoder, measures the actual input, and uses whichever value is larger.
 
@@ -2224,12 +2221,12 @@ the variables that need to be set (✓) or ignored (-), and the formula for
 calculating MAX_BW in each case:
 
 ~~~
-| Mode / Variable | MAX_BW | INPUT_BW | OVERHEAD |
-| --------------- | ------ | -------- | -------- |
-| MAXBW           | v      | -        | -        |
-| INPUTBW         | -      | v        | v        |
-| ESTINPUTBW      | -      | -        | v        |
-| HYBRIDBW        | -      | v        | v        |
+| Mode / Variable       | MAX_BW | INPUT_BW | OVERHEAD |
+| --------------------- | ------ | -------- | -------- |
+| MAXBW_SET             | v      | -        | -        |
+| INPUTBW_SET           | -      | v        | v        |
+| INPUTBW_ESTIMATED     | -      | -        | v        |
+| INPUTBW_ADJUSTED      | -      | v        | v        |
 ~~~
 
 ### SRT's Default LiveCC Algorithm {#default-liveCC}
@@ -2287,7 +2284,8 @@ RTO = RTT + 4 * RTTVar + 2 * SYN
 where RTT is the round-trip time estimation, in microseconds, and
 RTTVar is the variance of RTT estimation, in microseconds, reported
 by the receiver and smoothed at the sender side
-(see {{ctrl-pkt-ack}}, {{rtt}}).
+(see {{ctrl-pkt-ack}}, {{rtt}}). Here and throughout the current
+section, smoothing means applying an exponentially weighted moving average (EWMA).
 
 Continuous timeout should increase the RTO value. In SRT, a counter
 (RexmitCount) is used to track the number of continuous timeouts:
@@ -2310,8 +2308,7 @@ low latency conditions.
 
 ## File Transfer Congestion Control (FileCC)
 
-For file transfer ({{transmission-mode-msg}},
-{{transmission-mode-buffer}}), any known file congestion control
+For file/message transfer ({{data-transmission-mode}}), any known congestion control
 algorithm like CUBIC {{RFC8312}} or BBR {{BBR}} can be applied,
 including SRT's default FileCC algorithm described below.
 
@@ -2549,10 +2546,10 @@ minimum allowed period, if necessary:
             PKT_SND_PERIOD = MIN_PERIOD;
     <CODE ENDS> 
 
-Note that in file transmission mode the maximum allowed bandwidth (MAX_BW)
-for SRT can be defined. This limits the minimum possible packets' inter-sending period.
-Only the usage of MAXBW mode is possible ({{maxbw}}). In contrast with
-live transmission mode, there is no default value set for MAX_BW, and the transmission
+Note that in the case of file/message transmission the the maximum allowed bandwidth (MAX_BW)
+for SRT can be defined. This limits the minimum possible interval between packets
+sent. Only the usage of MAXBW_SET mode is possible ({{maxbw}}). In contrast with
+live streaming, there is no default value set for MAX_BW, and the transmission
 rate is not limited if not set explicitly.
 
 (2) On a loss report (NAK) packet reception:
@@ -2634,31 +2631,32 @@ c. Record the current largest sent sequence number (LastDecSeq).
 #### Link Capacity and Receiving Rate Estimation {#bandwidth-estimation}
 
 Estimates of link capacity and receiving rate, in packets/bytes per second,
-are calculated at the receiver side during file transmission. It's worth noting
+are calculated at the receiver side during file/message transmission
+({{{{data-transmission-mode}}}}). It's worth noting
 that the receiving rate estimate, while available during the entire data transmission
-period, is used only during the slow start phase of the file congestion control
+period, is used only during the slow start phase of the congestion control
 algorithm ({{default-fileCC-slow-start}}).
 The latest estimate obtained before the end of the slow start
 period is used by the sender as a reference maximum speed
 to continue data transmission without further congestion.
 Link capacity is estimated all the time and used primarily
 (as well as packet loss ratio and other protocol statistics)
-for smoothed sending rate adjustments during the transmission process.
+for sending rate adjustments during the transmission process.
 
 As each data packet arrives, the receiver records the time delta with respect to
 the arrival of the previous data packet, which is used to estimate bandwidth and
 receiving speed (delivery rate). This and other control information is communicated
 to the sender by means of acknowledgment (ACK) packets sent every 10 milliseconds.
-At the sender side, upon receiving a new value, a smoothed average
-is used to update the latest estimate maintained at the sender side.
+At the sender side, upon receiving a new value, an exponentially weighted moving average (EWMA)
+is applied to update the latest estimate maintained at the sender side.
 
 It is important to note that for bandwidth estimation only data
-probing packets are taken into account while all the data packets
-(both data and data probing) are used for receiving speed estimation.
-The idea behind packet pairs technique is to send the groups
-of back-to-back packets, i.e., probing packet pairs, to a server
+probing packets are taken into account, while all data packets
+(both data and data probing) are used for estimating receiving
+speed. Data probing refers to the use of the packet pairs technique,
+whereby pairs of probing packets are sent to a server back-to-back,
 thus making it possible to measure the minimum interval in receiving
-the consecutive packets.
+consecutive packets.
 
 The detailed description of models used to estimate link capacity
 and receiving rate can be found in {{GuAnAO}}, {{GHG04b}}.
