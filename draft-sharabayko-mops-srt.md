@@ -2208,7 +2208,7 @@ We are working on another mode that combines mentioned above approaches
 and overcomes the deficiencies of each.
 
 The following table shows a summary of the bandwidth configuration modes,
-the variables that need to be set (✓) or ignored (-), and the formula for
+the variables that need to be set (v) or ignored (-), and the formula for
 calculating MAX_BW in each case:
 
 ~~~
