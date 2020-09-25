@@ -2622,7 +2622,7 @@ c. Record the current largest sent sequence number (LastDecSeq).
 
 Estimates of link capacity and receiving rate, in packets/bytes per second,
 are calculated at the receiver side during file/message transmission
-({{{{data-transmission-mode}}}}). It's worth noting
+({{data-transmission-mode}}). It's worth noting
 that the receiving rate estimate, while available during the entire data transmission
 period, is used only during the slow start phase of the congestion control
 algorithm ({{default-fileCC-slow-start}}).
