@@ -79,6 +79,7 @@ informative:
         name: Xinwei Hong
       - 
         name: Robert L. Grossman
+    seriesinfo: Proceedings of the 1st International Workshop on Networks for Grid Applications (GridNets ’04)
     date: October, 2004
   BBR:
     title: "BBR: Congestion-Based Congestion Control"
@@ -93,6 +94,7 @@ informative:
         name: Soheil Hassas Yeganeh
       - 
         name: Van Jacobson
+    seriesinfo: ACM Queue, vol. 14
     date: September-October, 2016
   PNPID:
     target: https://uefi.org/PNP_ACPI_Registry
@@ -2099,7 +2101,7 @@ a solid background for the integration of various congestion control algorithms
 in the SRT protocol.
 
 As SRT is designed both for live streaming and file/message
-transmission {{data-transmission-mode}}, there are two groups of
+transmission ({{data-transmission-mode}}), there are two groups of
 congestion control algorithms defined in SRT: live congestion
 control (LiveCC), and file transfer congestion control (FileCC).
 
@@ -2126,7 +2128,7 @@ In principle, the space between packets determines where
 retransmissions can be inserted, and the overhead represents the
 available margin. There is an empiric calculation that defines the
 interval, in microseconds, between two packets to give a certain
-bitrate. It's a function of the average packet payload (which
+bitrate. It is a function of the average packet payload (which
 includes video, audio, etc.) and the configured maximum bandwidth (MAX_BW).
 See {{default-liveCC}} for details.
 
@@ -2138,9 +2140,9 @@ on the input rate and an overhead for packets retransmission, helps avoid conges
 during fluctuations of the source bitrate.
 
 During live streaming over highly variable networks, fairness can be achieved by controlling
-the bitrate of the source encoder at the input of the SRT sender. SRT provides a
+the bitrate of the source encoder at the input of the SRT sender. SRT sender can provide a
 variety of network related statistics, such as RTT estimate, packet loss level,
-the number of packets dropped, etc., which can be used for making decisions
+the number of packets dropped, etc., to the encoder which can be used for making decisions
 and adjusting the bitrate in real time.
 
 ### Configuring Maximum Bandwidth {#maxbw}
@@ -2154,7 +2156,7 @@ There are several ways of configuring maximum bandwidth (MAX_BW):
 
    Note that this static setting is not well-suited to a variable input,
    like when you change the bitrate on an encoder. Each time the input
-   bitrate is configured on the encoder, MAX_BW must also be reconfigured.
+   bitrate is configured on the encoder, MAX_BW should also be reconfigured.
 
 2. INPUTBW_SET mode: Set the SRT sender's input rate (INPUT_BW) and overhead (OVERHEAD).
 
@@ -2204,9 +2206,6 @@ it takes to measure the speed. Packets might be accumulated in the
 SRT's sender buffer and delayed as a result, causing them to arrive too late
 at the decoder, and possible drops by the receiver.
 
-We are working on another mode that combines mentioned above approaches
-and overcomes the deficiencies of each.
-
 The following table shows a summary of the bandwidth configuration modes,
 the variables that need to be set (v) or ignored (-), and the formula for
 calculating MAX_BW in each case:
@@ -2240,7 +2239,7 @@ AvgPayloadSize = AvgPayloadSize * 0.875 + PacketPayloadSize * 0.125
 
 where PacketPayloadSize is the payload size of a sent data packet, in bytes;
 the initial value of AvgPayloadSize is equal to the maximum allowed packet
-payload size, which can't be larger than 1456 bytes.
+payload size, which cannot be larger than 1456 bytes.
 
 (2) On an acknowledgement (ACK) packet reception:
 
@@ -2307,7 +2306,7 @@ including SRT's default FileCC algorithm described below.
 SRT's default FileCC algorithm is a modified version of the UDT
 native congestion control algorithm {{GuAnAO}}, {{GHG04b}}
 designed for a bulk data transfer over networks with a large
-bandwidth-delay product (BDP). It's a hybrid Additive Increase
+bandwidth-delay product (BDP). It is a hybrid Additive Increase
 Multiplicative Decrease (AIMD) algorithm, hence it adjusts both
 congestion window size (CWND_SIZE) and packet sending period
 (PKT_SND_PERIOD). The units of measurement for CWND_SIZE and
@@ -2622,7 +2621,7 @@ c. Record the current largest sent sequence number (LastDecSeq).
 
 Estimates of link capacity and receiving rate, in packets/bytes per second,
 are calculated at the receiver side during file/message transmission
-({{data-transmission-mode}}). It's worth noting
+({{data-transmission-mode}}). It is worth noting
 that the receiving rate estimate, while available during the entire data transmission
 period, is used only during the slow start phase of the congestion control
 algorithm ({{default-fileCC-slow-start}}).
