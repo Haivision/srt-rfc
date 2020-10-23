@@ -26,7 +26,7 @@ author:
  -
     ins: "J. Dube"
     name: "Jean Dube"
-    organization: "Haivision"
+    organization: "Haivision Systems, Inc."
     email: jdube@haivision.com
  -
     ins: "JS. Kim"
