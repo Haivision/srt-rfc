@@ -6,7 +6,7 @@ category: info
 
 ipr: trust200902
 area: opsarea
-workgroup: MOPS
+workgroup: Network Working Group
 keyword: Internet-Draft
 
 stand_alone: yes
