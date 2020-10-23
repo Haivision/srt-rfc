@@ -2234,7 +2234,7 @@ and (3) a timeout event as described below.
 the value of average packet payload size (AvgPayloadSize):
 
 ~~~
-AvgPayloadSize = AvgPayloadSize * 0.875 + PacketPayloadSize * 0.125
+AvgPayloadSize = 7/8 * AvgPayloadSize + 1/8 * PacketPayloadSize
 ~~~
 
 where PacketPayloadSize is the payload size of a sent data packet, in bytes;
@@ -2571,13 +2571,13 @@ period PKT_SND_PERIOD;
 b. Increase the value of packet sending period:
 
 ~~~
-PKT_SND_PERIOD = PKT_SND_PERIOD * 1.03
+PKT_SND_PERIOD = 1.03 * PKT_SND_PERIOD
 ~~~
 
 c. Update AvgNAKNum:
 
 ~~~
-AvgNAKNum = AvgNAKNum * 0.97 + NAKCount * 0.03
+AvgNAKNum = 0.97 * AvgNAKNum + 0.03 * NAKCount
 ~~~
 
 d. Reset NAKCount and DecCount values to 1;
@@ -2611,7 +2611,7 @@ to reduce the amount by which the sending rate decreases.
 
 Step 4. If DecCount <= 5, and NAKCount == DecCount * DecRandom:
 
-a. Update SND period: SND = SND * 1.03;
+a. Update SND period: SND = 1.03 * SND;
 
 b. Increase DecCount and NAKCount by 1;
 
