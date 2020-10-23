@@ -2779,7 +2779,7 @@ On the sending side SEK, Salt and KEK are generated the following way:
 ~~~~~~~~~~~
 SEK  = PRNG(KLen)
 Salt = PRNG(128)
-KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, Klen)
+KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
 ~~~~~~~~~~~
 
 where
@@ -2799,7 +2799,7 @@ where AESkw(KEK, SEK) is the key wrapping function {{RFC3394}}.
 
 ### Encrypting the Payload
 
-The encryption of the payload of the SRT DATA packet is done with AES-CTR
+The encryption of the payload of the SRT data packet is done with AES-CTR
 
 ~~~~~~~~~~~
 EncryptedPayload = AES_CTR_Encrypt(SEK, IV, UnencryptedPayload)
