@@ -2055,13 +2055,13 @@ RTT is the current value that the receiver maintains and rtt is the
 recent value that was just calculated from an ACK/ACKACK pair:
 
 ~~~
-RTT = RTT * 0.875 + rtt * 0.125
+RTT = 7/8 * RTT + 1/8 * rtt
 ~~~
 
-RTT variance RTTVar is obtained as follows:
+RTT variance (RTTVar) is obtained as follows:
 
 ~~~
-RTTVar = RTTVar * 0.75 + abs(RTT - rtt) * 0.25
+RTTVar = 3/4 * RTTVar + 1/4 * abs(RTT - rtt)
 ~~~
 
 where abs() means an absolute value.
@@ -2069,8 +2069,8 @@ where abs() means an absolute value.
 Both RTT and RTTVar are measured in microseconds. The initial value
 of RTT is 100 milliseconds, RTTVar is 50 milliseconds.
 
-The smoothed RTT calculated by the receiver as well as the RTT variance
-RTTVar are sent with the next full acknowledgement packet (see
+The round-trip time (RTT) calculated by the receiver as well as the RTT variance
+(RTTVar) are sent with the next full acknowledgement packet (see
 {{ctrl-pkt-ack}}). Note that the first ACK in an SRT session might
 contain an initial RTT value of 100 milliseconds, because the
 early calculations may not be precise.
@@ -2084,7 +2084,7 @@ it receives, i.e., carried by an incoming ACK.
 
 Note that an SRT socket can both send and receive data packets. RTT
 and RTTVar are updated by the socket based on algorithms for the sender
-(using ACK packets) and for the receiver (using ACK-ACKACK pairs).
+(using ACK packets) and for the receiver (using ACK/ACKACK pairs).
 When an SRT socket receives data, it updates its local RTT and RTTVar,
 which can be used for its own sender as well.
 
