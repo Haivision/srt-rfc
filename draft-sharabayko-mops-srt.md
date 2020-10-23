@@ -1603,7 +1603,7 @@ Responder:
 2. Attention
    - Receives CONCLUSION message with HSREQ.
      This message might contain no extensions, in which case the party 
-     shall simply send the empty CONCLUSION message, as before, and remain 
+     SHALL simply send the empty CONCLUSION message, as before, and remain 
      in this state.
    - Switches to Initiated and sends CONCLUSION message with HSRSP
 3. Initiated
@@ -1924,7 +1924,7 @@ received data packets so that the SRT sender can remove the
 acknowledged packets from its buffer ({{packet-acks}}). Once the acknowledged packets are
 removed, their retransmission is no longer possible and presumably not needed.
 
-Upon receiving the full acknowledgment (ACK) control packet, the SRT sender should acknowledge
+Upon receiving the full acknowledgment (ACK) control packet, the SRT sender SHOULD acknowledge
 its reception to the receiver by sending an ACKACK control packet with the sequence number
 of the full ACK packet being acknowledged.
 
@@ -2819,7 +2819,7 @@ IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 ### Restoring the Stream Encrypting Key
 
 For the receiver to be able to decrypt the incoming stream it has to know the stream encrypting key (SEK)
-used by the sender. The receiver must know the passphrase used by the sender. The remaining information can
+used by the sender. The receiver MUST know the passphrase used by the sender. The remaining information can
 be extracted from the Keying Material message.
 
 The Keying Material message contains the AES-wrapped {{RFC3394}} SEK used by the encoder.
