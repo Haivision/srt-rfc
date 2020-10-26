@@ -5,7 +5,7 @@ docname: draft-sharabayko-mops-srt-00
 category: info
 
 ipr: trust200902
-area: opsarea
+area:
 workgroup: Network Working Group
 keyword: Internet-Draft
 
@@ -42,6 +42,18 @@ author:
 normative:
   RFC2119:
   RFC0768:
+  GHG04b:
+    title: Experiences in Design and Implementation of a High Performance Transport Protocol
+    author:
+      - 
+        name: Yunhong Gu
+      - 
+        name: Xinwei Hong
+      - 
+        name: Robert L. Grossman
+    date: December, 2004
+    seriesinfo:
+      DOI: 10.1109/SC.2004.24
 
 informative:
   AES:
@@ -58,18 +70,6 @@ informative:
   RFC3394:
   RFC8312:
   RFC4987:
-  GHG04b:
-    title: Experiences in Design and Implementation of a High Performance Transport Protocol
-    author:
-      - 
-        name: Yunhong Gu
-      - 
-        name: Xinwei Hong
-      - 
-        name: Robert L. Grossman
-    date: December, 2004
-    seriesinfo:
-      DOI: 10.1109/SC.2004.24
   GuAnAO:
     title: An Analysis of AIMD Algorithm with Decreasing Increases
     author:
@@ -2774,7 +2774,7 @@ so the receiver will still have the ability to decrypt it.
 
 ### Generating the Stream Encrypting Key
 
-On the sending side SEK, Salt and KEK are generated the following way:
+On the sending side SEK, Salt and KEK are generated in the following way:
 
 ~~~~~~~~~~~
 SEK  = PRNG(KLen)
