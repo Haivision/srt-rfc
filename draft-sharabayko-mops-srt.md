@@ -5,8 +5,8 @@ docname: draft-sharabayko-mops-srt-00
 category: info
 
 ipr: trust200902
-area: opsarea
-workgroup: MOPS
+area:
+workgroup: Network Working Group
 keyword: Internet-Draft
 
 stand_alone: yes
@@ -26,7 +26,7 @@ author:
  -
     ins: "J. Dube"
     name: "Jean Dube"
-    organization: "Haivision"
+    organization: "Haivision Systems, Inc."
     email: jdube@haivision.com
  -
     ins: "JS. Kim"
@@ -42,6 +42,18 @@ author:
 normative:
   RFC2119:
   RFC0768:
+  GHG04b:
+    title: Experiences in Design and Implementation of a High Performance Transport Protocol
+    author:
+      - 
+        name: Yunhong Gu
+      - 
+        name: Xinwei Hong
+      - 
+        name: Robert L. Grossman
+    date: December, 2004
+    seriesinfo:
+      DOI: 10.1109/SC.2004.24
 
 informative:
   AES:
@@ -58,18 +70,6 @@ informative:
   RFC3394:
   RFC8312:
   RFC4987:
-  GHG04b:
-    title: Experiences in Design and Implementation of a High Performance Transport Protocol
-    author:
-      - 
-        name: Yunhong Gu
-      - 
-        name: Xinwei Hong
-      - 
-        name: Robert L. Grossman
-    date: December, 2004
-    seriesinfo:
-      DOI: 10.1109/SC.2004.24
   GuAnAO:
     title: An Analysis of AIMD Algorithm with Decreasing Increases
     author:
@@ -79,6 +79,7 @@ informative:
         name: Xinwei Hong
       - 
         name: Robert L. Grossman
+    seriesinfo: Proceedings of the 1st International Workshop on Networks for Grid Applications (GridNets ’04)
     date: October, 2004
   BBR:
     title: "BBR: Congestion-Based Congestion Control"
@@ -93,6 +94,7 @@ informative:
         name: Soheil Hassas Yeganeh
       - 
         name: Van Jacobson
+    seriesinfo: ACM Queue, vol. 14
     date: September-October, 2016
   PNPID:
     target: https://uefi.org/PNP_ACPI_Registry
@@ -1603,7 +1605,7 @@ Responder:
 2. Attention
    - Receives CONCLUSION message with HSREQ.
      This message might contain no extensions, in which case the party 
-     shall simply send the empty CONCLUSION message, as before, and remain 
+     SHALL simply send the empty CONCLUSION message, as before, and remain 
      in this state.
    - Switches to Initiated and sends CONCLUSION message with HSRSP
 3. Initiated
@@ -1924,7 +1926,7 @@ received data packets so that the SRT sender can remove the
 acknowledged packets from its buffer ({{packet-acks}}). Once the acknowledged packets are
 removed, their retransmission is no longer possible and presumably not needed.
 
-Upon receiving the full acknowledgment (ACK) control packet, the SRT sender should acknowledge
+Upon receiving the full acknowledgment (ACK) control packet, the SRT sender SHOULD acknowledge
 its reception to the receiver by sending an ACKACK control packet with the sequence number
 of the full ACK packet being acknowledged.
 
@@ -2053,13 +2055,13 @@ RTT is the current value that the receiver maintains and rtt is the
 recent value that was just calculated from an ACK/ACKACK pair:
 
 ~~~
-RTT = RTT * 0.875 + rtt * 0.125
+RTT = 7/8 * RTT + 1/8 * rtt
 ~~~
 
-RTT variance RTTVar is obtained as follows:
+RTT variance (RTTVar) is obtained as follows:
 
 ~~~
-RTTVar = RTTVar * 0.75 + abs(RTT - rtt) * 0.25
+RTTVar = 3/4 * RTTVar + 1/4 * abs(RTT - rtt)
 ~~~
 
 where abs() means an absolute value.
@@ -2067,8 +2069,8 @@ where abs() means an absolute value.
 Both RTT and RTTVar are measured in microseconds. The initial value
 of RTT is 100 milliseconds, RTTVar is 50 milliseconds.
 
-The smoothed RTT calculated by the receiver as well as the RTT variance
-RTTVar are sent with the next full acknowledgement packet (see
+The round-trip time (RTT) calculated by the receiver as well as the RTT variance
+(RTTVar) are sent with the next full acknowledgement packet (see
 {{ctrl-pkt-ack}}). Note that the first ACK in an SRT session might
 contain an initial RTT value of 100 milliseconds, because the
 early calculations may not be precise.
@@ -2082,7 +2084,7 @@ it receives, i.e., carried by an incoming ACK.
 
 Note that an SRT socket can both send and receive data packets. RTT
 and RTTVar are updated by the socket based on algorithms for the sender
-(using ACK packets) and for the receiver (using ACK-ACKACK pairs).
+(using ACK packets) and for the receiver (using ACK/ACKACK pairs).
 When an SRT socket receives data, it updates its local RTT and RTTVar,
 which can be used for its own sender as well.
 
@@ -2099,7 +2101,7 @@ a solid background for the integration of various congestion control algorithms
 in the SRT protocol.
 
 As SRT is designed both for live streaming and file/message
-transmission {{data-transmission-mode}}, there are two groups of
+transmission ({{data-transmission-mode}}), there are two groups of
 congestion control algorithms defined in SRT: live congestion
 control (LiveCC), and file transfer congestion control (FileCC).
 
@@ -2126,7 +2128,7 @@ In principle, the space between packets determines where
 retransmissions can be inserted, and the overhead represents the
 available margin. There is an empiric calculation that defines the
 interval, in microseconds, between two packets to give a certain
-bitrate. It's a function of the average packet payload (which
+bitrate. It is a function of the average packet payload (which
 includes video, audio, etc.) and the configured maximum bandwidth (MAX_BW).
 See {{default-liveCC}} for details.
 
@@ -2138,9 +2140,9 @@ on the input rate and an overhead for packets retransmission, helps avoid conges
 during fluctuations of the source bitrate.
 
 During live streaming over highly variable networks, fairness can be achieved by controlling
-the bitrate of the source encoder at the input of the SRT sender. SRT provides a
+the bitrate of the source encoder at the input of the SRT sender. SRT sender can provide a
 variety of network related statistics, such as RTT estimate, packet loss level,
-the number of packets dropped, etc., which can be used for making decisions
+the number of packets dropped, etc., to the encoder which can be used for making decisions
 and adjusting the bitrate in real time.
 
 ### Configuring Maximum Bandwidth {#maxbw}
@@ -2154,7 +2156,7 @@ There are several ways of configuring maximum bandwidth (MAX_BW):
 
    Note that this static setting is not well-suited to a variable input,
    like when you change the bitrate on an encoder. Each time the input
-   bitrate is configured on the encoder, MAX_BW must also be reconfigured.
+   bitrate is configured on the encoder, MAX_BW should also be reconfigured.
 
 2. INPUTBW_SET mode: Set the SRT sender's input rate (INPUT_BW) and overhead (OVERHEAD).
 
@@ -2204,9 +2206,6 @@ it takes to measure the speed. Packets might be accumulated in the
 SRT's sender buffer and delayed as a result, causing them to arrive too late
 at the decoder, and possible drops by the receiver.
 
-We are working on another mode that combines mentioned above approaches
-and overcomes the deficiencies of each.
-
 The following table shows a summary of the bandwidth configuration modes,
 the variables that need to be set (v) or ignored (-), and the formula for
 calculating MAX_BW in each case:
@@ -2235,12 +2234,12 @@ and (3) a timeout event as described below.
 the value of average packet payload size (AvgPayloadSize):
 
 ~~~
-AvgPayloadSize = AvgPayloadSize * 0.875 + PacketPayloadSize * 0.125
+AvgPayloadSize = 7/8 * AvgPayloadSize + 1/8 * PacketPayloadSize
 ~~~
 
 where PacketPayloadSize is the payload size of a sent data packet, in bytes;
 the initial value of AvgPayloadSize is equal to the maximum allowed packet
-payload size, which can't be larger than 1456 bytes.
+payload size, which cannot be larger than 1456 bytes.
 
 (2) On an acknowledgement (ACK) packet reception:
 
@@ -2307,7 +2306,7 @@ including SRT's default FileCC algorithm described below.
 SRT's default FileCC algorithm is a modified version of the UDT
 native congestion control algorithm {{GuAnAO}}, {{GHG04b}}
 designed for a bulk data transfer over networks with a large
-bandwidth-delay product (BDP). It's a hybrid Additive Increase
+bandwidth-delay product (BDP). It is a hybrid Additive Increase
 Multiplicative Decrease (AIMD) algorithm, hence it adjusts both
 congestion window size (CWND_SIZE) and packet sending period
 (PKT_SND_PERIOD). The units of measurement for CWND_SIZE and
@@ -2572,13 +2571,13 @@ period PKT_SND_PERIOD;
 b. Increase the value of packet sending period:
 
 ~~~
-PKT_SND_PERIOD = PKT_SND_PERIOD * 1.03
+PKT_SND_PERIOD = 1.03 * PKT_SND_PERIOD
 ~~~
 
 c. Update AvgNAKNum:
 
 ~~~
-AvgNAKNum = AvgNAKNum * 0.97 + NAKCount * 0.03
+AvgNAKNum = 0.97 * AvgNAKNum + 0.03 * NAKCount
 ~~~
 
 d. Reset NAKCount and DecCount values to 1;
@@ -2612,7 +2611,7 @@ to reduce the amount by which the sending rate decreases.
 
 Step 4. If DecCount <= 5, and NAKCount == DecCount * DecRandom:
 
-a. Update SND period: SND = SND * 1.03;
+a. Update SND period: SND = 1.03 * SND;
 
 b. Increase DecCount and NAKCount by 1;
 
@@ -2622,7 +2621,7 @@ c. Record the current largest sent sequence number (LastDecSeq).
 
 Estimates of link capacity and receiving rate, in packets/bytes per second,
 are calculated at the receiver side during file/message transmission
-({{data-transmission-mode}}). It's worth noting
+({{data-transmission-mode}}). It is worth noting
 that the receiving rate estimate, while available during the entire data transmission
 period, is used only during the slow start phase of the congestion control
 algorithm ({{default-fileCC-slow-start}}).
@@ -2775,22 +2774,22 @@ so the receiver will still have the ability to decrypt it.
 
 ### Generating the Stream Encrypting Key
 
-On the sending side SEK, Salt and KEK are generated the following way:
+On the sending side SEK, Salt and KEK are generated in the following way:
 
 ~~~~~~~~~~~
 SEK  = PRNG(KLen)
 Salt = PRNG(128)
-KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, Klen)
+KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
 ~~~~~~~~~~~
 
 where
 
 - PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}},
 - passphrase is the pre-shared passphrase,
-- Salt is the field of the KM message,
+- Salt is a field of the KM message,
 - LSB(n, v) is the function taking n least significant bits of v,
 - Iter=2048 defines the number of iterations for PBKDF2,
-- KLen is the field of the KM message.
+- KLen is a field of the KM message.
 
 ~~~~~~~~~~~
 Wrap = AESkw(KEK, SEK)
@@ -2800,7 +2799,7 @@ where AESkw(KEK, SEK) is the key wrapping function {{RFC3394}}.
 
 ### Encrypting the Payload
 
-The encryption of the payload of the SRT DATA packet is done with AES-CTR
+The encryption of the payload of the SRT data packet is done with AES-CTR
 
 ~~~~~~~~~~~
 EncryptedPayload = AES_CTR_Encrypt(SEK, IV, UnencryptedPayload)
@@ -2819,7 +2818,7 @@ IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 ### Restoring the Stream Encrypting Key
 
 For the receiver to be able to decrypt the incoming stream it has to know the stream encrypting key (SEK)
-used by the sender. The receiver must know the passphrase used by the sender. The remaining information can
+used by the sender. The receiver MUST know the passphrase used by the sender. The remaining information can
 be extracted from the Keying Material message.
 
 The Keying Material message contains the AES-wrapped {{RFC3394}} SEK used by the encoder.
@@ -2833,10 +2832,10 @@ where
 
 - PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}},
 - passphrase is the pre-shared passphrase,
-- Salt is the field of the KM message,
+- Salt is a field of the KM message,
 - LSB(n, v) is the function taking n least significant bits of v,
 - Iter=2048 defines the number of iterations for PBKDF2,
-- KLen is the field of the KM message.
+- KLen is a field of the KM message.
 
 ~~~~~~~~~~~
 SEK = AESkuw(KEK, Wrap)
