@@ -723,8 +723,8 @@ and bonded SRT connections (group connections).
 
 GroupID: 32 bits.
 : The identifier of a group whose members include the sender socket that is making a connection.
-  The target socket that is interpreting GroupID should belong to the corresponding group on a target side
-  or create one if the group does not exist.
+  The target socket that is interpreting GroupID should belong to the corresponding group on the target side.
+  If such a group does not exist, the target socket should create it.
 
 Type: 8 bits.
 : Group type, as per SRT_GTYPE_ enumeration:
