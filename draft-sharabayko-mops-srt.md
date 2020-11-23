@@ -2870,7 +2870,7 @@ On the protocol control level, SRT does not encrypt packet headers.
 Therefore it has some vulnerabilities similar to TCP {{RFC6528}}:
 
 - a peer tells a counterpart its public IP during the handshake that is visible to any attacker,
-- an attacker may count the number of systems behind a Network Address Translator (NAT) by establishing a number of SRT connections and identifying the number of different sequence number "spaces", depending on the implementation of the initial sequence number generation,
+- an attacker may potentially count the number of systems behind a Network Address Translator (NAT) by establishing a number of SRT connections and identifying the number of different sequence number "spaces". The possibility of attack depends on the implementation of the initial sequence number (ISN) generation,
 - an eavesdropper can hijack existing connections only if it steals the IP and port of one of the parties. If some stream addresses an existing SRT receiver by its SRT socket ID, IP, and port number, but arrives from a different IP or port, the SRT receiver ignores it,
 - SRT has a certain protection from DoS attacks, see {{handshake-messages}}.
 
