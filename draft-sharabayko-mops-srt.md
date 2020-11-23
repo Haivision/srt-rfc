@@ -2862,21 +2862,26 @@ IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 
 # Security Considerations
 
-SRT provides confidentiality of user data using stream ciphers as
-specified in {{encryption}}, which is the only improvement of
-security upon UDT. That means other limitations from UDT remain
-as they are, and SRT needs to consider any security protection
-mechanisms at an upper layer depending on its security requirements.
-Integrity protection of user data can also be supported as described
-in counter mode of {{SP800-38A}}, and its usage details are out of scope for the present document.
+SRT provides confidentiality of the payload using stream cipher and a pre-shared private key as
+specified in {{encryption}}. The security can be compromised if the pre-shared passphrase
+is known to the attacker.
 
-The encryption feature of SRT requires some cautions. SEK needs to be changed with an
-appropriate refresh period to avoid any issues which might occur if security keys
-would be used for a long period of time. The shared secret for KEK generation needs
-to be carefully configured by a security officer, who is supposed to set security policies
-to force encryption and limit key size selection. Another aspect to consider is caching of KMmsg.
-When encryption and decryption of the same messages affect processing cost for sender or receiver,
-cached KMmsg could be retransmitted or checked before deciphering.
+On the protocol control level, SRT does not encrypt packet headers.
+Therefore it has some vulnerabilities similar to TCP {{RFC6528}}:
+
+- a peer tells a counterpart its public IP during the handshake that is visible to any attacker,
+- an attacker may count the number of systems behind a Network Address Translator (NAT) by establishing a number of SRT connections and identifying the number of different sequence number "spaces", depending on the implementation of the initial sequence number generation,
+- an eavesdropper can hijack existing connections only if it steals the IP and port of one of the parties. If some stream addresses an existing SRT receiver by its SRT socket ID, IP, and port number, but arrives from a different IP or port, the SRT receiver ignores it,
+- SRT has a certain protection from DoS attacks, see {{handshake-messages}}.
+
+There are some important considerations regarding the encryption feature of SRT:
+
+- The SEK must be changed at an appropriate refresh interval to avoid the risk
+associated with the use of security keys over a long period of time,
+- The shared secret for KEK generation must be carefully configured by a
+security officer responsible for security policies, enforcing encryption, and
+limiting key size selection.
+
 
 # IANA Considerations
 
