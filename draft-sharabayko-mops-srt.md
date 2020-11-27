@@ -706,8 +706,8 @@ The content is stored as 32-bit little endian words.
 
 #### Group Membership Extension
 
-The Group Membership handshake extension is used to distinguish single SRT connections
-and bonded SRT connections (group connections).
+The Group Membership handshake extension is reserved for the future and is
+going to be used to allow multipath SRT connections.
 
 ~~~
  0                   1                   2                   3
@@ -722,30 +722,30 @@ and bonded SRT connections (group connections).
 
 GroupID: 32 bits.
 : The identifier of a group whose members include the sender socket that is making a connection.
-  The target socket that should interpret it should belong to the corresponding group on its side
-  (or should create one, if it doesn't exist).
+  The target socket that is interpreting GroupID SHOULD belong to the corresponding group on the target side.
+  If such a group does not exist, the target socket MAY create it.
 
 Type: 8 bits.
-: Group type, as per SRT_GTYPE_ enumeration.
+: Group type, as per SRT_GTYPE_ enumeration:
 
 - 0: undefined group type,
 - 1: broadcast group type,
-- 2: main/backup group type
-- 3: balancing group type (reserved for future use)
-- 4: multicast group type (reserved for future use)
+- 2: main/backup group type,
+- 3: balancing group type,
+- 4: multicast group type (reserved for future use).
 
 Flags: 8 bits.
 : Special flags mostly reserved for the future. See {{fig-hsext-group-flags}}.
 
 Weight: 16 bits.
-: Special value with interpretation depending on the Type field value.
+: Special value with interpretation depending on the Type field value:
 
-- Not used with broadcast groups.
-- Defines the link priority in backup groups.
-- Not yet defined (reserved for future) for any other cases.
+- Not used with broadcast group type,
+- Defines the link priority for main/backup group type,
+- Not yet defined for any other cases (reserved for future use).
 
 ~~~
- 0 1 2 3 4 5 6 7 
+ 0 1 2 3 4 5 6 7
 +-+-+-+-+-+-+-+
 |   (zero)  |M|
 +-+-+-+-+-+-+-+
