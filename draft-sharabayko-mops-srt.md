@@ -68,6 +68,7 @@ informative:
   RFC8216:
   RFC3031:
   RFC3394:
+  RFC6528:
   RFC8312:
   RFC4987:
   GuAnAO:
