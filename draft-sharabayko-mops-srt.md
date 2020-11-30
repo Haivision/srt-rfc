@@ -2870,8 +2870,22 @@ On the protocol control level, SRT does not encrypt packet headers.
 Therefore it has some vulnerabilities similar to TCP {{RFC6528}}:
 
 - a peer tells a counterpart its public IP during the handshake that is visible to any attacker,
-- an attacker may potentially count the number of systems behind a Network Address Translator (NAT) by establishing a number of SRT connections and identifying the number of different sequence number "spaces". The possibility of attack depends on the implementation of the initial sequence number (ISN) generation,
-- an eavesdropper can hijack existing connections only if it steals the IP and port of one of the parties. If some stream addresses an existing SRT receiver by its SRT socket ID, IP, and port number, but arrives from a different IP or port, the SRT receiver ignores it,
+- an attacker may potentially count the number of SRT processes behind a Network 
+Address Translator (NAT) by establishing multiple SRT connections and tracking 
+the ranges of SRT Socket IDs. If a random Socket ID is generated for the first 
+connection, subsequent connections may get consecutive SRT Socket IDs. Assuming 
+one system runs only one SRT process, for example, then an attacker can estimate 
+the number of systems behind a NAT,
+- similarly, the possibility of attack depends on the implementation of the initial 
+sequence number (ISN) generation. If an ISN is not generated randomly for each 
+connection, an attacker may potentially count the number of systems behind a 
+Network Address Translator (NAT) by establishing a number of SRT connections and 
+identifying the number of different sequence number "spaces", given that no SRT 
+packet headers are encrypted,
+- an eavesdropper can hijack existing connections only if it steals the IP and
+port of one of the parties. If some stream addresses an existing SRT receiver
+by its SRT socket ID, IP, and port number, but arrives from a different IP or
+port, the SRT receiver ignores it,
 - SRT has a certain protection from DoS attacks, see {{handshake-messages}}.
 
 There are some important considerations regarding the encryption feature of SRT:
