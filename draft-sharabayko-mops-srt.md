@@ -1267,25 +1267,27 @@ An SRT connection is characterized by the fact that it is:
 
 SRT supports two connection configurations:
 
-1. Caller-Listener, where one side waits for the other to initiate a connection
-2. Rendezvous, where both sides attempt to initiate a connection
+1. Caller-Listener, where one side waits for the other to initiate a connection;
+2. Rendezvous, where both sides attempt to initiate a connection.
 
-The handshake is performed between two parties: "Initiator" and "Responder":
+The handshake is performed between two parties: "Initiator" and "Responder" in
+the following order:
 
-- Initiator starts the extended SRT handshake process and sends appropriate
+- Initiator starts an extended SRT handshake process and sends appropriate
   SRT extended handshake requests.
 
 - Responder expects the SRT extended handshake requests to be sent by the
   Initiator and sends SRT extended handshake responses back.
 
+TODO: two -> three ?
 There are two basic types of SRT handshake extensions that are exchanged
 in the handshake:
 
 - Handshake Extension Message exchanges the basic SRT information;
 - Key Material Exchange exchanges the wrapped stream encryption key (used only if
-  encryption is requested).
+  an encryption is requested).
 - Stream ID extension exchanges some stream-specific information that can be used
-  by the application to identify the incoming stream connection.
+  by the application to identify an incoming stream connection.
 
 The Initiator and Responder roles are assigned depending on the connection mode.
 
@@ -1302,13 +1304,13 @@ Caller-Listener handshake exchange has the following order of Handshake Types:
 1. Caller to Listener: INDUCTION
 2. Listener to Caller: INDUCTION (reports cookie)
 3. Caller to Listener: CONCLUSION (uses previously returned cookie)
-4. Listener to Caller: CONCLUSION (confirms connection established)
+4. Listener to Caller: CONCLUSION (confirms connection established).
 
 Rendezvous handshake exchange has the following order of Handshake Types:
 
-1. After starting the connection: WAVEAHAND.
-2. After receiving the above message from the peer: CONCLUSION.
-3. After receiving the above message from the peer: AGREEMENT.
+1. after starting the connection: WAVEAHAND;
+2. after receiving the above message from the peer: CONCLUSION;
+3. after receiving the above message from the peer: AGREEMENT.
 
 When a connection process has failed before either party can send the CONCLUSION handshake, 
 the Handshake Type field will contain the appropriate error value for the rejected 
@@ -1353,22 +1355,22 @@ The INDUCTION phase serves only to set a cookie on the Listener so that it
 doesn't allocate resources, thus mitigating a potential DoS attack that might be
 perpetrated by flooding the Listener with handshake commands.
 
-The Caller begins by sending the INDUCTION handshake, which contains the following
-(significant) fields:
+The Caller begins by sending the INDUCTION handshake which contains the following
+significant fields:
 
 - Version: MUST always be 4
 - Encryption Field: 0
 - Extension Field: 2
 - Handshake Type: INDUCTION
 - SRT Socket ID: SRT Socket ID of the Caller
-- SYN Cookie: 0
+- SYN Cookie: 0.
 
 The Destination Socket ID of the SRT packet header in this message is 0, which is
 interpreted as a connection request.
 
 The handshake version number is set to 4 in this initial handshake.
 This is due to the initial design of SRT that was to be compliant with the UDT
-protocol ({{GHG04b}}) on which it is based.
+protocol {{GHG04b}} on which it is based.
 
 The Listener responds with the following:
 
@@ -1378,7 +1380,7 @@ The Listener responds with the following:
 - Handshake Type: INDUCTION
 - SRT Socket ID: Socket ID of the Listener
 - SYN Cookie: a cookie that is crafted based on host, port and current time
-  with 1 minute accuracy to avoid SYN flooding attack {{RFC4987}}
+  with 1 minute accuracy to avoid SYN flooding attack {{RFC4987}}.
 
 At this point the Listener still does not know if the Caller is SRT or UDT,
 and it responds with the same set of values regardless of whether the Caller is
@@ -1392,7 +1394,7 @@ phase. It also checks the following:
 - whether the Extension Flags contains the magic value 0x4A17; otherwise the
   connection is rejected. This is a contingency for the case where someone who,
   in an attempt to extend UDT independently, increases the Version value to 5
-  and tries to test it against SRT.
+  and tries to test it against SRT;
 
 - whether the Encryption Flags contain a non-zero
   value, which is interpreted as an advertised cipher family and block size.
@@ -1406,19 +1408,20 @@ phase. It does interpret these fields, but only in the "conclusion" message.
 Once the Caller gets the SYN cookie from the Listener, it sends the CONCLUSION handshake
 to the Listener.
 
-The following values are set by the compliant caller:
+The following values are set by the compliant Caller:
 
 - Version: 5
 - Handshake Type: CONCLUSION
 - SRT Socket ID: Socket ID of the Caller
-- SYN Cookie: the cookie previously received in the induction phase
+- SYN Cookie: the cookie previously received in the induction phase.
 
 The Destination Socket ID in this message is the
 socket ID that was previously received in the induction phase in the SRT Socket ID field
 of the handshake structure.
 
+TODO: Format the list. To what it belongs?
 - Encryption Flags: advertised cipher family and block size.
-- Extension Flags: A set of flags that define the extensions provided in the handshake.
+- Extension Flags: a set of flags that define the extensions provided in the handshake.
 
 The Listener responds with the same values shown above, without the cookie (which
 is not needed here), as well as the extensions for HS Version 5 (which will probably be
@@ -1427,7 +1430,7 @@ exactly the same).
 There is not any "negotiation" here. If the values passed in the
 handshake are in any way not acceptable by the other side, the connection will
 be rejected. The only case when the Listener can have precedence over the Caller
-is the advertised Cipher Family and Block Size ({{handshake-encr-fld}})
+is the advertised Cipher Family and Block Size (see {{handshake-encr-fld}})
 in the Encryption Field of the Handshake.
 
 The value for latency is always agreed to be the greater of those reported
@@ -1483,61 +1486,60 @@ and following parties (Alice and Bob, respectively):
 1. Initially, both parties are in the waving state. Alice sends a handshake
    message to Bob:
    - Version: 5
-   - Type: Extension field: 0, Encryption field: advertised "PBKEYLEN".
+   - Type: Extension field: 0, Encryption field: advertised "PBKEYLEN"
    - Handshake Type: WAVEAHAND
    - SRT Socket ID: Alice's socket ID
    - SYN Cookie: Created based on host/port and current time.
 
-While Alice does not yet know if she is sending this message to
-a Version 4 or Version 5 peer, the values from these fields would not be interpreted by
-the Version 4 peer when the Handshake Type is WAVEAHAND.
+   While Alice does not yet know if she is sending this message to
+   a Version 4 or Version 5 peer, the values from these fields would not be interpreted by
+   the Version 4 peer when the Handshake Type is WAVEAHAND.
 
 2. Bob receives Alice's WAVEAHAND message, switches to the "attention"
    state. Since Bob now knows Alice's cookie, he performs a "cookie contest"
    (compares both cookie values). If Bob's cookie is greater than Alice's, he will
    become the Initiator. Otherwise, he will become the Responder.
 
-The resolution of the Handshake Role
-(Initiator or Responder) is essential for further processing.
+   The resolution of the Handshake Role
+   (Initiator or Responder) is essential for further processing.
 
-Then Bob responds:
+   Then Bob responds:
+   - Version: 5
+   - Extension field: appropriate flags if Initiator, otherwise 0
+   - Encryption field: advertised PBKEYLEN
+   - Handshake Type: CONCLUSION.
 
-- Version: 5
-- Extension field: appropriate flags if Initiator, otherwise 0
-- Encryption field: advertised PBKEYLEN
-- Handshake Type: CONCLUSION
-
-If Bob is the Initiator and encryption is on, he will use either his
-own cipher family and block size or the one received from Alice (if she has advertised
-those values).
+   If Bob is the Initiator and encryption is on, he will use either his
+   own cipher family and block size or the one received from Alice (if she has advertised
+   those values).
 
 3. Alice receives Bob's CONCLUSION message. While at this point she also
    performs the "cookie contest", the outcome will be the same. She switches to the
    "fine" state, and sends:
    - Version: 5
    - Appropriate extension flags and encryption flags
-   - Handshake Type: CONCLUSION
+   - Handshake Type: CONCLUSION.
 
-Both parties always send extension flags at this point, which will
-contain HSREQ if the message comes from an Initiator, or
-HSRSP if it comes from a Responder. If the Initiator has received a
-previous message from the Responder containing an advertised cipher family and block size in the
-encryption flags field, it will be used as the key length
-for key generation sent next in the KMREQ extension.
+   Both parties always send extension flags at this point, which will
+   contain HSREQ if the message comes from an Initiator, or
+   HSRSP if it comes from a Responder. If the Initiator has received a
+   previous message from the Responder containing an advertised cipher family and block size in the
+   encryption flags field, it will be used as the key length
+   for key generation sent next in the KMREQ extension.
 
 4. Bob receives Alice's CONCLUSION message, and then does one of the
    following (depending on Bob's role):
    - If Bob is the Initiator (Alice's message contains HSRSP), he:
-     - switches to the "connected" state
+     - switches to the "connected" state, and
      - sends Alice a message with Handshake Type AGREEMENT, but containing
-       no SRT extensions (Extension Flags field should be 0)
+       no SRT extensions (Extension Flags field should be 0).
 
    - If Bob is the Responder (Alice's message contains HSREQ), he:
-     - switches to "initiated" state
+     - switches to "initiated" state,
      - sends Alice a message with Handshake Type CONCLUSION that also contains
-       extensions with HSRSP
-        - awaits a confirmation from Alice that she is also connected (preferably
-          by AGREEMENT message)
+       extensions with HSRSP, and
+     - awaits a confirmation from Alice that she is also connected (preferably
+       by AGREEMENT message).
 
 5. Alice receives the above message, enters into the "connected" state, and
    then does one of the following (depending on Alice's role):
@@ -1546,7 +1548,7 @@ for key generation sent next in the KMREQ extension.
     - If Alice is the Responder, the received message has Handshake Type AGREEMENT
       and in response she does nothing.
 
-6. At this point, if Bob was Initiator, he is connected already. If he was a
+6. At this point, if Bob was an Initiator, he is connected already. If he was a
    Responder, he should receive the above AGREEMENT message, after which he
    switches to the "connected" state. In the case where the UDP packet with the
    agreement message gets lost, Bob will still enter the "connected" state once
@@ -1573,7 +1575,7 @@ of a particular handshake message with appropriate contents (the
 Initiator MUST attach the HSREQ extension, and Responder MUST attach the
 `HSRSP` extension).
 
-Here's how the parallel handshake flow works, based on roles:
+Here is how the parallel handshake flow works, based on roles:
 
 Initiator:
 
