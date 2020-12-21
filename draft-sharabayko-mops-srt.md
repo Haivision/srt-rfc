@@ -545,7 +545,7 @@ Maximum Transmission Unit Size: 32 bits.
   size for Ethernet, but can be less.
 
 Maximum Flow Window Size: 32 bits.
-: The value of this field is the maximum number of data packets allowed to be "in flight"  
+: The value of this field is the maximum number of data packets allowed to be "in flight"
   (i.e. the number of sent packets for which an ACK control packet has not yet been received).
 
 Handshake Type: 32 bits.
@@ -763,7 +763,7 @@ is to let peers exchange encryption-related information to be used to encrypt an
 
 This message can be supplied in two possible ways:
 
-- as a Handshake Extension, see {{sec-hsext-km}},
+- as a Handshake Extension (see {{sec-hsext-km}})
 
 - in the Content Information Field of the User-Defined control packet (described below).
 
@@ -801,7 +801,7 @@ S: 1 bit, value = {0}.
 Version (V): 3 bits, value = {1}.
 : This is a fixed-width field that indicates the SRT version:
 
-  - 1: initial version
+  - 1: Initial version.
 
 Packet Type (PT): 4 bits, value = {2}.
 : This is a fixed-width field that indicates the Packet Type:
@@ -809,11 +809,11 @@ Packet Type (PT): 4 bits, value = {2}.
   - 0: Reserved
   - 1: Media Stream Message (MSmsg)
   - 2: Keying Material Message (KMmsg)
-  - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte)
+  - 7: Reserved to discriminate MPEG-TS packet (0x47=sync byte).
 
 Sign: 16 bits, value = {0x2029}.
 : This is a fixed-width field that contains the signature ‘HAI‘ encoded as a
-  PnP Vendor ID ({{PNPID}}) (in big-endian order)
+  PnP Vendor ID {{PNPID}} (in big-endian order).
 
 Resv1: 6 bits, value = {0}.
 : This is a fixed-width field reserved for flag extension or other usage.
@@ -821,10 +821,10 @@ Resv1: 6 bits, value = {0}.
 Key-based Encryption (KK): 2 bits.
 : This is a fixed-width field that indicates which SEKs (odd and/or even) are provided in the extension:
 
-  - 00b: no SEK is provided (invalid extension format)
-  - 01b: even key is provided
-  - 10b: odd key is provided
-  - 11b: both even and odd keys are provided
+  - 00b: No SEK is provided (invalid extension format);
+  - 01b: Even key is provided;
+  - 10b: Odd key is provided;
+  - 11b: Both even and odd keys are provided.
 
 Key Encryption Key Index (KEKI): 32 bits, value = {0}.
 : This is a fixed-width field for specifying the KEK index (big-endian order)
@@ -834,25 +834,25 @@ Key Encryption Key Index (KEKI): 32 bits, value = {0}.
   to retrieve a cryptographic context.
 
   - 0: Default stream associated key (stream/system default)
-  - 1..255: Reserved for manually indexed keys
+  - 1..255: Reserved for manually indexed keys.
 
 Cipher: 8 bits, value = {0..2}.
 : This is a fixed-width field for specifying encryption cipher and mode:
 
   - 0: None or KEKI indexed crypto context
-  - 2: AES-CTR {{SP800-38A}}
+  - 2: AES-CTR {{SP800-38A}}.
 
 Authentication (Auth): 8 bits, value = {0}.
 : This is a fixed-width field for specifying a message authentication code algorithm:
 
-  - 0: None or KEKI indexed crypto context
+  - 0: None or KEKI indexed crypto context.
 
 Stream Encapsulation (SE): 8 bits, value = {2}.
 : This is a fixed-width field for describing the stream encapsulation:
 
   - 0: Unspecified or KEKI indexed crypto context
   - 1: MPEG-TS/UDP
-  - 2: MPEG-TS/SRT
+  - 2: MPEG-TS/SRT.
 
 Resv2: 8 bits, value = {0}.
 : This is a fixed-width field reserved for future use.
@@ -1035,17 +1035,17 @@ There are several types of ACK packets:
 
 - A Full ACK control packet is sent every 10 ms and has all the fields
   of {{ack-control-packet}}.
-- A Lite ACK control packet includes only the Last Acknowledged Packet Sequence Number
+- A Light ACK control packet includes only the Last Acknowledged Packet Sequence Number
   field. The Type-specific Information field should be set to 0.
 - A Small ACK includes the fields up to and including the Available Buffer Size field.
   The Type-specific Information field should be set to 0.
 
-The sender only acknowledges the receipt of Full ACK packets (see ACKACK Section {{ctrl-pkt-ackack}}).
+The sender only acknowledges the receipt of Full ACK packets (see {{ctrl-pkt-ackack}}).
 
-The Lite ACK and Small ACK packets are used in cases when the receiver should acknowledge
+The Light ACK and Small ACK packets are used in cases when the receiver should acknowledge
 received data packets more often than every 10 ms. This is usually needed at high data rates.
-It is up to the receiver to decide the condition and the type of ACK packet to send (Lite or Small).
-The recommendation is to send a Lite ACK for every 64 packets received.
+It is up to the receiver to decide the condition and the type of ACK packet to send (Light or Small).
+The recommendation is to send a Light ACK for every 64 packets received.
 
 ### NAK (Loss Report) {#ctrl-pkt-nak}
 
@@ -1279,8 +1279,7 @@ the following order:
 - Responder expects the SRT extended handshake requests to be sent by the
   Initiator and sends SRT extended handshake responses back.
 
-TODO: two -> three ?
-There are two basic types of SRT handshake extensions that are exchanged
+There are three basic types of SRT handshake extensions that are exchanged
 in the handshake:
 
 - Handshake Extension Message exchanges the basic SRT information;
@@ -1413,15 +1412,11 @@ The following values are set by the compliant Caller:
 - Version: 5
 - Handshake Type: CONCLUSION
 - SRT Socket ID: Socket ID of the Caller
-- SYN Cookie: the cookie previously received in the induction phase.
-
-The Destination Socket ID in this message is the
-socket ID that was previously received in the induction phase in the SRT Socket ID field
+- SYN Cookie: the cookie previously received in the induction phase
+- Encryption Flags: advertised cipher family and block size
+- Extension Flags: a set of flags that define the extensions provided in the handshake
+- The Destination Socket ID in this message is the socket ID that was previously received in the induction phase in the SRT Socket ID field
 of the handshake structure.
-
-TODO: Format the list. To what it belongs?
-- Encryption Flags: advertised cipher family and block size.
-- Extension Flags: a set of flags that define the extensions provided in the handshake.
 
 The Listener responds with the same values shown above, without the cookie (which
 is not needed here), as well as the extensions for HS Version 5 (which will probably be
@@ -1575,61 +1570,54 @@ of a particular handshake message with appropriate contents (the
 Initiator MUST attach the HSREQ extension, and Responder MUST attach the
 `HSRSP` extension).
 
-Here is how the parallel handshake flow works, based on roles:
+Here is how the parallel handshake flow works, based on roles and states:
 
-Initiator:
+(1) Initiator
 
 1. Waving
-   - Receives WAVEAHAND message
-   - Switches to Attention
-   - Sends CONCLUSION + HSREQ
+   - Receives WAVEAHAND message,
+   - Switches to Attention,
+   - Sends CONCLUSION + HSREQ.
 2. Attention
-   - Receives CONCLUSION message, which:
-     - contains no extensions:
-       - switches to Initiated, still sends CONCLUSION + HSREQ
-     - contains `HSRSP` extension:
-       - switches to Connected, sends AGREEMENT
+   Receives CONCLUSION message which
+   - either contains no extensions, then switches to Initiated, still sends CONCLUSION + HSREQ; or
+   - contains `HSRSP` extension, then switches to Connected, sends AGREEMENT.
 3. Initiated
-   - Receives CONCLUSION message, which:
-     - Contains no extensions:
-       - REMAINS IN THIS STATE, still sends CONCLUSION + HSREQ
-     - contains `HSRSP` extension:
-       - switches to Connected, sends AGREEMENT
+   Receives CONCLUSION message, which
+   - either contains no extensions, then REMAINS IN THIS STATE, still sends CONCLUSION + HSREQ; or
+   - contains `HSRSP` extension, then switches to Connected, sends AGREEMENT.
 4. Connected
-   - May receive CONCLUSION and respond with AGREEMENT, but normally
-     by now it should already have received payload packets.
+   May receive CONCLUSION and respond with AGREEMENT, but normally
+   by now it should already have received payload packets.
 
-Responder:
+(2) Responder
 
 1. Waving
-   - Receives WAVEAHAND message
-   - Switches to Attention
-   - Sends CONCLUSION message (with no extensions)
+   - Receives WAVEAHAND message,
+   - Switches to Attention,
+   - Sends CONCLUSION message (with no extensions).
 2. Attention
    - Receives CONCLUSION message with HSREQ.
-     This message might contain no extensions, in which case the party 
-     SHALL simply send the empty CONCLUSION message, as before, and remain 
+     This message might contain no extensions, in which case the party
+     SHALL simply send the empty CONCLUSION message, as before, and remain
      in this state.
-   - Switches to Initiated and sends CONCLUSION message with HSRSP
+   - Switches to Initiated and sends CONCLUSION message with HSRSP.
 3. Initiated
-   - Receives:
-     - CONCLUSION message with HSREQ
-       - responds with CONCLUSION with HSRSP and remains in this state
-     - AGREEMENT message
-       - responds with AGREEMENT and switches to Connected
-     - Payload packet
-       - responds with AGREEMENT and switches to Connected
+   Receives:
+   - CONCLUSION message with HSREQ, then responds with CONCLUSION with HSRSP and remains in this state;
+   - AGREEMENT message, then responds with AGREEMENT and switches to Connected;
+   - Payload packet, then responds with AGREEMENT and switches to Connected.
 4. Connected
-   - Is not expecting to receive any handshake messages anymore. The
-     AGREEMENT message is always sent only once or per every final
-     CONCLUSION message.
+   Is not expecting to receive any handshake messages anymore. The
+   AGREEMENT message is always sent only once or per every final
+   CONCLUSION message.
 
 Note that any of these packets may be missing, and the sending party will
 never become aware. The missing packet problem is resolved this way:
 
 1. If the Responder misses the CONCLUSION + HSREQ message, it simply
    continues sending empty CONCLUSION messages. Only upon reception of
-   CONCLUSION + HSREQ does it respond with CONCLUSION + HSRSP.
+   CONCLUSION + HSREQ it does respond with CONCLUSION + HSRSP.
 
 2. If the Initiator misses the CONCLUSION + HSRSP response from the
    Responder, it continues sending CONCLUSION + HSREQ. The Responder MUST
@@ -1672,7 +1660,7 @@ Latency is a value, in milliseconds, that can cover the time to transmit
 hundreds or even thousands of packets at high bitrate. Latency can be thought of as a 
 window that slides over time, during which a number of activities take place, such as 
 the reporting of acknowledged packets (ACKs) ({{packet-acks}}) and unacknowledged 
-packets (NAKs)({{packet-naks}}).
+packets (NAKs) ({{packet-naks}}).
 
 Latency is configured through the exchange of capabilities during the extended handshake 
 process between initiator and responder. The Handshake Extension Message ({{handshake-extension-msg}}) 
@@ -1684,7 +1672,7 @@ by the initiator and responder.
 
 The goal of the SRT Timestamp-Based Packet Delivery (TSBPD) mechanism is to reproduce 
 the output of the sending application (e.g., encoder) at the input of the receiving 
-application (e.g., decoder) in live data transmission mode (see {{data-transmission-mode}}). 
+application (e.g., decoder) in live data transmission mode ({{data-transmission-mode}}). 
 It attempts to reproduce the timing of packets committed by the sending application to 
 the SRT sender. This allows packets to be scheduled for delivery by the SRT receiver, 
 making them ready to be read by the receiving application (see {{fig-latency-points}}).
@@ -1697,7 +1685,7 @@ time zones) before releasing the packet to the application. Packets can be withh
 the SRT receiver for a configured receiver delay. A higher delay can accommodate a larger 
 uniform packet drop rate, or a larger packet burst drop. Packets received after their 
 "play time" are dropped if the Too-Late Packet Drop feature is enabled 
-(see {{too-late-packet-drop}}).
+({{too-late-packet-drop}}).
 
 The packet timestamp, in microseconds, is relative to the SRT connection creation time. 
 Packets are inserted based on the sequence number in the header field. The origin time, 
@@ -1818,7 +1806,7 @@ During the transmission process, the value of TSBPD time base may be adjusted in
 The Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop packets that 
 have no chance to be delivered in time, and allows the receiver to skip missing packets 
 that have not been delivered in time. The timeout of dropping a packet is based on the 
-TSBPD mechanism (see {{tsbpd}}).
+TSBPD mechanism ({{tsbpd}}).
 
 In the SRT, when Too-Late Packet Drop is enabled, and a packet timestamp is older than 
 125% of the SRT latency, it is considered too late to be delivered and may be dropped
@@ -1943,7 +1931,7 @@ Upon reception of the NAK packet, the SRT sender prioritizes retransmissions of 
 packets to be transmitted for the first time.
 
 The retransmission of the missing packet is repeated until the receiver acknowledges its receipt,
-or if both peers agree to drop this packet (see {{too-late-packet-drop}}).
+or if both peers agree to drop this packet ({{too-late-packet-drop}}).
 
 ### Packet Acknowledgement (ACKs, ACKACKs) {#packet-acks}
 
@@ -2012,14 +2000,13 @@ The NAK packet in that case will have all the packets that the receiver consider
 at the time of sending the Periodic NAK report.
 
 SRT Periodic NAK reports are sent with a period of
-(RTT + 4 * RTTVar) / 2 (so called NAKInterval), with a 20
-milliseconds floor, where RTT and RTTVar are defined in section
-{{rtt}}. A NAK control packet contains a compressed
-list of the lost packets. Therefore, only lost packets are
-retransmitted. By using NAKInterval for the NAK reports period, it
-may happen that lost packets are retransmitted more than once,
-but it helps maintain low latency in the case where NAK packets
-are lost.
+(RTT + 4 * RTTVar) / 2 (so called NAKInterval), with a 20 milliseconds
+floor, where RTT and RTTVar are defined in {{rtt}}. A NAK control
+packet contains a compressed list of the lost packets. Therefore, only
+lost packets are retransmitted. By using NAKInterval for the NAK
+reports period, it may happen that lost packets are retransmitted more
+than once, but it helps maintain low latency in the case where NAK
+packets are lost.
 
 An ACKACK tells the receiver to stop sending the ACK position because the sender already
 knows it. Otherwise, ACKs (with outdated information) would continue to be sent regularly.
@@ -2678,9 +2665,9 @@ No constraints apply to the payload of SRT data packets as no padding of the pay
 The counter for AES-CTR is the size of the cipher's block, i.e. 128 bits. It is derived from
 a 128-bit sequence consisting of
 
-- a block counter in the least significant 16 bits, which counts the blocks in a packet,
+- a block counter in the least significant 16 bits which counts the blocks in a packet;
 
-- a packet index - based on the packet sequence number in the SRT header - in the next 32 bits,
+- a packet index, based on the packet sequence number in the SRT header, in the next 32 bits;
 
 - eighty zeroed bits.
 
@@ -2751,7 +2738,7 @@ by means of the KK field of the SRT Data Packet ({{data-pkt}}).
 
 There are two variables used to determine the KM Refresh timing:
 
-- KM Refresh Period specifies the number of packets to be sent before switching to the new SEK,
+- KM Refresh Period specifies the number of packets to be sent before switching to the new SEK.
 
 - KM Pre-Announcement Period specifies when a new key is announced in a number of packets before key switchover.
   The same value is used to determine when to decommission the old key after switchover.
@@ -2787,11 +2774,11 @@ KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
 
 where
 
-- PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}},
-- passphrase is the pre-shared passphrase,
-- Salt is a field of the KM message,
-- LSB(n, v) is the function taking n least significant bits of v,
-- Iter=2048 defines the number of iterations for PBKDF2,
+- PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}};
+- passphrase is the pre-shared passphrase;
+- Salt is a field of the KM message;
+- LSB(n, v) is the function taking n least significant bits of v;
+- Iter=2048 defines the number of iterations for PBKDF2;
 - KLen is a field of the KM message.
 
 ~~~~~~~~~~~
@@ -2814,7 +2801,7 @@ where the Initialization Vector is derived as
 IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 ~~~~~~~~~~~
 
-- PktSeqNo is the value of the Packet Sequence Number field of the SRT data packet.
+PktSeqNo is the value of the Packet Sequence Number field of the SRT data packet.
 
 ## Decryption Process
 
@@ -2833,11 +2820,11 @@ KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
 
 where
 
-- PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}},
-- passphrase is the pre-shared passphrase,
-- Salt is a field of the KM message,
-- LSB(n, v) is the function taking n least significant bits of v,
-- Iter=2048 defines the number of iterations for PBKDF2,
+- PBKDF2 is the PKCS#5 Password Based Key Derivation Function {{RFC2898}};
+- passphrase is the pre-shared passphrase;
+- Salt is a field of the KM message;
+- LSB(n, v) is the function taking n least significant bits of v;
+- Iter=2048 defines the number of iterations for PBKDF2;
 - KLen is a field of the KM message.
 
 ~~~~~~~~~~~
@@ -2860,7 +2847,7 @@ where the Initialization Vector is derived as
 IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 ~~~~~~~~~~~
 
-- PktSeqNo is the value of the Packet Sequence Number field of the SRT data packet.
+PktSeqNo is the value of the Packet Sequence Number field of the SRT data packet.
 
 
 # Security Considerations
@@ -2872,29 +2859,29 @@ is known to the attacker.
 On the protocol control level, SRT does not encrypt packet headers.
 Therefore it has some vulnerabilities similar to TCP {{RFC6528}}:
 
-- a peer tells a counterpart its public IP during the handshake that is visible to any attacker,
-- an attacker may potentially count the number of SRT processes behind a Network 
+- A peer tells a counterpart its public IP during the handshake that is visible to any attacker.
+- An attacker may potentially count the number of SRT processes behind a Network 
 Address Translator (NAT) by establishing multiple SRT connections and tracking 
 the ranges of SRT Socket IDs. If a random Socket ID is generated for the first 
 connection, subsequent connections may get consecutive SRT Socket IDs. Assuming 
 one system runs only one SRT process, for example, then an attacker can estimate 
-the number of systems behind a NAT,
-- similarly, the possibility of attack depends on the implementation of the initial 
+the number of systems behind a NAT.
+- Similarly, the possibility of attack depends on the implementation of the initial 
 sequence number (ISN) generation. If an ISN is not generated randomly for each 
 connection, an attacker may potentially count the number of systems behind a 
 Network Address Translator (NAT) by establishing a number of SRT connections and 
 identifying the number of different sequence number "spaces", given that no SRT 
-packet headers are encrypted,
-- an eavesdropper can hijack existing connections only if it steals the IP and
+packet headers are encrypted.
+- An eavesdropper can hijack existing connections only if it steals the IP and
 port of one of the parties. If some stream addresses an existing SRT receiver
 by its SRT socket ID, IP, and port number, but arrives from a different IP or
-port, the SRT receiver ignores it,
+port, the SRT receiver ignores it.
 - SRT has a certain protection from DoS attacks, see {{handshake-messages}}.
 
 There are some important considerations regarding the encryption feature of SRT:
 
 - The SEK must be changed at an appropriate refresh interval to avoid the risk
-associated with the use of security keys over a long period of time,
+associated with the use of security keys over a long period of time.
 - The shared secret for KEK generation must be carefully configured by a
 security officer responsible for security policies, enforcing encryption, and
 limiting key size selection.
@@ -2996,7 +2983,7 @@ The next two characters are:
 
 (Nesting means that you can have multiple level brace-enclosed parts inside.)
 
-The form of the key-value pair is:
+The form of the key-value pair is
 
 ~~~
 key1=value1,key2=value2...
@@ -3027,13 +3014,13 @@ The following keys are standard:
   This is a one-shot identifier, invalidated after the first use. The expected usage is when details for the resource
   and authorization are negotiated over a separate connection first, and then the session ID is used here alone.
 
-- t: Type specifies the purpose of the connection. Several standard types are defined, but users may extend the use:
+- t: Type specifies the purpose of the connection. Several standard types are defined:
   - stream (default, if not specified): for exchanging the user-specified payload for an application-defined purpose,
-  - file: for transmitting a file, where r is the filename,
-  - auth: for exchanging sensible data. The r value states its purpose. No specific possible values for that are known so far (FUTURE USE).
+  - file: for transmitting a file where r is the filename,
+  - auth: for exchanging sensible data. The r value states its purpose. No specific possible values for that are known so far (for future use).
 
 - m: Mode expected for this connection:
-  - request (default): the caller wants to receive the stream,
+  - request (default): the caller wants to receive the stream data,
   - publish: the caller wants to send the stream data,
   - bidirectional: bidirectional data exchange is expected.
 
@@ -3043,7 +3030,7 @@ and is therefore required to know what the caller is attempting to do.
 
 ## Examples
 
-The example content of the StreamID is:
+The example content of the StreamID is the following:
 
 ~~~
 #!::u=admin,r=bluesbrothers1_hi
@@ -3051,11 +3038,11 @@ The example content of the StreamID is:
 
 It specifies the username and the resource name of the stream to be served to the caller.
 
+The next example specifies that the file is expected to be transmitted from the caller to the listener and its name is results.csv:
+
 ~~~
 #!::u=johnny,t=file,m=publish,r=results.csv
 ~~~
-
-This specifies that the file is expected to be transmitted from the caller to the listener and its name is results.csv.
 
 # Changelog
 
