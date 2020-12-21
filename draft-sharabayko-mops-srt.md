@@ -1257,9 +1257,9 @@ and control packets.
 
 An SRT connection is characterized by the fact that it is:
 
-- first engaged by a handshake process;
+- first engaged by a handshake process,
 
-- maintained as long as any packets are being exchanged in a timely manner;
+- maintained as long as any packets are being exchanged in a timely manner, and
 
 - considered closed when a party receives the appropriate close command from
   its peer (connection closed by the foreign host), or when it receives no
@@ -1307,9 +1307,9 @@ Caller-Listener handshake exchange has the following order of Handshake Types:
 
 Rendezvous handshake exchange has the following order of Handshake Types:
 
-1. after starting the connection: WAVEAHAND;
-2. after receiving the above message from the peer: CONCLUSION;
-3. after receiving the above message from the peer: AGREEMENT.
+1. After starting the connection: WAVEAHAND
+2. After receiving the above message from the peer: CONCLUSION
+3. After receiving the above message from the peer: AGREEMENT.
 
 When a connection process has failed before either party can send the CONCLUSION handshake, 
 the Handshake Type field will contain the appropriate error value for the rejected 
@@ -1374,7 +1374,7 @@ protocol {{GHG04b}} on which it is based.
 The Listener responds with the following:
 
 - Version: 5
-- Encryption Field: Advertised cipher family and block size.
+- Encryption Field: Advertised cipher family and block size
 - Extension Field: SRT magic code 0x4A17
 - Handshake Type: INDUCTION
 - SRT Socket ID: Socket ID of the Listener
@@ -1499,6 +1499,7 @@ and following parties (Alice and Bob, respectively):
    (Initiator or Responder) is essential for further processing.
 
    Then Bob responds:
+
    - Version: 5
    - Extension field: appropriate flags if Initiator, otherwise 0
    - Encryption field: advertised PBKEYLEN
@@ -1578,15 +1579,21 @@ Here is how the parallel handshake flow works, based on roles and states:
    - Receives WAVEAHAND message,
    - Switches to Attention,
    - Sends CONCLUSION + HSREQ.
+
 2. Attention
+
    Receives CONCLUSION message which
    - either contains no extensions, then switches to Initiated, still sends CONCLUSION + HSREQ; or
    - contains `HSRSP` extension, then switches to Connected, sends AGREEMENT.
+
 3. Initiated
+
    Receives CONCLUSION message, which
    - either contains no extensions, then REMAINS IN THIS STATE, still sends CONCLUSION + HSREQ; or
    - contains `HSRSP` extension, then switches to Connected, sends AGREEMENT.
+
 4. Connected
+
    May receive CONCLUSION and respond with AGREEMENT, but normally
    by now it should already have received payload packets.
 
@@ -1596,18 +1603,23 @@ Here is how the parallel handshake flow works, based on roles and states:
    - Receives WAVEAHAND message,
    - Switches to Attention,
    - Sends CONCLUSION message (with no extensions).
+
 2. Attention
    - Receives CONCLUSION message with HSREQ.
      This message might contain no extensions, in which case the party
      SHALL simply send the empty CONCLUSION message, as before, and remain
      in this state.
    - Switches to Initiated and sends CONCLUSION message with HSRSP.
+
 3. Initiated
+
    Receives:
    - CONCLUSION message with HSREQ, then responds with CONCLUSION with HSRSP and remains in this state;
    - AGREEMENT message, then responds with AGREEMENT and switches to Connected;
    - Payload packet, then responds with AGREEMENT and switches to Connected.
+
 4. Connected
+
    Is not expecting to receive any handshake messages anymore. The
    AGREEMENT message is always sent only once or per every final
    CONCLUSION message.
@@ -2795,7 +2807,7 @@ The encryption of the payload of the SRT data packet is done with AES-CTR
 EncryptedPayload = AES_CTR_Encrypt(SEK, IV, UnencryptedPayload)
 ~~~~~~~~~~~
 
-where the Initialization Vector is derived as
+where the Initialization Vector (IV) is derived as
 
 ~~~~~~~~~~~
 IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
@@ -2841,7 +2853,7 @@ The decryption of the payload of the SRT data packet is done with AES-CTR
 DecryptedPayload = AES_CTR_Encrypt(SEK, IV, EncryptedPayload)
 ~~~~~~~~~~~
 
-where the Initialization Vector is derived as
+where the Initialization Vector (IV) is derived as
 
 ~~~~~~~~~~~
 IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
