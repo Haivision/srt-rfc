@@ -1583,12 +1583,14 @@ Here is how the parallel handshake flow works, based on roles and states:
 2. Attention
 
    Receives CONCLUSION message which
+
    - either contains no extensions, then switches to Initiated, still sends CONCLUSION + HSREQ; or
    - contains `HSRSP` extension, then switches to Connected, sends AGREEMENT.
 
 3. Initiated
 
    Receives CONCLUSION message, which
+
    - either contains no extensions, then REMAINS IN THIS STATE, still sends CONCLUSION + HSREQ; or
    - contains `HSRSP` extension, then switches to Connected, sends AGREEMENT.
 
@@ -1614,6 +1616,7 @@ Here is how the parallel handshake flow works, based on roles and states:
 3. Initiated
 
    Receives:
+   
    - CONCLUSION message with HSREQ, then responds with CONCLUSION with HSRSP and remains in this state;
    - AGREEMENT message, then responds with AGREEMENT and switches to Connected;
    - Payload packet, then responds with AGREEMENT and switches to Connected.
