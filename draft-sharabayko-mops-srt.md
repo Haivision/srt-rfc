@@ -511,12 +511,12 @@ Encryption Field: 16 bits.
 : Block cipher family and key size. The values of this field are
   described in {{handshake-encr-fld}}. The default value is AES-128.
 
- | Value | Cipher family and key size |
- | ----- | :--------------------------: |
- |     0 | No Encryption Advertised     |
- |     2 | AES-128                      |
- |     3 | AES-192                      |
- |     4 | AES-256                      |
+| Value | Cipher family and key size |
+| ----- | :--------------------------: |
+|     0 | No Encryption Advertised     |
+|     2 | AES-128                      |
+|     3 | AES-192                      |
+|     4 | AES-256                      |
 {: #handshake-encr-fld title="Handshake Encryption Field Values"}
 
 Extension Field: 16 bits.
@@ -903,7 +903,7 @@ xSEK: variable width.
 
 oSEK: variable width.
 : This field with the odd key is present only when the message carries the two SEKs (identified by he KK field).
-  
+
 ### Keep-Alive {#ctrl-pkt-keepalive}
 
 Keep-alive control packets are sent after a certain timeout from the last time
@@ -1201,9 +1201,7 @@ every control and data packet (see {{packet-structure}}).
 
 ## Data Transmission Modes {#data-transmission-mode}
 
-SRT has been mainly created for Live Streaming and therefore its main and
-default transmission mode is "live". SRT supports, however, the modes that
-the original UDT library supported, that is, buffer and message transmission.
+SRT supports the modes that the original UDT library supported, that is, buffer and message transmission. As SRT has been mainly created for Live Streaming, its main and default transmission mode is Message Mode with certain settings. Details of these settings are described in section Use Case Live Streaming {{use-case-live-streaming}}.
 
 ### Message Mode {#transmission-mode-msg}
 
@@ -1233,14 +1231,6 @@ When the Order Flag of a Data packet is set to 1, this imposes a sequential read
 on messages. An Order Flag set to 0 allows an application to read messages that are 
 already fully available, before any preceding messages that may have some packets missing.
 
-### Live Mode {#transmission-mode-live}
-
-Live mode is a special type of message mode where only data packets
-with their PP field set to "11b" are allowed.
-
-Additionally Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and
-Too-Late Packet Drop ({{too-late-packet-drop}}) mechanisms are used in this mode.
-
 ### Buffer Mode {#transmission-mode-buffer}
 
 Buffer mode is negotiated during the Handshake by setting the STREAM flag
@@ -1248,6 +1238,25 @@ of the handshake Extension Message Flags to 1.
 
 In this mode consecutive packets form one continuous stream that can be read, with 
 portions of any size.
+
+### Use Case Live Streaming {#use-case-live-streaming}
+
+This section describes real world examples of live audio/video streaming and the current consensus, which is maintaining compatibility between SRT implementations by different vendors.
+
+The term "live streaming" refers to MPEG-TS style continuous data transmission with latency management. Live streaming based on segmentation and transmission of files like in HLS protocol is not part of this use case.
+
+The default mode for continuous live streaming is Message Mode. 
+
+Only data packets with their PP field set to "11b" are allowed, meaning a single data packet fits one message.
+
+Additionally Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and
+Too-Late Packet Drop ({{too-late-packet-drop}}) mechanisms are used in this mode.
+
+The Order Flag ({{data-pkt}}) needs special attention. In the case of live streaming it is set to 0, which would allow out of order packet delivery. However, in this use case the Order Flag has to be ignored by the receiver. As Timestamp-Based Packet Delivery (TSBPD) is enabled, the receiver will still deliver packets in order, but based on timestamps. An exception would be packets arriving too late and are skipped by Too-Late Packet Drop mechanism. (See {{too-late-packet-drop}})
+
+This method has grown historically and is the current common standard for live streaming across different implementations. A change or variation of the settings will break compatibility between two parties.
+
+This combination of settings allows live streaming with a constant latency. The receiving end will not "fall behind" in time by waiting for missing packets. However, the data integrity might not be ensured, if packets or retransmitted packets do not arrive within the expected time frame. Audio or Video interruption can occur, but the overall latency is maintained and does not grow up over time whenever packets are missing.
 
 ## Handshake Messages {#handshake-messages}
 
@@ -2485,11 +2494,11 @@ calculate PKT_SND_PERIOD as follows:
 
     <CODE BEGINS>
     inc = 0;
-
+    
     lossBandwidth = 2 * (1000000 / LastDecPeriod);
     linkCapacity = min(lossBandwidth, EST_LINK_CAPACITY);
     B = linkCapacity - 1000000 / PKT_SND_PERIOD;
-
+    
     if ((PKT_SND_PERIOD > LastDecPeriod) && ((linkCapacity / 9) < B))
         B = linkCapacity / 9;
     if (B <= 0)
@@ -2499,7 +2508,7 @@ calculate PKT_SND_PERIOD as follows:
         inc = pow(10.0, ceil(log10(B * S * 8))) * 0.0000015 / S;
         inc = max(inc, 1 / S);
     }
-
+    
     PKT_SND_PERIOD = (PKT_SND_PERIOD * RC_INTERVAL) / 
                       (PKT_SND_PERIOD * inc + RC_INTERVAL);
     <CODE ENDS>
@@ -2531,7 +2540,7 @@ minimum allowed period, if necessary:
     <CODE BEGINS>
     if (MAX_BW)
         MIN_PERIOD = 1000000 / (MAX_BW / S);
-
+    
         if (PKT_SND_PERIOD < MIN_PERIOD)
             PKT_SND_PERIOD = MIN_PERIOD;
     <CODE ENDS> 
