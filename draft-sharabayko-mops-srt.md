@@ -1241,7 +1241,7 @@ portions of any size.
 
 ### Use Case Live Streaming {#use-case-live-streaming}
 
-This section describes real world examples of live audio/video streaming and the current consensus, which is maintaining compatibility between SRT implementations by different vendors.
+This section describes real world examples of live audio/video streaming and the current consensus, which is maintaining compatibility between SRT implementations by different vendors. It's meant as guidance for developers to be compatible with existing SRT implementations.
 
 The term "live streaming" refers to MPEG-TS style continuous data transmission with latency management. Live streaming based on segmentation and transmission of files like in HLS protocol is not part of this use case.
 
