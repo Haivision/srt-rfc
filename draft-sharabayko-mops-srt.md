@@ -3072,3 +3072,12 @@ The next example specifies that the file is expected to be transmitted from the 
 - Did minor additions to the "Acknowledgement and Lost Packet Handling" section,
 - Fixed broken links,
 - Extended the list of references.
+
+## Since Version 01
+
+- Extended "Congestion Control" section with the detailed description of SRT packet pacing for both live streaming and file/message transmission cases.
+- Improved "Group Membership Extension" section.
+- Reworked "Security Consideration" section.
+- Changed the workgroup from "MOPS" to "Network Working Group".
+- Changed the intended status of the document from "Standards Track" to "Informational".
+- Overall corrections throughout the document: fixed lists, punctuation, etc.
