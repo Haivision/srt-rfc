@@ -3063,14 +3063,14 @@ The next example specifies that the file is expected to be transmitted from the 
 
 ## Since Version 00
 
-- Improved and extended the description of "Encryption" section,
-- Improved and extended the description of "Round-Trip Time Estimation" section,
-- Extended the description of "Handshake" section with "Stream ID Extension Message", "Group Membership Extension" subsections,
-- Extended "Handshake Messages" section with the detailed description of handshake procedure,
-- Improved "Key Material" section description,
-- Changed packet structure formatting for "Packet Structure" section,
-- Did minor additions to the "Acknowledgement and Lost Packet Handling" section,
-- Fixed broken links,
+- Improved and extended the description of "Encryption" section.
+- Improved and extended the description of "Round-Trip Time Estimation" section.
+- Extended the description of "Handshake" section with "Stream ID Extension Message", "Group Membership Extension" subsections.
+- Extended "Handshake Messages" section with the detailed description of handshake procedure.
+- Improved "Key Material" section description.
+- Changed packet structure formatting for "Packet Structure" section.
+- Did minor additions to the "Acknowledgement and Lost Packet Handling" section.
+- Fixed broken links.
 - Extended the list of references.
 
 ## Since Version 01
