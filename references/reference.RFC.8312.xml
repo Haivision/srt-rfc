@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<reference  anchor='RFC8312' target='https://www.rfc-editor.org/info/rfc8312'>
+<front>
+<title>CUBIC for Fast Long-Distance Networks</title>
+<author initials='I.' surname='Rhee' fullname='I. Rhee'><organization /></author>
+<author initials='L.' surname='Xu' fullname='L. Xu'><organization /></author>
+<author initials='S.' surname='Ha' fullname='S. Ha'><organization /></author>
+<author initials='A.' surname='Zimmermann' fullname='A. Zimmermann'><organization /></author>
+<author initials='L.' surname='Eggert' fullname='L. Eggert'><organization /></author>
+<author initials='R.' surname='Scheffenegger' fullname='R. Scheffenegger'><organization /></author>
+<date year='2018' month='February' />
+<abstract><t>CUBIC is an extension to the current TCP standards.  It differs from the current TCP standards only in the congestion control algorithm on the sender side.  In particular, it uses a cubic function instead of a linear window increase function of the current TCP standards to improve scalability and stability under fast and long-distance networks.  CUBIC and its predecessor algorithm have been adopted as defaults by Linux and have been used for many years.  This document provides a specification of CUBIC to enable third-party implementations and to solicit community feedback through experimentation on the performance of CUBIC.</t></abstract>
+</front>
+<seriesInfo name='RFC' value='8312'/>
+<seriesInfo name='DOI' value='10.17487/RFC8312'/>
+</reference>

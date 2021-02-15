@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reference anchor="I-D.ietf-quic-transport">
+   <front>
+      <title>QUIC: A UDP-Based Multiplexed and Secure Transport</title>
+      <author fullname="Jana Iyengar">
+	 <organization>Fastly</organization>
+      </author>
+      <author fullname="Martin Thomson">
+	 <organization>Mozilla</organization>
+      </author>
+      <date month="January" day="14" year="2021" />
+      <abstract>
+	 <t>   This document defines the core of the QUIC transport protocol.  QUIC
+   provides applications with flow-controlled streams for structured
+   communication, low-latency connection establishment, and network path
+   migration.  QUIC includes security measures that ensure
+   confidentiality, integrity, and availability in a range of deployment
+   circumstances.  Accompanying documents describe the integration of
+   TLS for key negotiation, loss detection, and an exemplary congestion
+   control algorithm.
+
+DO NOT DEPLOY THIS VERSION OF QUIC
+
+   DO NOT DEPLOY THIS VERSION OF QUIC UNTIL IT IS IN AN RFC.  This
+   version is still a work in progress.  For trial deployments, please
+   use earlier versions.
+
+Note to Readers
+
+   Discussion of this draft takes place on the QUIC working group
+   mailing list (quic@ietf.org (mailto:quic@ietf.org)), which is
+   archived at https://mailarchive.ietf.org/arch/search/?email_list=quic
+
+   Working Group information can be found at https://github.com/quicwg;
+   source code and issues list for this draft can be found at
+   https://github.com/quicwg/base-drafts/labels/-transport.
+
+	 </t>
+      </abstract>
+   </front>
+   <seriesInfo name="Internet-Draft" value="draft-ietf-quic-transport-34" />
+   <format type="TXT" target="https://www.ietf.org/internet-drafts/draft-ietf-quic-transport-34.txt" />
+</reference>

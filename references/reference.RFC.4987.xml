@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<reference  anchor='RFC4987' target='https://www.rfc-editor.org/info/rfc4987'>
+<front>
+<title>TCP SYN Flooding Attacks and Common Mitigations</title>
+<author initials='W.' surname='Eddy' fullname='W. Eddy'><organization /></author>
+<date year='2007' month='August' />
+<abstract><t>This document describes TCP SYN flooding attacks, which have been well-known to the community for several years.  Various countermeasures against these attacks, and the trade-offs of each, are described.  This document archives explanations of the attack and common defense techniques for the benefit of TCP implementers and administrators of TCP servers or networks, but does not make any standards-level recommendations.  This memo provides information for the Internet community.</t></abstract>
+</front>
+<seriesInfo name='RFC' value='4987'/>
+<seriesInfo name='DOI' value='10.17487/RFC4987'/>
+</reference>

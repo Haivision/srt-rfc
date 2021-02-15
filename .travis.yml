@@ -17,12 +17,12 @@ script:
   - docker exec idci cp -rn /tmp/draft /home/idci
   - docker exec -w "$DRAFT_DIR" -e CI=true -e TRAVIS
       -e TRAVIS_REPO_SLUG -e TRAVIS_BRANCH -e TRAVIS_TAG -e TRAVIS_PULL_REQUEST
-      idci make CLONE_ARGS='--reference /home/idci/git-reference'
+      idci make CLONE_ARGS='--reference /home/idci/git-reference' XML2RFC_REFCACHEDIR=/home/idci/draft/references
   - docker exec idci ls -l /home/idci/draft/lib
   - if [ "${TRAVIS_TAG#draft-}" == "${TRAVIS_TAG}" ]; then
       docker exec -w "$DRAFT_DIR" -e CI=true -e GH_TOKEN -e TRAVIS
         -e TRAVIS_REPO_SLUG -e TRAVIS_BRANCH -e TRAVIS_TAG -e TRAVIS_PULL_REQUEST
-        idci make ghpages;
+        idci make XML2RFC_REFCACHEDIR=/home/idci/draft/references ghpages;
     fi
 
 deploy:
@@ -30,7 +30,7 @@ deploy:
   script:
     - docker exec -w "$DRAFT_DIR" -e CI=true -e GH_TOKEN -e TRAVIS
         -e TRAVIS_REPO_SLUG -e TRAVIS_BRANCH -e TRAVIS_TAG -e TRAVIS_PULL_REQUEST
-        idci make upload
+        idci make XML2RFC_REFCACHEDIR=/home/idci/draft/references upload
   skip_cleanup: true
   on:
     tags: true

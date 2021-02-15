@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<reference  anchor='RFC2104' target='https://www.rfc-editor.org/info/rfc2104'>
+<front>
+<title>HMAC: Keyed-Hashing for Message Authentication</title>
+<author initials='H.' surname='Krawczyk' fullname='H. Krawczyk'><organization /></author>
+<author initials='M.' surname='Bellare' fullname='M. Bellare'><organization /></author>
+<author initials='R.' surname='Canetti' fullname='R. Canetti'><organization /></author>
+<date year='1997' month='February' />
+<abstract><t>This document describes HMAC, a mechanism for message authentication using cryptographic hash functions. HMAC can be used with any iterative cryptographic hash function, e.g., MD5, SHA-1, in combination with a secret shared key.  The cryptographic strength of HMAC depends on the properties of the underlying hash function.  This memo provides information for the Internet community.  This memo does not specify an Internet standard of any kind</t></abstract>
+</front>
+<seriesInfo name='RFC' value='2104'/>
+<seriesInfo name='DOI' value='10.17487/RFC2104'/>
+</reference>

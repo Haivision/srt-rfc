@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<reference  anchor='RFC6528' target='https://www.rfc-editor.org/info/rfc6528'>
+<front>
+<title>Defending against Sequence Number Attacks</title>
+<author initials='F.' surname='Gont' fullname='F. Gont'><organization /></author>
+<author initials='S.' surname='Bellovin' fullname='S. Bellovin'><organization /></author>
+<date year='2012' month='February' />
+<abstract><t>This document specifies an algorithm for the generation of TCP Initial Sequence Numbers (ISNs), such that the chances of an off-path attacker guessing the sequence numbers in use by a target connection are reduced.  This document revises (and formally obsoletes) RFC 1948, and takes the ISN generation algorithm originally proposed in that document to Standards Track, formally updating RFC 793.   [STANDARDS-TRACK]</t></abstract>
+</front>
+<seriesInfo name='RFC' value='6528'/>
+<seriesInfo name='DOI' value='10.17487/RFC6528'/>
+</reference>

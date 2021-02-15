@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<reference  anchor='RFC3394' target='https://www.rfc-editor.org/info/rfc3394'>
+<front>
+<title>Advanced Encryption Standard (AES) Key Wrap Algorithm</title>
+<author initials='J.' surname='Schaad' fullname='J. Schaad'><organization /></author>
+<author initials='R.' surname='Housley' fullname='R. Housley'><organization /></author>
+<date year='2002' month='September' />
+</front>
+<seriesInfo name='RFC' value='3394'/>
+<seriesInfo name='DOI' value='10.17487/RFC3394'/>
+</reference>

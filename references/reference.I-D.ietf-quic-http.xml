@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reference anchor="I-D.ietf-quic-http">
+   <front>
+      <title>Hypertext Transfer Protocol Version 3 (HTTP/3)</title>
+      <author fullname="Mike Bishop">
+	 <organization>Akamai</organization>
+      </author>
+      <date month="February" day="2" year="2021" />
+      <abstract>
+	 <t>   The QUIC transport protocol has several features that are desirable
+   in a transport for HTTP, such as stream multiplexing, per-stream flow
+   control, and low-latency connection establishment.  This document
+   describes a mapping of HTTP semantics over QUIC.  This document also
+   identifies HTTP/2 features that are subsumed by QUIC, and describes
+   how HTTP/2 extensions can be ported to HTTP/3.
+
+DO NOT DEPLOY THIS VERSION OF HTTP
+
+   DO NOT DEPLOY THIS VERSION OF HTTP/3 UNTIL IT IS IN AN RFC.  This
+   version is still a work in progress.  For trial deployments, please
+   use earlier versions.
+
+Note to Readers
+
+   Discussion of this draft takes place on the QUIC working group
+   mailing list (quic@ietf.org), which is archived at
+   https://mailarchive.ietf.org/arch/search/?email_list=quic.
+
+   Working Group information can be found at https://github.com/quicwg;
+   source code and issues list for this draft can be found at
+   https://github.com/quicwg/base-drafts/labels/-http.
+
+	 </t>
+      </abstract>
+   </front>
+   <seriesInfo name="Internet-Draft" value="draft-ietf-quic-http-34" />
+   <format type="TXT" target="https://www.ietf.org/internet-drafts/draft-ietf-quic-http-34.txt" />
+</reference>

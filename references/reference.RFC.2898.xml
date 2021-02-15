@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<reference  anchor='RFC2898' target='https://www.rfc-editor.org/info/rfc2898'>
+<front>
+<title>PKCS #5: Password-Based Cryptography Specification Version 2.0</title>
+<author initials='B.' surname='Kaliski' fullname='B. Kaliski'><organization /></author>
+<date year='2000' month='September' />
+<abstract><t>This document provides recommendations for the implementation of password-based cryptography, covering key derivation functions, encryption schemes, message-authentication schemes, and ASN.1 syntax identifying the techniques.  This memo provides information for the Internet community.</t></abstract>
+</front>
+<seriesInfo name='RFC' value='2898'/>
+<seriesInfo name='DOI' value='10.17487/RFC2898'/>
+</reference>

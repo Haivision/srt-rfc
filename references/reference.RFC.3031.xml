@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<reference  anchor='RFC3031' target='https://www.rfc-editor.org/info/rfc3031'>
+<front>
+<title>Multiprotocol Label Switching Architecture</title>
+<author initials='E.' surname='Rosen' fullname='E. Rosen'><organization /></author>
+<author initials='A.' surname='Viswanathan' fullname='A. Viswanathan'><organization /></author>
+<author initials='R.' surname='Callon' fullname='R. Callon'><organization /></author>
+<date year='2001' month='January' />
+<abstract><t>This document specifies the architecture for Multiprotocol Label Switching (MPLS).  [STANDARDS-TRACK]</t></abstract>
+</front>
+<seriesInfo name='RFC' value='3031'/>
+<seriesInfo name='DOI' value='10.17487/RFC3031'/>
+</reference>
