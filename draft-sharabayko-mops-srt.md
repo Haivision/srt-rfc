@@ -2516,7 +2516,7 @@ reception), in microseconds. The initial value of LastDecPeriod
 is set to 1 microsecond;
 - EST_LINK_CAPACITY is the estimated link capacity reported
 by the receiver within an ACK packet and smoothed at the sender side
-({{bandwidth-estimation}), in packets per second;
+({{bandwidth-estimation}}), in packets per second;
 - B is the estimated available bandwidth, in packets per second;
 - S is the SRT packet size (in terms of IP payload) in bytes.
 SRT treats 1500 bytes as a standard packet size.
