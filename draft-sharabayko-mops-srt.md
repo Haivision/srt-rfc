@@ -1837,6 +1837,9 @@ the SRT receiver for a configured receiver delay. A higher delay can accommodate
 uniform packet drop rate, or a larger packet burst drop. Packets received after their 
 "play time" are dropped if the Too-Late Packet Drop feature is enabled 
 ({{too-late-packet-drop}}).
+For example, in the case of live video streaming, TSBPD and Too-Late Packet Drop mechanisms
+allow to intentionally drop those packets that were lost and have no chance to be retransmitted
+before their play time. Thus, SRT provides a fixed end-to-end latency of the stream.
 
 The packet timestamp, in microseconds, is relative to the SRT connection creation time. 
 Packets are inserted based on the sequence number in the header field. The origin time, 
