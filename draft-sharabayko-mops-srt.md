@@ -192,9 +192,9 @@ more powerful solutions.
 To improve scalability on the delivery side, content delivery networks (CDNs) at one
 point transitioned to segmentation-based technologies like HLS (HTTP Live Streaming) {{RFC8216}}
 and DASH (Dynamic Adaptive Streaming over HTTP) {{ISO23009}}. This move increased the end-to-end
-latency of live streaming to over 30 seconds, which makes it unattractive for many
-use cases. Over time, the industry optimized these delivery methods, bringing the
-latency down to 3 seconds.  
+latency of live streaming to over few tens of seconds, which makes it unattractive for specific
+use cases where real-time is important. Over time, the industry optimized these delivery methods, bringing the
+latency down to few seconds.  
 
 While the delivery side scaled up, improvements to video transcoding became a necessity.
 Viewers watch video streams on a variety of different devices, connected over different
