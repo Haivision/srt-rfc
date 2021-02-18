@@ -1105,12 +1105,12 @@ coding in {{packet-seq-list-coding}}.
 
 ### Congestion Warning {#ctrl-pkt-congestion}
 
-The Congestion Warning control packet is not in use by SRT sender
-at the moment and reserved for the future.
-However, the receiver handles this type of packet if it ever arrives.
+The Congestion Warning control packet is reserved for future use.
+Its purpose is to signal a sender about a kind of congestion happening at the receiving side.
 
-If the receiver receives this packet, it slows down sending rate
-increasing the minimum inter packet sending interval by 12.5%.
+There is no condition to send this type of packet defined yet.
+However, if the sender receives this packet, it slows down sending rate
+increasing the minimum inter packet sending interval by a discrete value (12.5%).
 
 ~~~
  0                   1                   2                   3
@@ -1222,12 +1222,12 @@ ACKACK control packets do not contain Control Information Field (CIF).
 
 ### Message Drop Request {#ctrl-pkt-dropreq}
 
-A Message Drop Request control packet is sent by the sender to the receiver 
-when it requests the retransmission of an unacknowledged packet (all or part 
-of a message) which is not present in the sender's buffer (due to an internal error). 
-The sender notifies the receiver that it must not wait for retransmission of this 
-message. Note that a Message Drop Request control packet is not sent if the 
-Too Late Packet Drop mechanism ({{too-late-packet-drop}}) causes the sender 
+A Message Drop Request control packet is sent by the sender to the receiver
+when it requests the retransmission of an unacknowledged packet (all or part
+of a message) which is not present in the sender's buffer (e.g. due to an internal error).
+The sender notifies the receiver that it must not wait for retransmission of this
+message. Note that a Message Drop Request control packet is not sent if the
+Too Late Packet Drop mechanism ({{too-late-packet-drop}}) causes the sender
 to drop a message, as in this case the receiver is expected to drop it anyway.
 
 ~~~
