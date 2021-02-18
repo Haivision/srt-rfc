@@ -1222,13 +1222,13 @@ ACKACK control packets do not contain Control Information Field (CIF).
 
 ### Message Drop Request {#ctrl-pkt-dropreq}
 
-The Message Drop Request is sent by the sender to the receiver
-in case of some internal error, when an unacknowledged packet is not present
-in sender's buffer. Thus the sender notifies the receiver that it must not
-wait for retransmission of this message.
-Note the Message Drop Request is not sent if sender decides to drop a message
-according to the Too Late Packet Drop mechanism ({{too-late-packet-drop}}),
-as in this case the receiver is expected to drop it anyway due to the same mechanism.
+A Message Drop Request control packet is sent by the sender to the receiver 
+when it requests the retransmission of an unacknowledged packet (all or part 
+of a message) which is not present in the sender's buffer (due to an internal error). 
+The sender notifies the receiver that it must not wait for retransmission of this 
+message. Note that a Message Drop Request control packet is not sent if the 
+Too Late Packet Drop mechanism ({{too-late-packet-drop}}) causes the sender 
+to drop a message, as in this case the receiver is expected to drop it anyway.
 
 ~~~
  0                   1                   2                   3
@@ -1250,7 +1250,7 @@ as in this case the receiver is expected to drop it anyway due to the same mecha
 {: #dropreq-control-packet title="Drop Request control packet"}
 
 Packet Type: 1 bit, value = 1.
-: The packet type value of an ACKACK control packet is "1".
+: The packet type value of a Drop Request control packet is "1".
 
 Control Type: 15 bits, value = 7.
 : The control type value of a Drop Request control packet is "7".
@@ -1273,13 +1273,14 @@ Last Packet Sequence Number: 32 bits.
 
 ### Peer Error {#ctrl-pkt-peer-error}
 
-This control packet is only used if file congestion control is enabled.
-The Peer Error control packet is signaled from the receiving side
-in case to some processing failures (e.g., write to disk has failed),
-to inform the sender about such situation and unblock it from waiting further
-response from the peer.
+The Peer Error control packet is sent by a receiver when a processing error 
+(e.g. write to disk failure) occurs. This informs the sender of the situation 
+and unblocks it from waiting for further responses from the receiver.
+
 
 The sender receiving this type of control packet must unblock any sending operation in progress.
+
+**NOTE**: This control packet is only used if file congestion control is enabled.
 
 ~~~
  0                   1                   2                   3
@@ -1297,10 +1298,10 @@ The sender receiving this type of control packet must unblock any sending operat
 {: #peer-error-control-packet title="Peer Error control packet"}
 
 Packet Type: 1 bit, value = 1.
-: The packet type value is "1".
+: The packet type value of a Peer Error control packet is "1".
 
 Control Type: 15 bits, value = 8.
-: The control type value is "8".
+: The control type value of a Peer Error control packet is "8".
 
 Error Code: 32 bits.
 : Peer error code. At the moment the only value defined is 4000 - file system error.
