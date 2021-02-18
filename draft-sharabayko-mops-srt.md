@@ -1105,7 +1105,10 @@ coding in {{packet-seq-list-coding}}.
 
 ### Congestion Warning {#ctrl-pkt-congestion}
 
-The Congestion Warning control packet is not in use at the moment.
+The Congestion Warning control packet is not in use by SRT sender
+at the moment and reserved for the future.
+However, the receiver handles this type of packet if it ever arrives.
+
 If the receiver receives this packet, it slows down sending rate
 increasing the minimum inter packet sending interval by 12.5%.
 
@@ -1224,8 +1227,8 @@ in case of some internal error, when an unacknowledged packet is not present
 in sender's buffer. Thus the sender notifies the receiver that it must not
 wait for retransmission of this message.
 Note the Message Drop Request is not sent if sender decides to drop a message
-according to the TL Packet Drop mechanism, as in this case the receiver
-is expected to drop it anyway due to the same mechanism.
+according to the Too Late Packet Drop mechanism ({{too-late-packet-drop}}),
+as in this case the receiver is expected to drop it anyway due to the same mechanism.
 
 ~~~
  0                   1                   2                   3
