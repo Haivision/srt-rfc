@@ -1105,12 +1105,14 @@ coding in {{packet-seq-list-coding}}.
 
 ### Congestion Warning {#ctrl-pkt-congestion}
 
-The Congestion Warning control packet is reserved for future use.
-Its purpose is to signal a sender about a kind of congestion happening at the receiving side.
+The Congestion Warning control packet is reserved for future use. 
+Its purpose is to allow a receiver to signal a sender that there is congestion 
+happening at the receiving side. The expected behaviour is that upon 
+receiving this packet the sender slows down its sending rate by increasing the 
+minimum inter-packet sending interval by a discrete value (posited to be 12.5%).
 
-There is no condition to send this type of packet defined yet.
-However, if the sender receives this packet, it slows down sending rate
-increasing the minimum inter packet sending interval by a discrete value (12.5%).
+Note that the conditions for a receiver to issue this type of packet are not yet defined.
+
 
 ~~~
  0                   1                   2                   3
