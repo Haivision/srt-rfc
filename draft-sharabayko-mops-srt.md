@@ -445,17 +445,20 @@ Control Information Field (CIF): variable length.
 The types of SRT control packets are shown in {{srt-ctrl-pkt-type-table}}.
 The value "0x7FFF" is reserved for a user-defined type.
 
-| ----------------- | ------------ | ------- | -------------------------- |
-| Packet Type       | Control Type | Subtype | Section                    |
-| ----------------- | :----------: | :-----: | -------------------------- |
-| HANDSHAKE         |  0x0000      |   0x0   | {{ctrl-pkt-handshake}}     |
-| KEEPALIVE         |  0x0001      |   0x0   | {{ctrl-pkt-keepalive}}     |
-| ACK               |  0x0002      |   0x0   | {{ctrl-pkt-ack}}           |
-| NAK (Loss Report) |  0x0003      |   0x0   | {{ctrl-pkt-nak}}           |
-| SHUTDOWN          |  0x0005      |   0x0   | {{ctrl-pkt-shutdown}}      |
-| ACKACK            |  0x0006      |   0x0   | {{ctrl-pkt-ackack}}        |
-| User-Defined Type |  0x7FFF      |    -    | N/A                        |
-| ----------------- | ------------ | ------- | -------------------------- |
+| ------------------ | ------------ | ------- | -------------------------- |
+| Packet Type        | Control Type | Subtype | Section                    |
+| ------------------ | :----------: | :-----: | -------------------------- |
+| HANDSHAKE          |  0x0000      |   0x0   | {{ctrl-pkt-handshake}}     |
+| KEEPALIVE          |  0x0001      |   0x0   | {{ctrl-pkt-keepalive}}     |
+| ACK                |  0x0002      |   0x0   | {{ctrl-pkt-ack}}           |
+| NAK (Loss Report)  |  0x0003      |   0x0   | {{ctrl-pkt-nak}}           |
+| Congestion Warning |  0x0004      |   0x0   | {{ctrl-pkt-congestion}}    |
+| SHUTDOWN           |  0x0005      |   0x0   | {{ctrl-pkt-shutdown}}      |
+| ACKACK             |  0x0006      |   0x0   | {{ctrl-pkt-ackack}}        |
+| DROPREQ            |  0x0007      |   0x0   | {{ctrl-pkt-dropreq}}       |
+| PEERERROR          |  0x0008      |   0x0   | {{ctrl-pkt-peer-error}}    |
+| User-Defined Type  |  0x7FFF      |    -    | N/A                        |
+| ------------------ | ------------ | ------- | -------------------------- |
 {: #srt-ctrl-pkt-type-table title="SRT Control Packet Types"}
 
 ### Handshake {#ctrl-pkt-handshake}
@@ -1100,6 +1103,47 @@ Control Information Field (CIF).
 : A single value or a range of lost packets sequence numbers. See packet sequence number
 coding in {{packet-seq-list-coding}}.
 
+### Congestion Warning {#ctrl-pkt-congestion}
+
+The Congestion Warning control packet is reserved for future use. 
+Its purpose is to allow a receiver to signal a sender that there is congestion 
+happening at the receiving side. The expected behaviour is that upon 
+receiving this packet the sender slows down its sending rate by increasing the 
+minimum inter-packet sending interval by a discrete value (posited to be 12.5%).
+
+Note that the conditions for a receiver to issue this type of packet are not yet defined.
+
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
+|1|      Control Type = 4       |         Reserved = 0          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                 Type-specific Information = 0                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #congestion-warning-control-packet title="Congestion Warning control packet"}
+
+Packet Type: 1 bit, value = 1.
+: The packet type value of a Congestion Warning control packet is "1".
+
+Control Type: 15 bits, value = 4.
+: The control type value of a Congestion Warning control packet is "4".
+
+Timestamp: 32 bits.
+: See {{packet-structure}}.
+
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
+
+Type-specific Information.
+: This field is reserved for future definition.
+
 ### Shutdown {#ctrl-pkt-shutdown}
 
 Shutdown control packets are used to initiate the closing of an SRT connection.
@@ -1177,6 +1221,98 @@ Destination Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 ACKACK control packets do not contain Control Information Field (CIF).
+
+### Message Drop Request {#ctrl-pkt-dropreq}
+
+A Message Drop Request control packet is sent by the sender to the receiver
+when it requests the retransmission of an unacknowledged packet (all or part
+of a message) which is not present in the sender's buffer (e.g. due to an internal error).
+The sender notifies the receiver that it must not wait for retransmission of this
+message. Note that a Message Drop Request control packet is not sent if the
+Too Late Packet Drop mechanism ({{too-late-packet-drop}}) causes the sender
+to drop a message, as in this case the receiver is expected to drop it anyway.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
+|1|      Control Type = 7       |         Reserved = 0          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                        Message Number                         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                 First Packet Sequence Number                  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  Last Packet Sequence Number                  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #dropreq-control-packet title="Drop Request control packet"}
+
+Packet Type: 1 bit, value = 1.
+: The packet type value of a Drop Request control packet is "1".
+
+Control Type: 15 bits, value = 7.
+: The control type value of a Drop Request control packet is "7".
+
+Message Number: 32 bits.
+: The identifying number of the message requested to be dropped.
+  See the Message Number field in {{data-pkt}}.
+
+Timestamp: 32 bits.
+: See {{packet-structure}}.
+
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
+
+First Packet Sequence Number: 32 bits.
+: The sequence number of the first packet in the message.
+
+Last Packet Sequence Number: 32 bits.
+: The sequence number of the last packet in the message.
+
+### Peer Error {#ctrl-pkt-peer-error}
+
+The Peer Error control packet is sent by a receiver when a processing error 
+(e.g. write to disk failure) occurs. This informs the sender of the situation 
+and unblocks it from waiting for further responses from the receiver.
+
+
+The sender receiving this type of control packet must unblock any sending operation in progress.
+
+**NOTE**: This control packet is only used if file congestion control is enabled.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
+|1|      Control Type = 8       |         Reserved = 0          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          Error Code                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #peer-error-control-packet title="Peer Error control packet"}
+
+Packet Type: 1 bit, value = 1.
+: The packet type value of a Peer Error control packet is "1".
+
+Control Type: 15 bits, value = 8.
+: The control type value of a Peer Error control packet is "8".
+
+Error Code: 32 bits.
+: Peer error code. At the moment the only value defined is 4000 - file system error.
+
+Timestamp: 32 bits.
+: See {{packet-structure}}.
+
+Destination Socket ID: 32 bits.
+: See {{packet-structure}}.
 
 # SRT Data Transmission and Control
 
@@ -3081,3 +3217,4 @@ The next example specifies that the file is expected to be transmitted from the 
 - Changed the workgroup from "MOPS" to "Network Working Group".
 - Changed the intended status of the document from "Standards Track" to "Informational".
 - Overall corrections throughout the document: fixed lists, punctuation, etc.
+- Added missing control packets: Drop Request, Peer Error, Congestion Warning.
