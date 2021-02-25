@@ -2021,8 +2021,8 @@ successfully received from the sender, the receiver will "skip" the packet
 and send a fake ACK. To the sender, this fake ACK is a real ACK ({{packet-acks}}), 
 and so it just behaves as if the packet had been received.
 This facilitates the synchronization between SRT sender and receiver. The fact that a packet was
-skipped remains unknown by the sender. Skipped packets are recorded in the statistics on the
-SRT receiver.
+skipped remains unknown by the sender. It is recommended that skipped packets are recorded
+in the statistics on the SRT receiver.
 
 ## Drift Management {#drift-management}
 
