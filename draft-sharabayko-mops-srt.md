@@ -1961,10 +1961,20 @@ have no chance to be delivered in time, and allows the receiver to skip missing 
 that have not been delivered in time. The timeout of dropping a packet is based on the 
 TSBPD mechanism ({{tsbpd}}).
 
-In the SRT, when Too-Late Packet Drop is enabled, and a packet timestamp is older than 
-125% of the SRT latency, it is considered too late to be delivered and may be dropped
-by the sender. However, the sender keeps packets for at least 1 second in case the
-SRT latency is not enough for a large RTT (that is, if 125% of the SRT latency is less 
+With TLPKTDROP is enabled, when a packet timestamp is older than TLPKTDROP_THRESHOLD,
+the packet is considered "Too-Late" to be delivered. Thus, the sender might need to drop
+the packet.
+
+TLPKTDROP_THRESHOLD: a marginal value that defines a limit for when a packet is considered
+to be delivered in time. 
+: The value is related to SRT Latency ({{srt-latency}}). For an efficient packet drop mechanism,
+  it is recommended that a higher value than the latency be used. This will allow the receiver
+  to drop the packet first so that the sender drops the packet only when no proper response is
+  received from the peer (due to severe congestion, for example). When considering RTT, it is
+  recommended that the threshold value be 1.25 times the SRT Latency value.
+
+Note that the sender keeps packets for at least 1 second in case the
+SRT latency is not enough for a large RTT (that is, if TLPKTDROP_THRESHOLD is less 
 than 1 second).
 
 When enabled on the receiver, the receiver drops packets that have not been delivered 
