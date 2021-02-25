@@ -2016,6 +2016,13 @@ longer, potentially undefined time, and cause even worse tearing
 for the player. Setting higher SRT latency will help much more in the
 case when TLPKTDROP causes packet drops too often.
 
+When a receiver encounters the situation where the next packet to be played was not
+successfully received from the sender, the receiver will "skip" the packet
+and send a fake ACK. To the sender, this fake ACK is a real ACK ({{packet-acks}}), 
+and so it just behaves as if the packet had been received.
+This facilitates the synchronization between SRT sender and receiver. The fact that a packet was
+skipped remains unknown by the sender. Skipped packets are recorded in the statistics on the
+SRT receiver.
 
 ## Drift Management {#drift-management}
 
@@ -2118,12 +2125,6 @@ received that the ACK position on the sender does not advance quickly enough. To
 after 64 packets (even if the ACK period has not fully elapsed) the receiver sends a light ACK.
 A light ACK is a shorter ACK (SRT header  and one 32-bit field). It does not trigger an ACKACK.
 
-When a receiver encounters the situation where the next packet to be played was not
-successfully received from the sender, it will "skip" this packet (see {{too-late-packet-drop}})
-and send a fake ACK. To the sender, this fake ACK is a real ACK, and so it just behaves as if the packet had been received.
-This facilitates the synchronization between SRT sender and receiver. The fact that a packet was
-skipped remains unknown by the sender. Skipped packets are recorded in the statistics on the
-SRT receiver.
 
 ### Packet Retransmission (NAKs) {#packet-naks}
 
