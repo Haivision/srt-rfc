@@ -1337,9 +1337,13 @@ every control and data packet (see {{packet-structure}}).
 
 ## Data Transmission Modes {#data-transmission-mode}
 
-SRT has been mainly created for Live Streaming and therefore its main and
-default transmission mode is "live". SRT supports, however, the modes that
-the original UDT library supported, that is, buffer and message transmission.
+There are two data transmission modes supported by SRT: message mode ({{transmission-mode-msg}}) and buffer mode ({{transmission-mode-buffer}}). These are the modes originally defined in the UDT protocol {{GHG04b}}.
+
+As SRT has been mainly created for live video and audio streaming, its main and default transmission mode is message mode with certain settings applied ({{live-streaming-use-case}}).
+
+Besides live streaming, SRT maintains the ability for fast file/message transfers introduced in UDT ({{file-transmission-use-case}}). The usage of both message and buffer modes is possible in this case.
+
+Best practices and configuration tips for both use cases can be found in (link).
 
 ### Message Mode {#transmission-mode-msg}
 
@@ -1348,7 +1352,7 @@ When the STREAM flag of the handshake Extension Message
 in Message mode, characterized as follows:
 
 - Every packet has its own Packet Sequence Number.
-- One or several consecutive SRT Data packets can form a message.
+- One or several consecutive SRT data packets can form a message.
 - All the packets belonging to the same message have a similar message number set
       in the Message Number field.
 
@@ -1357,32 +1361,24 @@ set to 1. The last packet of the message has the second bit of the Packet Positi
 set to 1. Thus, a PP equal to "11b" indicates a packet that forms the whole message.
 A PP equal to "00b" indicates a packet that belongs to the inner part of the message.
 
-The concept of the message in SRT comes from UDT ({{GHG04b}}). In this mode a single 
+The concept of the message in SRT comes from UDT {{GHG04b}}. In this mode, a single 
 sending instruction passes exactly one piece of data that has boundaries (a message). 
-This message may span across multiple UDP packets (and multiple SRT data packets). The 
+This message may span across multiple UDP packets and multiple SRT data packets. The 
 only size limitation is that it shall fit as a whole in the buffers of the sender and the 
-receiver. Although internally all operations (e.g. ACK, NAK) on data packets are performed 
+receiver. Although internally all operations (e.g., ACK, NAK) on data packets are performed 
 independently, an application must send and receive the whole message. Until the message 
 is complete (all packets are received) the application will not be allowed to read it.
 
-When the Order Flag of a Data packet is set to 1, this imposes a sequential reading order
+When the Order Flag of a data packet is set to 1, this imposes a sequential reading order
 on messages. An Order Flag set to 0 allows an application to read messages that are 
 already fully available, before any preceding messages that may have some packets missing.
 
-### Live Mode {#transmission-mode-live}
-
-Live mode is a special type of message mode where only data packets
-with their PP field set to "11b" are allowed.
-
-Additionally Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and
-Too-Late Packet Drop ({{too-late-packet-drop}}) mechanisms are used in this mode.
-
 ### Buffer Mode {#transmission-mode-buffer}
 
-Buffer mode is negotiated during the Handshake by setting the STREAM flag
-of the handshake Extension Message Flags to 1.
+Buffer mode is negotiated during the handshake by setting the STREAM flag
+of the handshake Extension Message Flags ({{hs-ext-msg-flags}}) to 1.
 
-In this mode consecutive packets form one continuous stream that can be read, with 
+In this mode, consecutive packets form one continuous stream that can be read with 
 portions of any size.
 
 ## Handshake Messages {#handshake-messages}
