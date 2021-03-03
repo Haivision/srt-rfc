@@ -1339,11 +1339,11 @@ every control and data packet (see {{packet-structure}}).
 
 There are two data transmission modes supported by SRT: message mode ({{transmission-mode-msg}}) and buffer mode ({{transmission-mode-buffer}}). These are the modes originally defined in the UDT protocol {{GHG04b}}.
 
-As SRT has been mainly created for live video and audio streaming, its main and default transmission mode is message mode with certain settings applied ({{live-streaming-use-case}}).
+As SRT has been mainly designed for live video and audio streaming, its main and default transmission mode is message mode with certain settings applied ({{live-streaming-use-case}}).
 
-Besides live streaming, SRT maintains the ability for fast file/message transfers introduced in UDT ({{file-transmission-use-case}}). The usage of both message and buffer modes is possible in this case.
+Besides live streaming, SRT maintains the ability for fast file transfers introduced in UDT ({{file-transmission-use-case}}). The usage of both message and buffer modes is possible in this case.
 
-Best practices and configuration tips for both use cases can be found in (link).
+Best practices and configuration tips for both use cases can be found in {{best-practices}}.
 
 ### Message Mode {#transmission-mode-msg}
 
@@ -2999,53 +2999,63 @@ IV = (MSB(112, Salt) << 2) XOR (PktSeqNo)
 
 PktSeqNo is the value of the Packet Sequence Number field of the SRT data packet.
 
-# Best Practices and Configuration Tips for Data Transmission by SRT {#best-practices}
+# Best Practices and Configuration Tips for Data Transmission via SRT {#best-practices}
 
-### Live Streaming Use Case {#live-streaming-use-case}
+## Live Streaming Use Case {#live-streaming-use-case}
 
-This section describes real world examples of live audio/video streaming and the current consensus, which is maintaining compatibility between SRT implementations by different vendors. It's meant as guidance for developers to be compatible with existing SRT implementations.
+This section describes real world examples of live audio/video streaming and the current consensus maintaining the compatibility between SRT implementations by different vendors. It is meant as a guidance for developers to write applications compatible with existing SRT implementations.
 
-The term "live streaming" refers to MPEG-TS style continuous data transmission with latency management. Live streaming based on segmentation and transmission of files like in HLS protocol is not part of this use case.
+The term "live streaming" refers to MPEG-TS style continuous data transmission with latency management. Live streaming based on segmentation and transmission of files like in HLS protocol {{RFC8216}} is not part of this use case.
 
-The default mode for continuous live streaming is Message Mode {{transmission-mode-msg}} with certain settings described below. 
+The default data transmission mode for continuous live streaming is message mode ({{transmission-mode-msg}}) with certain settings applied and described below:
 
-Only data packets with their PP field set to "11b" are allowed, meaning a single data packet fits one message. Please see section {{data-pkt}} for more details.
+- Only data packets with their PP field set to "11b" are allowed, meaning a single data packet fits one message ({{data-pkt}}).
 
-Additionally Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop ({{too-late-packet-drop}}) mechanisms are used in this mode.
+- Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop
+  (TLPKTDROP) ({{too-late-packet-drop}}) mechanisms should be enabled.
 
-As SRT is designed both for live streaming and file/message transmission ({{data-transmission-mode}}), there are two groups of congestion control algorithms  defined in SRT: live congestion control (LiveCC){{liveCC}}, and file transfer  congestion control (FileCC){{default-fileCC}}. LiveCC is the default for live streaming use cases.
+- Live congestion control (LiveCC) ({{liveCC}}) should be used.
 
-The Order Flag ({{data-pkt}}) needs special attention. In the case of live streaming it is set to 0, which would allow out of order packet delivery. However, in this use case the Order Flag has to be ignored by the receiver. As Timestamp-Based Packet Delivery (TSBPD) is enabled, the receiver will still deliver packets in order, but based on timestamps. In the case of a packet arriving too late and skipped by Too-Late Packet Drop (TLPKTDROP) mechanism, the order of delivery is still maintained except for  potential sequence discontinuity. See {{too-late-packet-drop}} for more details.
+- The Order Flag ({{data-pkt}}) needs special attention. In the case
+  of live streaming, it is set to 0 what allows out of order packet
+  delivery. However, in this use case the Order Flag has to be ignored
+  by the receiver. As TSBPD is enabled, the receiver will still deliver
+  packets in order, but based on the timestamps. In the case of a
+  packet arriving too late and skipped by TLPKTDROP mechanism, the
+  order of delivery is still maintained except for potential sequence
+  discontinuity.
 
-This method has grown historically and is the current common standard for live streaming across different implementations. A change or variation of the settings will break compatibility between two parties.
+  This method has grown historically and is the current common standard
+  for live streaming across different implementations. A change or
+  variation of the settings will break compatibility between two parties.
 
-This combination of settings allows live streaming with a constant latency. The receiving end will not "fall behind" in time by waiting for missing packets. However, the data integrity might not be ensured, if packets or retransmitted packets do not arrive within the expected time frame. Audio or video interruption can occur, but the overall latency is maintained and does not grow up over time whenever packets are missing.
+This combination of settings allows live streaming with a constant latency ({{srt-latency}}). The receiving end will not "fall behind" in time by waiting for missing packets. However, the data integrity might not be ensured, if packets or retransmitted packets do not arrive within the expected time frame. Audio or video interruption can occur, but the overall latency is maintained and does not grow up over time whenever packets are missing.
 
-### File Transmission Use Case {#file-transmission-use-case}
+## File Transmission Use Case {#file-transmission-use-case}
 
-The following section pictures file transmission use cases via SRT and configuration examples. Analog to live streaming, both modes can be used to transfer files: Message Mode {{transmission-mode-msg}} and Buffer Mode {{transmission-mode-buffer}}.
+This section describes the use case of file/message transmission as well as provides configuration examples.
 
-The common configuration for both modes in case of file transfer is Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop (TLPD) ({{too-late-packet-drop}}) mechanisms have to be turned off, while congestion control is set to File Transfer Congestion Control (FileCC) {#fileCC}.
+The usage of both message and buffer modes ({{data-transmission-mode}}) is possible in this case. For both modes, Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop (TLPKTDROP) ({{too-late-packet-drop}}) mechanisms should be turned off while congestion control should be set to file transfer congestion control (FileCC) ({{fileCC}).
 
-When TSBPD ({{tsbpd}}) is off, each packet gets the timestamp when being send by SRT sender. A packet being sent for the first time and a re-transmit of the same packet will have different timestamps. In contrast to live streaming the timing of delivery of packets is not as critical when sending files. 
+When TSBPD is disabled, each packet gets the timestamp when being sent by the SRT sender. A packet being sent for the first time and corresponding retransmitted packets (if the original packet has been lost during transmission) will have different timestamps. In contrast to the live streaming case, the timing of packets' delivery, when sending files, is not critical. The most important thing is data integrity. Therefore TLPKTDROP mechanism must be disabled in this case. No data is allowed to be dropped, because this will result in corrupted files with missing data. The retransmission of missing packets has to happen until the packets are finally acknowledged by the SRT receiver.
 
-Much more critical in case of file transmission is data integrity. Therefore Too-Late Packet Drop (TLPD) ({{too-late-packet-drop}}) cannot be used in this use case. No data can be dropped, because this would result in corrupted files with missing data. Retransmits of missing packets have to happen, until the packets are finally are acknowledged by the receiver. 
+The file transfer congestion control (FileCC) will take care of using the available link bandwidth for maximum transfer speed.
 
-The File Transfer Congestion Control (FileCC) {#fileCC} in this example will take care of the using the available network bandwidth for maximum transfer speed. 
+### File Transmission in Buffer Mode {#file-transmission-use-case-buffer}
 
-#### File Transmission in Buffer Mode
+The original UDT protocol {{GHG04b}} used buffer mode ({{transmission-mode-buffer}}) to send files and the same is possible in SRT. The mode was designed to transmit one file per connection. So, for a single file one socket is opened, the file is being transmitted and then the socket is closed. This procedure repeats for each single file to follow, as the receiver cannot distinguish between two files.
 
-The original UDT protocol {{GHG04b}} used Buffer Mode {{transmission-mode-buffer}} to send files and same is possible in SRT protocol. It was designed to transmit one file per connection. So for a single file one socket is opened, the file is being transmitted and the socket is closed again. This procedure repeats for each single file to follow, as the receiver can't distinguish between two files. It is obvious, that this is not suitable for transferring many small files, since for every file a new connection has to be established, which needs at least two Round Trip Times (RTT) for the handshake to initiate a new connection.
+The buffer mode is not suitable for the transmission of many small files since for every file a new connection has to be established. To initiate a new connection, at least two round-trip times (RTTs) for the handshake exchange are required.
 
-It's also important to understand, that the SRT protocol doesn't add any information to the data being transmitted. The file name for example has to be declared separately by the application, e.g. in form of Stream ID Extension Message {#sec-hsext-streamid}.
+It is also important to note that the SRT protocol does not add any information to the data being transmitted. The file name, for example, has to be declared separately by the application, e.g., in a form of Stream ID Extension Message ({{sec-hsext-streamid}}).
 
-#### File Transmission in Message Mode
+### File Transmission in Message Mode
 
-When using Message Mode {{transmission-mode-msg}} for file transmission it is recommended, that the application splits the file into messages. The size of the individual messages plays a role on the receiving side, since the buffer size needs to be as big as a single message. 
+If the message mode ({{transmission-mode-msg}}) is used for the file transmission, the application should split the file into messages. The size of an individual message plays an important role on the receiving side since the size of the receiver buffer should be large enough to store a single message.
 
-As described in File Transmission in Buffer Mode section above, also in Message Mode the file name needs be specified by application. This could be done e.g. in the first message of a message sequence. 
+As described in {{file-transmission-use-case-buffer}} above, in the case of file transfer in message mode the file name should be specified by the application. This could be done, e.g., by means of setting the file name in the very first message of a message sequence.
 
-When designing an application for SRT file transfer, it is also important to be aware of the order of delivery of received messages. This can be set by the Order Flag as described in Data Packets {#data-pkt} section.
+When designing an application for SRT file transfer, it is also important to be aware of the order of delivery of the received messages. This can be set by the Order Flag as described in {{data-pkt}}.
 
 # Security Considerations
 
