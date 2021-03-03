@@ -1226,10 +1226,10 @@ ACKACK control packets do not contain Control Information Field (CIF).
 
 A Message Drop Request control packet is sent by the sender to the receiver
 when it requests the retransmission of an unacknowledged packet (all or part
-of a message) which is not present in the sender's buffer. This may happen
-in the file/message mode when the message TTL parameter in `srt_sendmsg`
-was a defined timeout and the message was given up retransmission after
-this time, so the packet was removed from the sender buffer.
+of a message) which is not present in the sender's buffer. This may happen, for
+example, when a TTL parameter (passed in the sending function) triggers a
+timeout for retransmitting lost packets being parts of the message, causing
+these packets to be removed from the sender's buffer.
 
 The sender notifies the receiver that it must not wait for retransmission of this
 message. Note that a Message Drop Request control packet is not sent if the
