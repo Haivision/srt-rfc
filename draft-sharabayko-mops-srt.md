@@ -331,7 +331,7 @@ F: 1 bit.
 Timestamp: 32 bits.
 : The timestamp of the packet, in microseconds.
   The value is relative to the time the SRT connection was established.
-  Depending on the transmission mode ({{data-transmission-mode}}),
+  Depending on the transmission mode ({{data-transmission-modes}}),
   the field stores the packet send time or the packet origin time.
 
 Destination Socket ID: 32 bits.
@@ -373,7 +373,7 @@ PP: 2 bits.
 O: 1 bit.
 : Order Flag. Indicates whether the message should be delivered by the receiver in order (1) 
   or not (0). Certain restrictions apply depending on the data transmission mode used 
-  ({{data-transmission-mode}}).
+  ({{data-transmission-modes}}).
 
 KK: 2 bits.
 : Key-based Encryption Flag. The flag bits indicate whether or not data is encrypted.
@@ -660,7 +660,7 @@ See {{too-late-packet-drop}}.
 - REXMITFLG flag MUST be set. It is a legacy flag that indicates the peer understands the R field
 of the SRT DATA Packet ({{srtdatapacket}}).
 
-- STREAM flag identifies the transmission mode ({{data-transmission-mode}}) to be used in the connection.
+- STREAM flag identifies the transmission mode ({{data-transmission-modes}}) to be used in the connection.
 If the flag is set, the buffer mode ({{transmission-mode-buffer}}) is used.
 Otherwise, the message mode ({{transmission-mode-msg}}) is used.
 
@@ -957,7 +957,7 @@ Keep-alive controls packet do not contain Control Information Field (CIF).
 Acknowledgment (ACK) control packets are used to provide the delivery status of data packets.
 By acknowledgement reception of data packets up to the acknowledged packet sequence number,
 the receiver notifies the sender that all prior packets were received or, in the case of
-live streaming ({{live-streaming-use-case}}), preceding missing packets (if any)
+live streaming ({{data-transmission-modes}}, {{live-streaming-use-case}}), preceding missing packets (if any)
 were dropped as too late to be delivered ({{too-late-packet-drop}}).
 
 ACK packets may also carry some additional information from the receiver like
@@ -1335,7 +1335,7 @@ During the handshake, the parties exchange their SRT Socket IDs.
 These IDs are then used in the Destination Socket ID field of
 every control and data packet (see {{packet-structure}}).
 
-## Data Transmission Modes {#data-transmission-mode}
+## Data Transmission Modes {#data-transmission-modes}
 
 There are two data transmission modes supported by SRT: message mode ({{transmission-mode-msg}}) and buffer mode ({{transmission-mode-buffer}}). These are the modes originally defined in the UDT protocol {{GHG04b}}.
 
@@ -1819,7 +1819,7 @@ by the initiator and responder.
 
 The goal of the SRT Timestamp-Based Packet Delivery (TSBPD) mechanism is to reproduce 
 the output of the sending application (e.g., encoder) at the input of the receiving 
-application (e.g., decoder) in live data transmission mode ({{data-transmission-mode}}). 
+application (e.g., decoder) in the case of live streaming ({{data-transmission-modes}}, {{live-streaming-use-case}}). 
 It attempts to reproduce the timing of packets committed by the sending application to 
 the SRT sender. This allows packets to be scheduled for delivery by the SRT receiver, 
 making them ready to be read by the receiving application (see {{fig-latency-points}}).
@@ -1916,7 +1916,7 @@ is negotiated during the SRT handshake exchange and is equal to 120 milliseconds
 value of TsbpdDelay is 3-4 times RTT.
 
 It is worth noting that TsbpdDelay limits the number of packet retransmissions to a certain extent
-making impossible to retransmit packets endlessly. This is important for live data transmission.
+making impossible to retransmit packets endlessly. This is important for the case of live streaming ({{data-transmission-modes}}, {{live-streaming-use-case}}).
 
 #### TSBPD Time Base Calculation {#tsbpd-time-base}
 
@@ -2241,7 +2241,7 @@ a solid background for the integration of various congestion control algorithms
 in the SRT protocol.
 
 As SRT is designed both for live streaming and file/message
-transmission ({{data-transmission-mode}}), there are two groups of
+transmission ({{data-transmission-modes}}), there are two groups of
 congestion control algorithms defined in SRT: live congestion
 control (LiveCC), and file transfer congestion control (FileCC).
 
@@ -2437,7 +2437,7 @@ low latency conditions.
 
 ## File Transfer Congestion Control (FileCC)
 
-For file/message transfer ({{data-transmission-mode}}), any known congestion control
+For file/message transfer ({{data-transmission-modes}}), any known congestion control
 algorithm like CUBIC {{RFC8312}} or BBR {{BBR}} can be applied,
 including SRT's default FileCC algorithm described below.
 
@@ -2761,7 +2761,7 @@ c. Record the current largest sent sequence number (LastDecSeq).
 
 Estimates of link capacity and receiving rate, in packets/bytes per second,
 are calculated at the receiver side during file/message transmission
-({{data-transmission-mode}}). It is worth noting
+({{data-transmission-modes}}). It is worth noting
 that the receiving rate estimate, while available during the entire data transmission
 period, is used only during the slow start phase of the congestion control
 algorithm ({{default-fileCC-slow-start}}).
@@ -3035,7 +3035,7 @@ This combination of settings allows live streaming with a constant latency ({{sr
 
 This section describes the use case of file/message transmission as well as provides configuration examples.
 
-The usage of both message and buffer modes ({{data-transmission-mode}}) is possible in this case. For both modes, Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop (TLPKTDROP) ({{too-late-packet-drop}}) mechanisms should be turned off while congestion control should be set to file transfer congestion control (FileCC) ({{fileCC}).
+The usage of both message and buffer modes ({{data-transmission-modes}}) is possible in this case. For both modes, Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop (TLPKTDROP) ({{too-late-packet-drop}}) mechanisms should be turned off while congestion control should be set to file transfer congestion control (FileCC) ({{fileCC}).
 
 When TSBPD is disabled, each packet gets the timestamp when being sent by the SRT sender. A packet being sent for the first time and corresponding retransmitted packets (if the original packet has been lost during transmission) will have different timestamps. In contrast to the live streaming case, the timing of packets' delivery, when sending files, is not critical. The most important thing is data integrity. Therefore TLPKTDROP mechanism must be disabled in this case. No data is allowed to be dropped, because this will result in corrupted files with missing data. The retransmission of missing packets has to happen until the packets are finally acknowledged by the SRT receiver.
 
