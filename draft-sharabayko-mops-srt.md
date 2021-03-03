@@ -1020,7 +1020,7 @@ RTT: 32 bits.
 packet exchange.
 
 RTT Variance: 32 bits.
-: The variance of the RTT estimation, in microseconds.
+: The variance of the RTT estimate, in microseconds.
 
 Available Buffer Size: 32 bits.
 : Available size of the receiver's buffer, in packets.
@@ -2316,7 +2316,7 @@ There are several ways of configuring maximum bandwidth (MAX_BW):
    overhead (OVERHEAD).
 
    In this mode, SRT adjusts the value of maximum bandwidth each time it
-   gets the updated estimation of input rate EST_INPUT_BW:
+   gets the updated estimate of the input rate EST_INPUT_BW:
 
    ~~~
    MAX_BW = EST_INPUT_BW * (1 + OVERHEAD /100)
@@ -2414,8 +2414,8 @@ defined as follows:
 RTO = RTT + 4 * RTTVar + 2 * SYN
 ~~~
 
-where RTT is the round-trip time estimation, in microseconds, and
-RTTVar is the variance of RTT estimation, in microseconds, reported
+where RTT is the round-trip time estimate, in microseconds, and
+RTTVar is the variance of RTT estimate, in microseconds, reported
 by the receiver and smoothed at the sender side
 (see {{ctrl-pkt-ack}}, {{rtt}}). Here and throughout the current
 section, smoothing means applying an exponentially weighted moving average (EWMA).
@@ -2434,7 +2434,7 @@ periodic NAK reports ({{packet-naks}}) is updated as follows:
 NAKInterval = min((RTT + 4 * RTTVar) / 2, 20000)
 ~~~
 
-where RTT and RTTVar are receiver's estimations (see {{ctrl-pkt-ack}},
+where RTT and RTTVar are receiver's estimates (see {{ctrl-pkt-ack}},
 {{rtt}}). The minimum value of NAKInterval is set to 20 milliseconds
 in order to avoid sending periodic NAK reports too often under
 low latency conditions.
@@ -2553,7 +2553,7 @@ where
 - RECEIVING_RATE is the rate at which packets are being received,
 in packets per second, reported by the receiver and smoothed at
 the sender side (see {{ctrl-pkt-ack}}, {{bandwidth-estimation}});
-- RTT is the round-trip time estimation, in microseconds,
+- RTT is the round-trip time estimate, in microseconds,
 reported by the receiver and smoothed at the sender side (see
 {{ctrl-pkt-ack}}, {{rtt}});
 - RC_INTERVAL is the fixed rate control interval, in microseconds.
