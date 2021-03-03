@@ -954,14 +954,14 @@ Keep-alive controls packet do not contain Control Information Field (CIF).
 
 ### ACK (Acknowledgment) {#ctrl-pkt-ack}
 
-Acknowledgment control packets are used to provide delivery status of data packets.
-By acknowled reception of data packets up to the acknowledged packet sequence number
-the receiver notifies the sender that all prior packets were received or, in case of
-live transmission mode ({{transmission-mode-live}}), preceeeding missing packets if any
-were dropped as too late to be delivered.
+Acknowledgment (ACK) control packets are used to provide the delivery status of data packets.
+By acknowledgement reception of data packets up to the acknowledged packet sequence number,
+the receiver notifies the sender that all prior packets were received or, in the case of
+live streaming ({{live-streaming-use-case}}), preceding missing packets (if any)
+were dropped as too late to be delivered ({{too-late-packet-drop}}).
 
 ACK packets may also carry some additional information from the receiver like
-RTT, bandwidth, receiving speed, etc. The CIF portion of the ACK control packet is
+the estimates of RTT, RTT variance, link capacity, receiving speed, etc. The CIF portion of the ACK control packet is
 expanded as follows:
 
 ~~~
