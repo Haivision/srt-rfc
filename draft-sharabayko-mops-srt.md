@@ -661,8 +661,8 @@ See {{too-late-packet-drop}}.
 of the SRT DATA Packet ({{srtdatapacket}}).
 
 - STREAM flag identifies the transmission mode ({{data-transmission-mode}}) to be used in the connection.
-If the flag is set the buffer mode ({{transmission-mode-buffer}}) will be used.
-Otherwise, message mode ({{transmission-mode-msg}}) is to be used.
+If the flag is set, the buffer mode ({{transmission-mode-buffer}}) is used.
+Otherwise, the message mode ({{transmission-mode-msg}}) is used.
 
 - PACKET_FILTER flag indicates if the peer supports packet filter.
 
