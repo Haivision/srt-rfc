@@ -3270,7 +3270,8 @@ The next example specifies that the file is expected to be transmitted from the 
 - Extended "Congestion Control" section with the detailed description of SRT packet pacing for both live streaming and file/message transmission cases.
 - Improved "Group Membership Extension" section.
 - Reworked "Security Consideration" section.
+- Added missing control packets: Drop Request, Peer Error, Congestion Warning.
+- Improved "Data Transmission Modes" section as well as added "Best Practices and Configuration Tips for Data Transmission via SRT" section describing the use cases of live streaming and file/message transmission via SRT.
 - Changed the workgroup from "MOPS" to "Network Working Group".
 - Changed the intended status of the document from "Standards Track" to "Informational".
 - Overall corrections throughout the document: fixed lists, punctuation, etc.
-- Added missing control packets: Drop Request, Peer Error, Congestion Warning.
