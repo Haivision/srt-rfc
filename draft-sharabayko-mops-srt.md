@@ -1282,7 +1282,7 @@ and unblocks it from waiting for further responses from the receiver.
 
 The sender receiving this type of control packet must unblock any sending operation in progress.
 
-**NOTE**: This control packet is only used if file congestion control is enabled.
+**NOTE**: This control packet is only used if the file transfer congestion control ({{fileCC}}) is enabled.
 
 ~~~
  0                   1                   2                   3
@@ -2240,7 +2240,7 @@ the transmission, triggering an appropriate response. These mechanisms provide
 a solid background for the integration of various congestion control algorithms
 in the SRT protocol.
 
-As SRT is designed both for live streaming and file/message
+As SRT is designed both for live streaming and files
 transmission ({{data-transmission-modes}}), there are two groups of
 congestion control algorithms defined in SRT: live congestion
 control (LiveCC), and file transfer congestion control (FileCC).
@@ -2437,7 +2437,7 @@ low latency conditions.
 
 ## File Transfer Congestion Control (FileCC) {#fileCC}
 
-For file/message transfer ({{data-transmission-modes}}), any known congestion control
+For file transfer ({{data-transmission-modes}}), any known congestion control
 algorithm like CUBIC {{RFC8312}} or BBR {{BBR}} can be applied,
 including SRT's default FileCC algorithm described below.
 
@@ -2675,7 +2675,7 @@ minimum allowed period, if necessary:
             PKT_SND_PERIOD = MIN_PERIOD;
     <CODE ENDS> 
 
-Note that in the case of file/message transmission the the maximum allowed bandwidth (MAX_BW)
+Note that in the case of file transmission the the maximum allowed bandwidth (MAX_BW)
 for SRT can be defined. This limits the minimum possible interval between packets
 sent. Only the usage of MAXBW_SET mode is possible ({{maxbw}}). In contrast with
 live streaming, there is no default value set for MAX_BW, and the transmission
@@ -2760,7 +2760,7 @@ c. Record the current largest sent sequence number (LastDecSeq).
 #### Link Capacity and Receiving Rate Estimation {#bandwidth-estimation}
 
 Estimates of link capacity and receiving rate, in packets/bytes per second,
-are calculated at the receiver side during file/message transmission
+are calculated at the receiver side during file transmission
 ({{data-transmission-modes}}). It is worth noting
 that the receiving rate estimate, while available during the entire data transmission
 period, is used only during the slow start phase of the congestion control
@@ -3033,7 +3033,7 @@ This combination of settings allows live streaming with a constant latency ({{sr
 
 ## File Transmission Use Case {#file-transmission-use-case}
 
-This section describes the use case of file/message transmission as well as provides configuration examples.
+This section describes the use case of file transmission as well as provides configuration examples.
 
 The usage of both message and buffer modes ({{data-transmission-modes}}) is possible in this case. For both modes, Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop (TLPKTDROP) ({{too-late-packet-drop}}) mechanisms must be turned off while congestion control should be set to file transfer congestion control (FileCC) ({{fileCC}).
 
@@ -3267,11 +3267,11 @@ The next example specifies that the file is expected to be transmitted from the 
 
 ## Since Version 01
 
-- Extended "Congestion Control" section with the detailed description of SRT packet pacing for both live streaming and file/message transmission cases.
+- Extended "Congestion Control" section with the detailed description of SRT packet pacing for both live streaming and file transmission cases.
 - Improved "Group Membership Extension" section.
 - Reworked "Security Consideration" section.
 - Added missing control packets: Drop Request, Peer Error, Congestion Warning.
-- Improved "Data Transmission Modes" section as well as added "Best Practices and Configuration Tips for Data Transmission via SRT" section describing the use cases of live streaming and file/message transmission via SRT.
+- Improved "Data Transmission Modes" section as well as added "Best Practices and Configuration Tips for Data Transmission via SRT" section describing the use cases of live streaming and file transmission via SRT.
 - Changed the workgroup from "MOPS" to "Network Working Group".
 - Changed the intended status of the document from "Standards Track" to "Informational".
 - Overall corrections throughout the document: fixed lists, punctuation, etc.
