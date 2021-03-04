@@ -2350,9 +2350,8 @@ it takes to measure the speed. Packets might be accumulated in the
 SRT's sender buffer and delayed as a result, causing them to arrive too late
 at the decoder, and possible drops by the receiver.
 
-The following table shows a summary of the bandwidth configuration modes,
-the variables that need to be set (v) or ignored (-), and the formula for
-calculating MAX_BW in each case:
+The following table shows a summary of the bandwidth configuration modes
+and the variables that need to be set (v) or ignored (-):
 
 ~~~
 | Mode / Variable       | MAX_BW | INPUT_BW | OVERHEAD |
