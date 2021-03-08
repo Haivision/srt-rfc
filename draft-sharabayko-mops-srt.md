@@ -1281,7 +1281,7 @@ and unblocks it from waiting for further responses from the receiver.
 
 The sender receiving this type of control packet must unblock any sending operation in progress.
 
-**NOTE**: This control packet is only used if file transfer congestion control ({{fileCC}}) is enabled.
+**NOTE**: This control packet is only used if the File Transfer Congestion Control ({{fileCC}}) is enabled.
 
 ~~~
  0                   1                   2                   3
@@ -2241,8 +2241,8 @@ in the SRT protocol.
 
 As SRT is designed both for live streaming and file
 transmission ({{data-transmission-modes}}), there are two groups of
-congestion control algorithms defined in SRT: live congestion
-control (LiveCC), and file transfer congestion control (FileCC).
+congestion control algorithms defined in SRT: Live Congestion
+Control (LiveCC), and File Transfer Congestion Control (FileCC).
 
 ## SRT Packet Pacing and Live Congestion Control (LiveCC) {#liveCC}
 
@@ -2261,7 +2261,7 @@ impact on the output rate of the main packet transmission.
 
 This balance is achieved by adjusting the maximum allowed bandwidth MAX_BW
 ({{maxbw}}) which limits the bandwidth usage by SRT. The MAX_BW value is used
-by the live congestion control (LiveCC) module to calculate the minimum
+by the Live Congestion Control (LiveCC) module to calculate the minimum
 interval between consecutive sent packets PKT_SND_PERIOD.
 In principle, the space between packets determines where
 retransmissions can be inserted, and the overhead represents the
@@ -2274,7 +2274,7 @@ See {{default-liveCC}} for details.
 In the case of live streaming, the sender is allowed to drop packets
 that cannot be delivered in time ({{too-late-packet-drop}}).
 
-The combination of pacing control and live congestion control (LiveCC), based
+The combination of pacing control and Live Congestion Control (LiveCC), based
 on the input rate and an overhead for packets retransmission, helps avoid congestion
 during fluctuations of the source bitrate.
 
@@ -3013,7 +3013,7 @@ The default SRT data transmission mode for continuous live streaming is message 
 - Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop
   (TLPKTDROP) ({{too-late-packet-drop}}) mechanisms must be enabled.
 
-- Live congestion control (LiveCC) ({{liveCC}}) must be used.
+- Live Congestion Control (LiveCC) ({{liveCC}}) must be used.
 
 - The Order Flag ({{data-pkt}}) needs special attention. In the case
   of live streaming, it is set to 0 allowing out of order
@@ -3034,11 +3034,11 @@ This combination of settings allows live streaming with a constant latency ({{sr
 
 This section describes the use case of file transmission and provides configuration examples.
 
-The usage of both message and buffer modes ({{data-transmission-modes}}) is possible in this case. For both modes, Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop (TLPKTDROP) ({{too-late-packet-drop}}) mechanisms must be turned off, while congestion control must be set to "file transfer congestion control" (FileCC) ({{fileCC}).
+The usage of both message and buffer modes ({{data-transmission-modes}}) is possible in this case. For both modes, Timestamp-Based Packet Delivery (TSBPD) ({{tsbpd}}) and Too-Late Packet Drop (TLPKTDROP) ({{too-late-packet-drop}}) mechanisms must be turned off, while File Transfer Congestion Control (FileCC) ({{fileCC}) must be enabled.
 
 When TSBPD is disabled, each packet gets timestamped with the time it is sent by the SRT sender. A packet being sent for the first time will have a timestamp different from that of a corresponding retransmitted packet. In contrast to the live streaming case, the timing of packets' delivery, when sending files, is not critical. The most important thing is data integrity. Therefore the TLPKTDROP mechanism must be disabled in this case. No data is allowed to be dropped, because this will result in corrupted files with missing data. The retransmission of missing packets has to happen until the packets are finally acknowledged by the SRT receiver.
 
-The file transfer congestion control (FileCC) mechanism will take care of using the available link bandwidth for maximum transfer speed.
+The File Transfer Congestion Control (FileCC) mechanism will take care of using the available link bandwidth for maximum transfer speed.
 
 ### File Transmission in Buffer Mode {#file-transmission-use-case-buffer}
 
