@@ -1228,7 +1228,7 @@ A Message Drop Request control packet is sent by the sender to the receiver
 when it requests the retransmission of an unacknowledged packet (all or part
 of a message) which is not present in the sender's buffer. This may happen, for
 example, when a TTL parameter (passed in the sending function) triggers a
-timeout for retransmitting lost packets being parts of the message, causing
+timeout for retransmitting lost packets which constitute parts of a message, causing
 these packets to be removed from the sender's buffer.
 
 The sender notifies the receiver that it must not wait for retransmission of this
