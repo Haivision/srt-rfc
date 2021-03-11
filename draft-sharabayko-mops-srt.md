@@ -3206,7 +3206,7 @@ All single letter key definitions, including those not listed in this section, a
 Users can additionally use custom key definitions with user_* or companyname_* prefixes,
 where user and companyname are to be replaced with an actual user or company name.
 
-The existing key values MUST not be extended, and MUST not differ from those described in this section.
+The existing key values MUST NOT be extended, and MUST NOT differ from those described in this section.
 
 The following keys are standard:
 
