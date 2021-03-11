@@ -120,7 +120,7 @@ informative:
     title: Real-Time Messaging Protocol
     date: none
   ISO23009:
-    title: Information technology — Dynamic adaptive streaming over HTTP (DASH)
+    title: Information technology - Dynamic adaptive streaming over HTTP (DASH)
     author:
       org: ISO
     date: none
