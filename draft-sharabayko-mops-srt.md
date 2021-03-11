@@ -3193,16 +3193,17 @@ all SRT users speak the same language. The intent of the convention is to:
 
 ## General Syntax
 
-This recommended syntax starts with the characters known as an executable specification in POSIX: #!.
+This recommended syntax starts with the characters known as an executable specification in POSIX: `#!`.
+The first following character is `:` that marks the YAML format.
+As the content format, key-value pair or nesting block can be presented.
 
-The next two characters are:
+`:`
+: the comma-separated keys with no nesting
 
-    : - this marks the YAML format, the only one currently used
-    The content format, which is either:
-        : - the comma-separated keys with no nesting
-        { - like above, but nesting is allowed and must end with }
+`{`
+: a nested block that can have one or more key-value pairs, but it must end with `}`
 
-(Nesting means that you can have multiple level brace-enclosed parts inside.)
+Note that nesting means multiple level brace-enclosed parts are allowed.
 
 The form of the key-value pair is
 
