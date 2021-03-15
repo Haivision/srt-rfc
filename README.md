@@ -3,7 +3,7 @@
 This is the working area for the individual Internet-Draft, "The SRT Protocol".
 
 * [Editor's Copy](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt.html)
-* [Individual Draft](https://tools.ietf.org/html/draft-sharabayko-srt)
+* [Individual Draft](https://tools.ietf.org/html/draft-sharabayko-srt-00)
 * [Compare Editor's Copy to Individual Draft](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt.diff)
 
 ## Building the Draft
