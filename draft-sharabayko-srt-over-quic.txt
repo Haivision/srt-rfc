@@ -1,0 +1,448 @@
+
+
+
+
+Network Working Group                                    M.P. Sharabayko
+Internet-Draft                             Haivision Network Video, GmbH
+Intended status: Informational                                    T. Add
+Expires: 17 December 2021                                   15 June 2021
+
+
+                        Tunnelling SRT over QUIC
+                   draft-sharabayko-srt-over-quic-00
+
+Abstract
+
+   This document presents an approach to tunnel SRT live streaming over
+   QUIC datagrams.
+
+   QUIC[RFC9000] is a UDP-based transport protocol providing TLS
+   encryption, stream multiplexing, connection migration.  It was
+   designed to provide a faster alternative to the TCP protocol
+   [RFC7323].
+
+   An Unreliable Datagram Extension to QUIC [QUIC-DATAGRAM] adds support
+   for sending and receiving unreliable datagrams over a QUIC
+   connection.
+
+   SRT[SRTRFC] is a UDP-based transport protocol.  In its live streaming
+   configuration it provides end-to-end latency-aware mechanisms for
+   packet loss recovery.  A lost packet can be dropped if it is too late
+   to recover it.
+
+   Datagram Extension to QUIC could be used as an underlying transport
+   instead of UDP.  This way QUIC would provide TLS level security,
+   connection migration, potentially multi-path support.  It would be
+   easy for existing network facilities to process, route and load
+   balance the unified QUIC traffic.  SRT on its side would provide end-
+   to-end latency tracking and latency-aware loss recovery.
+
+Note to Readers
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/haivision/srt-rfc (https://github.com/haivision/
+   srt-rfc).
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+
+
+
+
+
+Sharabayko & Add        Expires 17 December 2021                [Page 1]
+
+Internet-Draft                    SRTQ                         June 2021
+
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 17 December 2021.
+
+Copyright Notice
+
+   Copyright (c) 2021 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Simplified BSD License text
+   as described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.1.  SRT for Low Latency . . . . . . . . . . . . . . . . . . .   3
+     1.2.  QUIC for Universal Transport  . . . . . . . . . . . . . .   3
+   2.  Terms and Definitions . . . . . . . . . . . . . . . . . . . .   4
+   3.  Use Cases for SRT over QUIC . . . . . . . . . . . . . . . . .   4
+   4.  Tunneling SRT over QUIC . . . . . . . . . . . . . . . . . . .   4
+     4.1.  Packet Integrity  . . . . . . . . . . . . . . . . . . . .   5
+     4.2.  Connection Establishment  . . . . . . . . . . . . . . . .   6
+     4.3.  Bidirectional Transmission  . . . . . . . . . . . . . . .   6
+     4.4.  Congestion Control  . . . . . . . . . . . . . . . . . . .   6
+     4.5.  Pacing  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     4.6.  Datagram vs H3 Datagram . . . . . . . . . . . . . . . . .   7
+   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
+     5.2.  Informative References  . . . . . . . . . . . . . . . . .   7
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   8
+
+
+
+
+
+
+
+Sharabayko & Add        Expires 17 December 2021                [Page 2]
+
+Internet-Draft                    SRTQ                         June 2021
+
+
+1.  Introduction
+
+1.1.  SRT for Low Latency
+
+   The Secure Reliable Transport (SRT) protocol [SRTRFC] is a
+   connection-based transport protocol that enables the secure, reliable
+   transport of data across unpredictable networks, such as the
+   Internet.  While any data type can be transferred via SRT, it is
+   ideal for low latency (sub-second) video streaming.  SRT provides
+   improved bandwidth utilization compared to RTMP, allowing much higher
+   contribution bitrates over long distance connections.
+
+   To achieve low latency streaming, SRT had to address timing issues.
+   The characteristics of a stream from a source network are completely
+   changed by transmission over the public Internet, which introduces
+   delays, jitter, and packet loss.  This, in turn, leads to problems
+   with decoding, as the audio and video decoders do not receive packets
+   at the expected times.  The use of large buffers helps, but latency
+   is increased.  SRT includes a mechanism to keep a constant end-to-end
+   latency, thus recreating the signal characteristics on the receiver
+   side, and reducing the need for buffering.
+
+   SRT employs a listener (server) / caller (client) model.  The data
+   flow is bi-directional and independent of the connection initiation -
+   either the sender or receiver can operate as listener or caller to
+   initiate a connection.  The protocol provides an internal
+   multiplexing mechanism, allowing multiple SRT connections to share
+   the same UDP port, providing access control functionality to identify
+   the caller on the listener side.
+
+   Supporting forward error correction (FEC) and selective packet
+   retransmission (ARQ), SRT provides the flexibility to use either of
+   the two mechanisms or both combined, allowing for use cases ranging
+   from the lowest possible latency to the highest possible reliability.
+
+   SRT also allows fast file transfers, and adds support for AES
+   encryption.
+
+1.2.  QUIC for Universal Transport
+
+   The QUIC transport protocol [RFC9000] is a connection-based transport
+   protocol built on top of UDP.  It provides workflow similar to TCP,
+   but for modern fast networks.
+
+   TODO: Fill this section.
+
+   Lower connection times, faster delivery, ARQ, CC, etc.
+
+
+
+
+Sharabayko & Add        Expires 17 December 2021                [Page 3]
+
+Internet-Draft                    SRTQ                         June 2021
+
+
+2.  Terms and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in BCP
+   14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   SRT:  The Secure Reliable Transport protocol.
+
+3.  Use Cases for SRT over QUIC
+
+   SRT itself is very close to QUIC and provides similar transport
+   mechanisms.  However, the main focus of SRT is made on low-latency
+   live contribution and distribution.  QUIC is supported by CDN
+   companies.  A lot of facilities know how to handle and route QUIC
+   traffic.  QUIC provides certain security advantages (TLS, encrypting
+   headers so that traffic is not distinguishable).
+
+   SRT tunneled over QUIC allows managing live delivery mechanisms
+   (preserving end-to-end latency and dropping too late data).
+
+   It also comes at a cost of extra packet headers, sometimes duplicated
+   with those of QUIC.
+
+4.  Tunneling SRT over QUIC
+
+   The QUIC DATAGRAM frame is structured as follows:
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                        [Length (i)]                         ...
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                      Datagram Data (*)                      ...
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                    Figure 1: QUIC DATAGRAM Frame Format
+
+   Length  A variable-length integer specifying the length of the
+      datagram in bytes.
+
+   Datagram Data  The bytes of the datagram to be delivered.
+
+   The structure of the SRT packet is shown in Figure 2.  For the SRT
+   over QUIC tunneling the full SRT packet is placed inside the Datagram
+   Data.
+
+
+
+
+Sharabayko & Add        Expires 17 December 2021                [Page 4]
+
+Internet-Draft                    SRTQ                         June 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |F|        (Field meaning depends on the packet type)           |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |          (Field meaning depends on the packet type)           |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                           Timestamp                           |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                     Destination Socket ID                     |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                        Packet Contents                        |
+   |                  (depends on the packet type)                 +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                       Figure 2: SRT packet structure
+
+   F: 1 bit.  Packet Type Flag.  The control packet has this flag set to
+      "1".  The data packet has this flag set to "0".
+
+   Timestamp: 32 bits.  The timestamp of the packet, in microseconds.
+      The value is relative to the time the SRT connection was
+      established.  Depending on the transmission mode, the field stores
+      the packet send time or the packet origin time.
+
+   Destination Socket ID: 32 bits.  A fixed-width field providing the
+      SRT socket ID to which a packet should be dispatched.  The field
+      may have the special value "0" when the packet is a connection
+      request.
+
+4.1.  Packet Integrity
+
+   SRT does not provide mechanisms neither to verify the integrity of
+   packets, nor to distinguish a packet from a continuous data stream.
+   SRT assumes that the underlying transport protocol delivers a single
+   and undamaged packet to SRT.  Therefore, the underlying transport
+   MUST provide a mechanism for SRT to send and receive exactly one
+   packet.
+
+   One SRT packet MUST be sent over exactly one QUIC Datagram frame.
+
+
+
+
+
+
+
+
+
+Sharabayko & Add        Expires 17 December 2021                [Page 5]
+
+Internet-Draft                    SRTQ                         June 2021
+
+
+4.2.  Connection Establishment
+
+   QUIC has a fast and secure crypto handshake based on TLS.  A client
+   connects to a server, and it can verify it based on the server
+   certificate.  A new client connection takes 2 RTT to be established.
+   If a client connects to a known server, then it can try to establish
+   a faster 0-RTT connection.
+
+   Once a QUIC connection is established QUIC datagrams can be sent in
+   both directions.  SRT can use this QUIC datagram tunneling to
+   establish one or many connections on its own.  Each SRT connection
+   would take 2-RTT for handshaking.
+
+4.3.  Bidirectional Transmission
+
+   Both QUIC and SRT allow bidirectional transmission of the payload
+   over a single SRT connection.  Even with payload sent in one
+   direction, some control packets are sent in the opposite direction
+   over the same connection.
+
+4.4.  Congestion Control
+
+   QUIC as a transport can apply congestion control.  It should be noted
+   however the specifics of live streaming compared to file-based
+   transmissions.  The payload is not available right away, therefore
+   regular bandwidth probing mechanisms by increasing the sending rate
+   would not work.
+
+   The current sending rate is provided by SRT, which in terms receives
+   the payload from a live source and can add some overhead when re-
+   transmission of lost packets is performed.
+
+   However, QUIC can use congestion control to detect congestion and
+   throughput bottlenecks, and refuse sending above the certain limit.
+   Then, SRT MUST handle such cases eventually dropping packets the loss
+   of which it is not able to recover.
+
+   It would make sense for a QUIC connection to provide this throughput
+   limitation value back to SRT.  In that case SRT can use the number to
+   make clever and transport-aware retransmission decisions.
+
+   It is also possible for QUIC to not apply any congestion control,
+   relying on SRT.  However, SRT does not reduce the sending rate below
+   the input rate.  If the bitrate of the original stream already
+   exceeds network throughput, SRT would still try to deliver it,
+   maintaining congestion and eventually breaking SRT connection.
+
+
+
+
+
+Sharabayko & Add        Expires 17 December 2021                [Page 6]
+
+Internet-Draft                    SRTQ                         June 2021
+
+
+4.5.  Pacing
+
+   SRT uses ACK - ACKACK packet pair to measure RTT on the link, track
+   latency and clock drift.  It also uses packet pair probing to
+   estimate connection bandwidth.
+
+   Buffering and pacing SRT packet by QUIC SHOULD be done with awareness
+   that these mechanisms of SRT would be interfered.
+
+4.6.  Datagram vs H3 Datagram
+
+   As an alternative to QUIC Datagram extension it might be possible to
+   consider the H3 Datagram version to be compatible with more existing
+   load balancers.
+
+5.  References
+
+5.1.  Normative References
+
+   [GHG04b]   Gu, Y., Hong, X., and R.L. Grossman, "Experiences in
+              Design and Implementation of a High Performance Transport
+              Protocol", DOI 10.1109/SC.2004.24, December 2004,
+              <https://doi.org/10.1109/SC.2004.24>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC7323]  Borman, D., Braden, B., Jacobson, V., and R.
+              Scheffenegger, Ed., "TCP Extensions for High Performance",
+              RFC 7323, DOI 10.17487/RFC7323, September 2014,
+              <https://www.rfc-editor.org/info/rfc7323>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+
+   [RFC9000]  Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
+              Multiplexed and Secure Transport", RFC 9000,
+              DOI 10.17487/RFC9000, May 2021,
+              <https://www.rfc-editor.org/info/rfc9000>.
+
+5.2.  Informative References
+
+
+
+
+
+
+
+Sharabayko & Add        Expires 17 December 2021                [Page 7]
+
+Internet-Draft                    SRTQ                         June 2021
+
+
+   [QUIC-DATAGRAM]
+              Pauly, T., Kinnear, E., and D. Schinazi, "An Unreliable
+              Datagram Extension to QUIC", n.d.,
+              <https://datatracker.ietf.org/doc/draft-ietf-quic-
+              datagram/>.
+
+   [SRTRFC]   Sharabayko, M., Sharabayko, M., Dube, J., Kim, J., and J.
+              Kim, "The SRT Protocol", December 2019,
+              <https://datatracker.ietf.org/doc/draft-sharabayko-srt/>.
+
+   [SRTSRC]   "SRT fully functional reference implementation", June
+              2021, <https://github.com/Haivision/srt>.
+
+Authors' Addresses
+
+   Maxim Sharabayko
+   Haivision Network Video, GmbH
+
+   Email: maxsharabayko@haivision.com
+
+
+   To Add
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sharabayko & Add        Expires 17 December 2021                [Page 8]
