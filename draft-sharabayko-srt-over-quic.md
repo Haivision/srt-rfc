@@ -238,6 +238,16 @@ Once a QUIC connection is established QUIC datagrams can be sent in both directi
 SRT can use this QUIC datagram tunneling to establish one or many connections on its own.
 Each SRT connection would take 2-RTT for handshaking.
 
+The first handshake round of SRT is intended to get initial response from the server,
+identifying handshake procedure version and getting a cookie from the server (listener)
+to bear with potential DoS attacks. Apart from that, no viable data is exchanged during
+this first induction handshake phase.
+
+In case SRT connection is established over an established and verified QUIC connection,
+the SRT connection time could be reduced to one RTT if only conclusion handshaking phase
+is performed. Howeverm SRT does not provide it as of now, thus appropriate
+modifications are required.
+
 ## Bidirectional Transmission
 
 Both QUIC and SRT allow bidirectional transmission of the payload over a single SRT connection.
