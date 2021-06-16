@@ -5,7 +5,7 @@
 Network Working Group                                    M.P. Sharabayko
 Internet-Draft                             Haivision Network Video, GmbH
 Intended status: Informational                                    T. Add
-Expires: 17 December 2021                                   15 June 2021
+Expires: 18 December 2021                                   16 June 2021
 
 
                         Tunnelling SRT over QUIC
@@ -53,7 +53,7 @@ Status of This Memo
 
 
 
-Sharabayko & Add        Expires 17 December 2021                [Page 1]
+Sharabayko & Add        Expires 18 December 2021                [Page 1]
 
 Internet-Draft                    SRTQ                         June 2021
 
@@ -68,7 +68,7 @@ Internet-Draft                    SRTQ                         June 2021
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 December 2021.
+   This Internet-Draft will expire on 18 December 2021.
 
 Copyright Notice
 
@@ -100,7 +100,7 @@ Table of Contents
      4.6.  Datagram vs H3 Datagram . . . . . . . . . . . . . . . . .   7
    5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
      5.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
-     5.2.  Informative References  . . . . . . . . . . . . . . . . .   7
+     5.2.  Informative References  . . . . . . . . . . . . . . . . .   8
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   8
 
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Sharabayko & Add        Expires 17 December 2021                [Page 2]
+Sharabayko & Add        Expires 18 December 2021                [Page 2]
 
 Internet-Draft                    SRTQ                         June 2021
 
@@ -165,7 +165,7 @@ Internet-Draft                    SRTQ                         June 2021
 
 
 
-Sharabayko & Add        Expires 17 December 2021                [Page 3]
+Sharabayko & Add        Expires 18 December 2021                [Page 3]
 
 Internet-Draft                    SRTQ                         June 2021
 
@@ -221,7 +221,7 @@ Internet-Draft                    SRTQ                         June 2021
 
 
 
-Sharabayko & Add        Expires 17 December 2021                [Page 4]
+Sharabayko & Add        Expires 18 December 2021                [Page 4]
 
 Internet-Draft                    SRTQ                         June 2021
 
@@ -277,7 +277,7 @@ Internet-Draft                    SRTQ                         June 2021
 
 
 
-Sharabayko & Add        Expires 17 December 2021                [Page 5]
+Sharabayko & Add        Expires 18 December 2021                [Page 5]
 
 Internet-Draft                    SRTQ                         June 2021
 
@@ -294,6 +294,18 @@ Internet-Draft                    SRTQ                         June 2021
    both directions.  SRT can use this QUIC datagram tunneling to
    establish one or many connections on its own.  Each SRT connection
    would take 2-RTT for handshaking.
+
+   The first handshake round of SRT is intended to get initial response
+   from the server, identifying handshake procedure version and getting
+   a cookie from the server (listener) to bear with potential DoS
+   attacks.  Apart from that, no viable data is exchanged during this
+   first induction handshake phase.
+
+   In case SRT connection is established over an established and
+   verified QUIC connection, the SRT connection time could be reduced to
+   one RTT if only conclusion handshaking phase is performed.  Howeverm
+   SRT does not provide it as of now, thus appropriate modifications are
+   required.
 
 4.3.  Bidirectional Transmission
 
@@ -319,6 +331,13 @@ Internet-Draft                    SRTQ                         June 2021
    Then, SRT MUST handle such cases eventually dropping packets the loss
    of which it is not able to recover.
 
+
+
+Sharabayko & Add        Expires 18 December 2021                [Page 6]
+
+Internet-Draft                    SRTQ                         June 2021
+
+
    It would make sense for a QUIC connection to provide this throughput
    limitation value back to SRT.  In that case SRT can use the number to
    make clever and transport-aware retransmission decisions.
@@ -328,15 +347,6 @@ Internet-Draft                    SRTQ                         June 2021
    the input rate.  If the bitrate of the original stream already
    exceeds network throughput, SRT would still try to deliver it,
    maintaining congestion and eventually breaking SRT connection.
-
-
-
-
-
-Sharabayko & Add        Expires 17 December 2021                [Page 6]
-
-Internet-Draft                    SRTQ                         June 2021
-
 
 4.5.  Pacing
 
@@ -376,23 +386,20 @@ Internet-Draft                    SRTQ                         June 2021
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
 
+
+
+
+Sharabayko & Add        Expires 18 December 2021                [Page 7]
+
+Internet-Draft                    SRTQ                         June 2021
+
+
    [RFC9000]  Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
               DOI 10.17487/RFC9000, May 2021,
               <https://www.rfc-editor.org/info/rfc9000>.
 
 5.2.  Informative References
-
-
-
-
-
-
-
-Sharabayko & Add        Expires 17 December 2021                [Page 7]
-
-Internet-Draft                    SRTQ                         June 2021
-
 
    [QUIC-DATAGRAM]
               Pauly, T., Kinnear, E., and D. Schinazi, "An Unreliable
@@ -438,11 +445,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-Sharabayko & Add        Expires 17 December 2021                [Page 8]
+Sharabayko & Add        Expires 18 December 2021                [Page 8]
