@@ -89,8 +89,8 @@ If SRT fails to recover a packet loss within the specified latency, then the pac
 blocking playback of further packets.
 
 Datagram Extension to QUIC could be used as an underlying transport instead of UDP.
-This way QUIC would provide TLS level security, connection migration, potentially multi-path support.
-It would be easy for existing network facilities to process, route and load balance the unified QUIC traffic.
+This way QUIC would provide TLS level of security, connection migration, potentially multi-path support.
+It would be easier for existing network facilities to process, route and load balance the unified QUIC traffic.
 SRT on its side would provide end-to-end latency tracking and latency-aware loss recovery.
 
 --- middle
@@ -131,10 +131,7 @@ SRT also allows fast file transfers, and adds support for AES encryption.
 The QUIC transport protocol {{RFC9000}} is a connection-based transport protocol built on top of UDP.
 It provides workflow similar to TCP, but for modern fast networks.
 
-TODO: Fill this section.
-
-Lower connection times, faster delivery, ARQ, CC, etc.
-
+TODO: Fill this section. Write about lower connection times, faster delivery, ARQ, CC, etc.
 
 # Terms and Definitions
 
@@ -173,11 +170,11 @@ The QUIC DATAGRAM frame is structured as follows:
 ~~~
 {: #quic-datagram-frame title="QUIC DATAGRAM Frame Format"}
 
-Length
+Length.
 :  A variable-length integer specifying the length of the
    datagram in bytes.
 
-Datagram Data
+Datagram Data.
 :  The bytes of the datagram to be delivered.
 
 
@@ -217,7 +214,10 @@ Timestamp: 32 bits.
 Destination Socket ID: 32 bits.
 : A fixed-width field providing the SRT socket ID to which a packet should be dispatched.
   The field may have the special value "0" when the packet is a connection request.
-  
+
+Packet Contents.
+: Packet Contents as per packet type.
+
 ## Overhead
 
 SRT data packet has a 16 bytes header, which adds to the payload of a QUIC packet.
@@ -226,15 +226,13 @@ For example, let us consider the payload size of 1128 bytes (six 188-byte MPEG-T
 For a 20 Mbps stream, knowing that each data packet gets additional 16 bytes overhead,
 SRT would provide an overhead of only ~280 kbits/s (or 1.4%).
 
-Increasing the size of the payload e.g. to 1316 bytes (seven 188-byte MPEG-TS packets), SRT overhead at 20 Mbps
+Increasing the size of the payload, e.g., to 1316 bytes (seven 188-byte MPEG-TS packets), SRT overhead at 20 Mbps
 would be ~240 kbits/s (or 1.2%).
 
-SRT receiver also sends full ACK packet every 10 ms. The size of the ACK packet is 44 bytes. This traffic goes in the opposite direction:
-from the payload receiver to the payload sender.
-Paylod sender responds on every ACK packet with a corresponding 16-byte ACKACK packet. This gives additional  1600 bytes per second, which may be considered negligible.
-  
+SRT receiver also sends full ACK packet every 10 ms. The size of the ACK packet is 44 bytes. This traffic goes in the opposite direction: from the payload receiver to the payload sender. Paylod sender responds on every ACK packet with a corresponding 16-byte ACKACK packet. This gives additional 1600 bytes per second, which may be considered negligible.
+
 ## Packet Integrity
-  
+
 SRT does not provide mechanisms neither to verify the integrity of packets,
 nor to distinguish a packet from a continuous data stream.
 SRT assumes that the underlying transport protocol delivers a single and undamaged packet to SRT.
@@ -242,15 +240,15 @@ Therefore, the underlying transport MUST provide a mechanism for SRT to send and
 exactly one packet.
 
 One SRT packet MUST be sent over exactly one QUIC Datagram frame.  
- 
+
 ## Connection Establishment
-  
+
 QUIC has a fast and secure crypto handshake based on TLS.
 A client connects to a server, and it can verify the server based on its certificate.
 A new client connection takes 2 RTT to be established.
 If a client connects to a known server, then it can try to establish a faster 0-RTT connection.
 
-Once a QUIC connection is established QUIC datagrams can be sent in both directions.
+Once a QUIC connection is established, QUIC datagrams can be sent in both directions.
 SRT can use this QUIC datagram tunneling to establish one or many connections on its own.
 Each SRT connection would take 2-RTT for handshaking.
 
@@ -268,10 +266,10 @@ modifications are required.
 
 Both QUIC and SRT allow bidirectional transmission of the payload over a single SRT connection.
 Even with payload sent in one direction, some control packets are still sent in the opposite direction over the same connection.
-  
+
 ## Congestion Control
 
-QUIC as a transport can apply congestion control. It should be noted however the specifics of live streaming compared
+QUIC as a transport can apply congestion control. It is worth noting, however, the specifics of live streaming compared
 to file-based transmissions. The payload is not available right away, therefore regular bandwidth probing mechanisms
 by increasing the sending rate would not work.
 
@@ -290,14 +288,25 @@ eventually breaking SRT connection.
 
 ## Pacing
 
-SRT uses ACK - ACKACK packet pair to measure RTT on the link, track latency and clock drift.
+SRT uses ACK/ACKACK packet pair to measure RTT on the link, track latency and clock drift.
 It also uses packet pair probing to estimate connection bandwidth, although in live configuration
 it has only an informative use.
 
 Buffering and pacing SRT packet by QUIC SHOULD be done with awareness that these mechanisms of SRT would be interfered.
 
-
 ## Datagram vs H3 Datagram
 
 As an alternative to QUIC Datagram extension it might be possible to consider the H3 Datagram version to be compatible with more existing load balancers.
 
+# Security Considerations
+
+TODO
+
+# IANA Considerations
+
+TODO
+
+# Acknowledgments
+{:numbered="false"}
+
+It is worth acknowledging the participation of the following people in the project discussions: Ying Yin (Google), Ian Swett (Google), Victor Vasiliev (Google), Kazuko Oku (Fastly), Maria Sharabayko (Haivision), Marc Cymontkowski (Haivision), Jake Weissman (Facebook), Jordi Cenzano (Facebook), Alan Frindell (Facebook), Jeongseok Kim (SK Telecom), Joonwoong Kim (SK Telecom).
