@@ -6,7 +6,7 @@ category: info
 
 ipr: trust200902
 area:
-workgroup: Network Working Group
+workgroup: TODO Working Group
 keyword: Internet-Draft
 
 stand_alone: yes
@@ -19,8 +19,10 @@ author:
     organization: "Haivision Network Video, GmbH"
     email: maxsharabayko@haivision.com
  -
-    ins: "T. Add"
-    name: "To Add"
+    ins: "M.A. Sharabayko"
+    name: "Maria Sharabayko"
+    organization: "Haivision Network Video, GmbH"
+    email: msharabayko@haivision.com
 
 normative:
   RFC7323:
@@ -71,6 +73,11 @@ informative:
   SRTSRC:
     target: https://github.com/Haivision/srt
     title: SRT fully functional reference implementation
+    date: none
+
+  QUICLY:
+    target: https://github.com/h2o/quicly
+    title: QUIC protocol implementation quicly for H2O server
     date: none
 
 --- abstract
@@ -308,4 +315,6 @@ TODO
 # Acknowledgments
 {:numbered="false"}
 
-It is worth acknowledging the participation of the following people in the project discussions: Ying Yin (Google), Ian Swett (Google), Victor Vasiliev (Google), Kazuko Oku (Fastly), Maria Sharabayko (Haivision), Marc Cymontkowski (Haivision), Jake Weissman (Facebook), Jordi Cenzano (Facebook), Alan Frindell (Facebook), Jeongseok Kim (SK Telecom), Joonwoong Kim (SK Telecom).
+It is worth acknowledging the participation of the following people in the project discussions: Ying Yin (Google), Ian Swett (Google), Victor Vasiliev (Google), Kazuko Oku (Fastly), Marc Cymontkowski (Haivision), Jake Weissman (Facebook), Jordi Cenzano (Facebook), Alan Frindell (Facebook), Jeongseok Kim (SK Telecom), Joonwoong Kim (SK Telecom).
+
+Quicly library {{QUICLY}} by Fastly was chosen to provide a QUIC datagram transport layer for SRT over QUIC PoC. We would like to thank Kazuho Oku (Fastly) for his help with answering questions and resolving some of the library issues quickly.
