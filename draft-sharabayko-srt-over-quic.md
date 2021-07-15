@@ -85,7 +85,7 @@ unreliable datagrams over a QUIC connection.
 
 SRT {{SRTRFC}} is a UDP-based transport protocol. Essentially, it can operate over any unreliable datagram transport.
 SRT in live streaming configuration provides an end-to-end latency-aware mechanisms for packet loss recovery.
-If SRT fails to recover a packet lost within a specified latency, then the packet is dropped to avoid
+If SRT fails to recover a packet loss within a specified latency, then the packet is dropped to avoid
 blocking playback of further packets.
 
 The Datagram Extension to QUIC could be used as an underlying transport instead of UDP.
