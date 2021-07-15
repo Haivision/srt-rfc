@@ -4,13 +4,13 @@ This is the working area for the individual Internet-Draft, "The SRT Protocol" a
 
 ## The SRT Protocol RFC
 
-* Working Copy: [html](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt.html), [txt](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt.txt)
+* Working Copy: [html](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt.html), [plain text](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt.txt)
 * [Latest IETF RFC Draft](https://tools.ietf.org/html/draft-sharabayko-srt-00)
 * [Compare Working's Copy to IETF RFC Draft](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt.diff)
 
-### Tunnelling SRT over QUIC RFC:
+## Tunnelling SRT over QUIC RFC
 
-* Working Copy: [html](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt-over-quic.html), [txt](https://Haivision.github.io/srt-rfc/#go.draft-sharabayko-srt-over-quic.txt)
+* Working Copy: [html](https://Haivision.github.io/srt-rfc/draft-sharabayko-srt-over-quic.html), [plain text](https://Haivision.github.io/srt-rfc/draft-sharabayko-srt-over-quic.txt)
 
 ## Building the Draft
 
