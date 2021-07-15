@@ -317,4 +317,4 @@ TODO
 
 It is worth acknowledging the participation of the following people in the project discussions: Ying Yin (Google), Ian Swett (Google), Victor Vasiliev (Google), Kazuko Oku (Fastly), Marc Cymontkowski (Haivision), Jake Weissman (Facebook), Jordi Cenzano (Facebook), Alan Frindell (Facebook), Jeongseok Kim (SK Telecom), Joonwoong Kim (SK Telecom).
 
-Quicly library {{QUICLY}} by Fastly was chosen to provide a QUIC datagram transport layer for SRT over QUIC PoC. We would like to thank Kazuho Oku (Fastly) for his help with answering questions and resolving some of the library issues quickly.
+Quicly library {{QUICLY}} from Fastly was chosen to provide a QUIC datagram transport layer for SRT over QUIC PoC. We would like to thank Kazuho Oku (Fastly) for his help.
