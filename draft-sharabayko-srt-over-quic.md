@@ -75,22 +75,22 @@ informative:
 
 --- abstract
 
-This document presents an approach to tunnel SRT live streaming over QUIC datagrams.
+This document presents an approach to tunnelling SRT live streams over QUIC datagrams.
 
 QUIC {{RFC9000}} is a UDP-based transport protocol providing TLS encryption, stream multiplexing,
-connection migration. It was designed to become a faster alternative to the TCP protocol {{RFC7323}}.
+and connection migration. It was designed to become a faster alternative to the TCP protocol {{RFC7323}}.
 
 An Unreliable Datagram Extension to QUIC {{QUIC-DATAGRAM}} adds support for sending and receiving
 unreliable datagrams over a QUIC connection.
 
-SRT {{SRTRFC}} is a UDP-based transport protocol. Essentially it can operate over any unreliable datagram transport.
-SRT in live streaming configuration provides end-to-end latency-aware mechanisms for packet loss recovery.
-If SRT fails to recover a packet loss within the specified latency, then the packet is lost finally (dropped) to avoid
+SRT {{SRTRFC}} is a UDP-based transport protocol. Essentially, it can operate over any unreliable datagram transport.
+SRT in live streaming configuration provides an end-to-end latency-aware mechanisms for packet loss recovery.
+If SRT fails to recover a packet lost within a specified latency, then the packet is dropped to avoid
 blocking playback of further packets.
 
-Datagram Extension to QUIC could be used as an underlying transport instead of UDP.
-This way QUIC would provide TLS level of security, connection migration, potentially multi-path support.
-It would be easier for existing network facilities to process, route and load balance the unified QUIC traffic.
+The Datagram Extension to QUIC could be used as an underlying transport instead of UDP.
+This way QUIC would provide TLS-level security, connection migration, and potentially multi-path support.
+It would be easier for existing network facilities to process, route, and load balance the unified QUIC traffic.
 SRT on its side would provide end-to-end latency tracking and latency-aware loss recovery.
 
 --- middle
@@ -103,12 +103,12 @@ The Secure Reliable Transport (SRT) protocol {{SRTRFC}} is a connection-based tr
 that enables the secure, reliable transport of data across 
 unpredictable networks, such as the Internet. While any data type can be transferred 
 via SRT, it is ideal for low latency (sub-second) video streaming.
-SRT provides high contribution bitrates over long distance connections.
+SRT enables high contribution bitrates over long distance connections.
 
 To achieve low latency streaming, SRT addresses timing issues. The characteristics 
-of a stream from a source network can be notable changed by transmission over the public 
+of a stream from a source network can be notably changed by transmission over the public 
 Internet, introducing delays, jitter, and packet loss. This, in turn, leads to 
-problems with decoding, as the audio and video decoders do not receive packets at the 
+problems with decoding, as audio and video decoders do not receive packets at the 
 expected pace. The use of large buffers helps, but latency is increased. 
 SRT includes a mechanism to keep a constant end-to-end latency, thus recreating
 the signal characteristics on the receiver side, and reducing the need for buffering.
@@ -129,9 +129,9 @@ SRT also allows fast file transfers, and adds support for AES encryption.
 ## QUIC for Universal Transport
 
 The QUIC transport protocol {{RFC9000}} is a connection-based transport protocol built on top of UDP.
-It provides workflow similar to TCP, but for modern fast networks.
+It provides a workflow similar to that of TCP, but for modern fast networks.
 
-TODO: Fill this section. Write about lower connection times, faster delivery, ARQ, CC, etc.
+TODO: Add more details to the current section. Write about lower connection times, faster delivery, ARQ, CC, etc.
 
 # Terms and Definitions
 
@@ -145,17 +145,17 @@ SRT:
 
 # Use Cases for SRT over QUIC
 
-SRT itself is very close to QUIC and provides similar transport mechanisms.
-However, the main focus of SRT is made on low-latency live contribution and distribution.
-SRT is widely used by various broadcasters to enable low-latency streaming live events.
-It is also used in various mobile and IoT devices to get low-latency feedback and live feed.
+SRT itself is very close to QUIC, and provides similar transport mechanisms.
+However, the main focus of SRT is on low-latency live contribution and distribution.
+SRT is widely used by various broadcasters to enable low-latency streaming of live events.
+It is also used in various mobile and IoT devices to get low-latency feedback and live feeds.
 
-QUIC is supported by CDN companies. A lot of facilities know how to handle and route QUIC traffic.
+QUIC is supported by CDN companies. Many facilities know how to handle and route QUIC traffic.
 QUIC provides certain security advantages (TLS, encrypting headers so that traffic is not distinguishable).
 
-SRT tunneled over QUIC allows managing live delivery mechanisms (preserving end-to-end latency and dropping too late data).
+SRT tunnelled over QUIC allows managing live delivery mechanisms (preserving end-to-end latency and dropping "too late" data).
 
-# Tunneling SRT over QUIC
+# Tunnelling SRT over QUIC
 
 The QUIC DATAGRAM frame is structured as follows:
 
@@ -178,8 +178,8 @@ Datagram Data.
 :  The bytes of the datagram to be delivered.
 
 
-The structure of the SRT packet is shown in {{srt-packet}}. For the SRT over QUIC tunneling
-the full SRT packet is placed inside the Datagram Data.
+The structure of the SRT packet is shown in {{srt-packet}}. For SRT over QUIC tunnelling
+the full SRT packet is placed inside the Datagram Data field.
 
 ~~~
  0                   1                   2                   3
@@ -199,11 +199,11 @@ the full SRT packet is placed inside the Datagram Data.
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #srt-packet title="SRT packet structure"}
+{: #srt-packet title="SRT Packet Structure"}
 
 F: 1 bit.
-: Packet Type Flag. The control packet has this flag set to "1".
-  The data packet has this flag set to "0".
+: Packet Type Flag. A control packet has this flag set to "1".
+  A data packet has this flag set to "0".
 
 Timestamp: 32 bits.
 : The timestamp of the packet, in microseconds.
@@ -220,20 +220,20 @@ Packet Contents.
 
 ## Overhead
 
-SRT data packet has a 16 bytes header, which adds to the payload of a QUIC packet.
+An SRT data packet has a 16-byte header, which adds to the payload of a QUIC packet.
 
-For example, let us consider the payload size of 1128 bytes (six 188-byte MPEG-TS packets).
-For a 20 Mbps stream, knowing that each data packet gets additional 16 bytes overhead,
+For example, let us consider a payload size of 1128 bytes (six 188-byte MPEG-TS packets).
+For a 20 Mbps stream, knowing that each data packet gets an additional 16 bytes of overhead,
 SRT would provide an overhead of only ~280 kbits/s (or 1.4%).
 
 Increasing the size of the payload, e.g., to 1316 bytes (seven 188-byte MPEG-TS packets), SRT overhead at 20 Mbps
 would be ~240 kbits/s (or 1.2%).
 
-SRT receiver also sends full ACK packet every 10 ms. The size of the ACK packet is 44 bytes. This traffic goes in the opposite direction: from the payload receiver to the payload sender. Paylod sender responds on every ACK packet with a corresponding 16-byte ACKACK packet. This gives additional 1600 bytes per second, which may be considered negligible.
+An SRT receiver also sends a full ACK packet every 10 ms. The size of the ACK packet is 44 bytes. This traffic goes in the opposite direction: from the payload receiver to the payload sender. The payload sender responds to every ACK packet with a corresponding 16-byte ACKACK packet. This gives an additional 1600 bytes per second, which may be considered negligible.
 
 ## Packet Integrity
 
-SRT does not provide mechanisms neither to verify the integrity of packets,
+SRT does not provide mechanisms to verify the integrity of packets,
 nor to distinguish a packet from a continuous data stream.
 SRT assumes that the underlying transport protocol delivers a single and undamaged packet to SRT.
 Therefore, the underlying transport MUST provide a mechanism for SRT to send and receive
@@ -245,58 +245,57 @@ One SRT packet MUST be sent over exactly one QUIC Datagram frame.
 
 QUIC has a fast and secure crypto handshake based on TLS.
 A client connects to a server, and it can verify the server based on its certificate.
-A new client connection takes 2 RTT to be established.
+A new client connection takes two times the RTT to be established.
 If a client connects to a known server, then it can try to establish a faster 0-RTT connection.
 
 Once a QUIC connection is established, QUIC datagrams can be sent in both directions.
-SRT can use this QUIC datagram tunneling to establish one or many connections on its own.
-Each SRT connection would take 2-RTT for handshaking.
+SRT can use this QUIC datagram tunnelling to establish one or many connections on its own.
+Each SRT connection would take two times the RTT for handshaking.
 
-The first handshake round of SRT is intended to get initial response from the server,
+The first handshake round of SRT is intended to get an initial response from the server,
 identifying handshake procedure version and getting a cookie from the server (listener)
-to bear with potential DoS attacks. Apart from that, no viable data is exchanged during
-this first induction handshake phase.
+to mitigate potential DoS attacks. Apart from that, no viable data is exchanged during
+this first "induction" handshake phase.
 
-In case SRT connection is established over an established and verified QUIC connection,
-the SRT connection time could be reduced to one RTT if only conclusion handshaking phase
-is performed. However SRT does not provide it as of now, thus appropriate
+If an SRT connection is established over an established and verified QUIC connection,
+the SRT connection time could be reduced to a single RTT interval if only the "conclusion" handshaking phase
+is performed. However SRT does not currently provide this functionality, thus appropriate
 modifications are required.
 
 ## Bidirectional Transmission
 
-Both QUIC and SRT allow bidirectional transmission of the payload over a single SRT connection.
-Even with payload sent in one direction, some control packets are still sent in the opposite direction over the same connection.
+Both QUIC and SRT allow bidirectional transmission of a payload over a single SRT connection.
+Even with a payload sent in one direction, some control packets are still sent in the opposite direction over the same connection.
 
 ## Congestion Control
 
-QUIC as a transport can apply congestion control. It is worth noting, however, the specifics of live streaming compared
-to file-based transmissions. The payload is not available right away, therefore regular bandwidth probing mechanisms
-by increasing the sending rate would not work.
+QUIC as a transport mechanism can apply congestion control. It is worth noting, however, the specifics of live streaming compared
+to file-based transmissions. The payload is not available right away, therefore using regular bandwidth probing mechanisms
+to increase or decrease the sending rate would not work.
 
-The current sending rate is provided by SRT, which in terms receives the payload from a live source and can add some overhead
-when re-transmission of lost packets is performed.
+The current sending rate is provided by SRT, which in turn receives the payload from a live source and can add some overhead
+when retransmission of lost packets is performed.
 
-However, QUIC can use congestion control to detect congestion and throughput bottlenecks, and refuse sending above the certain limit.
-Then, SRT MUST handle such cases eventually dropping packets the loss of which can no longer be recovered.
+However, QUIC can use congestion control to detect congestion and throughput bottlenecks, and prevent sending above a certain limit. SRT MUST handle such cases by eventually dropping packets, which can no longer be recovered.
 
-It would make sense for a QUIC connection to provide this throughput limitation value back to SRT. In that case SRT can use the number to
+It would make sense for a QUIC connection to provide this throughput limitation value back to SRT. In that case SRT could use the number to
 make clever and transport-aware retransmission decisions.
 
 It is also possible for QUIC to not apply any congestion control, relying on SRT. However, SRT does not reduce the sending rate below the input rate.
 If the bitrate of the original stream already exceeds network throughput, SRT would still try to deliver it, maintaining congestion and
-eventually breaking SRT connection.
+eventually breaking the SRT connection.
 
 ## Pacing
 
-SRT uses ACK/ACKACK packet pair to measure RTT on the link, track latency and clock drift.
-It also uses packet pair probing to estimate connection bandwidth, although in live configuration
+SRT uses ACK/ACKACK packet pairs to measure RTT on a link, and to track latency and clock drift.
+It also uses packet pair probing to estimate connection bandwidth, although in live configurations
 it has only an informative use.
 
-Buffering and pacing SRT packet by QUIC SHOULD be done with awareness that these mechanisms of SRT would be interfered.
+Buffering and pacing SRT packets by QUIC SHOULD be done with the understanding that would interfere with the corresponding SRT mechanisms.
 
 ## Datagram vs H3 Datagram
 
-As an alternative to QUIC Datagram extension it might be possible to consider the H3 Datagram version to be compatible with more existing load balancers.
+As an alternative to using the QUIC Datagram extension, it might be possible to consider the H3 Datagram version in order to be compatible with more existing load balancers.
 
 # Security Considerations
 
