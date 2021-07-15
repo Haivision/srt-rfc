@@ -29,19 +29,6 @@ normative:
   RFC9000:
   RFC2119:
   RFC8174:
-  GHG04b:
-    title: Experiences in Design and Implementation of a High Performance Transport Protocol
-    author:
-      - 
-        name: Yunhong Gu
-      - 
-        name: Xinwei Hong
-      - 
-        name: Robert L. Grossman
-    date: December, 2004
-    seriesinfo:
-      DOI: 10.1109/SC.2004.24
-
 informative:
   SRTRFC:
     target: https://datatracker.ietf.org/doc/draft-sharabayko-srt/
@@ -69,11 +56,6 @@ informative:
         name: E. Kinnear
       -
         name: D. Schinazi
-  
-  SRTSRC:
-    target: https://github.com/Haivision/srt
-    title: SRT fully functional reference implementation
-    date: none
 
   QUICLY:
     target: https://github.com/h2o/quicly
