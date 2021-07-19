@@ -3295,3 +3295,7 @@ The next example specifies that the file is expected to be transmitted from the 
 - Changed the workgroup from "MOPS" to "Network Working Group".
 - Changed the intended status of the document from "Standards Track" to "Informational".
 - Overall corrections throughout the document: fixed lists, punctuation, etc.
+
+## Since Version 00 Network Working Group
+
+- Message Drop Request control packet: added note about possible zero-valued message number.
