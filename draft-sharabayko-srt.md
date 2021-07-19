@@ -1225,16 +1225,21 @@ ACKACK control packets do not contain Control Information Field (CIF).
 ### Message Drop Request {#ctrl-pkt-dropreq}
 
 A Message Drop Request control packet is sent by the sender to the receiver
-when it requests the retransmission of an unacknowledged packet (all or part
-of a message) which is not present in the sender's buffer. This may happen, for
-example, when a TTL parameter (passed in the sending function) triggers a
-timeout for retransmitting lost packets which constitute parts of a message, causing
+when a retransmission of an unacknowledged packet (forming a whole or a part
+of a message) which is not present in the sender's buffer is requested.
+This may happen, for example, when a TTL parameter (passed in the sending function) triggers a
+timeout for retransmitting one or more lost packets which constitute parts of a message, causing
 these packets to be removed from the sender's buffer.
 
 The sender notifies the receiver that it must not wait for retransmission of this
 message. Note that a Message Drop Request control packet is not sent if the
 Too Late Packet Drop mechanism ({{too-late-packet-drop}}) causes the sender
 to drop a message, as in this case the receiver is expected to drop it anyway.
+
+A Message Drop Request contains the message number and corresponding range of packet sequence numbers
+which form the whole message. If the sender does not already have in its buffer the specific packet or packets for 
+which retransmission was requested, then it is unable to restore the message number. In this case the Message 
+Number field must be set to zero, and the receiver should drop packets in the provided packet sequence number range.
 
 ~~~
  0                   1                   2                   3
@@ -3290,3 +3295,7 @@ The next example specifies that the file is expected to be transmitted from the 
 - Changed the workgroup from "MOPS" to "Network Working Group".
 - Changed the intended status of the document from "Standards Track" to "Informational".
 - Overall corrections throughout the document: fixed lists, punctuation, etc.
+
+## Since Version 00 Network Working Group
+
+- Message Drop Request control packet: added note about possible zero-valued message number.
