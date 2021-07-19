@@ -1225,9 +1225,9 @@ ACKACK control packets do not contain Control Information Field (CIF).
 ### Message Drop Request {#ctrl-pkt-dropreq}
 
 A Message Drop Request control packet is sent by the sender to the receiver
-when it requests the retransmission of an unacknowledged packet (all or part
-of a message) which is not present in the sender's buffer. This may happen, for
-example, when a TTL parameter (passed in the sending function) triggers a
+when a retransmission of an unacknowledged packet (forming a whole or a part
+of a message) which is not present in the sender's buffer was requested.
+This may happen, for example, when a TTL parameter (passed in the sending function) triggers a
 timeout for retransmitting lost packets which constitute parts of a message, causing
 these packets to be removed from the sender's buffer.
 
@@ -1235,6 +1235,11 @@ The sender notifies the receiver that it must not wait for retransmission of thi
 message. Note that a Message Drop Request control packet is not sent if the
 Too Late Packet Drop mechanism ({{too-late-packet-drop}}) causes the sender
 to drop a message, as in this case the receiver is expected to drop it anyway.
+
+A Message Drop Request contains message number and corresponding range of packet sequence numbers
+which form the whole message. If sender does not (already) have a certain packet in its buffer,
+then it is unable to restore the message number. In this case the  Message Number field
+must be set to zero, and receiver should drop packets in the provided packet sequence numbers range.
 
 ~~~
  0                   1                   2                   3
