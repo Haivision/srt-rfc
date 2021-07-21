@@ -265,7 +265,8 @@ to increase or decrease the sending rate would not work.
 The current sending rate is provided by SRT, which in turn receives the payload from a live source and can add some overhead
 when retransmission of lost packets is performed.
 
-However, QUIC can use congestion control to detect congestion and throughput bottlenecks, and prevent sending above a certain limit. SRT MUST handle such cases by eventually dropping packets, which can no longer be recovered.
+However, QUIC can use congestion control to detect congestion and throughput bottlenecks, and prevent sending above a certain limit.
+SRT MUST handle such cases by eventually dropping packets, which can no longer be recovered.
 
 It would make sense for a QUIC connection to provide this throughput limitation value back to SRT. In that case SRT could use the number to
 make clever and transport-aware retransmission decisions.
@@ -274,13 +275,24 @@ It is also possible for QUIC to not apply any congestion control, relying on SRT
 If the bitrate of the original stream already exceeds network throughput, SRT would still try to deliver it, maintaining congestion and
 eventually breaking the SRT connection.
 
+It is worth mentioning that in a live streaming scenario it may be beneficial to move congestion control mechanisms outside of the protocol 
+towards the encoder (payload producer), implementing a network adaptive encoding based on the telemetry provided 
+by the SRT and QUIC protocols.
+
 ## Pacing
 
 SRT uses ACK/ACKACK packet pairs to measure RTT on a link, and to track latency and clock drift.
 It also uses packet pair probing to estimate connection bandwidth, although in live configurations
-it has only an informative use.
+such estimates are informative only.
 
-Buffering and pacing SRT packets by QUIC SHOULD be done with the understanding that would interfere with the corresponding SRT mechanisms.
+Buffering and pacing of SRT packets by QUIC SHOULD be done with the understanding that this would interfere with the corresponding SRT mechanisms.
+Alternatively, SRT may implement a pacer on top of QUIC’s congestion control and probing mechanisms to abstract the complexity associated with live streaming use cases.
+
+## Connection Mitigation
+
+QUIC utilizes Connection UUID to distinguish between connections (compared to the IP:Port scheme used by UDP and TCP).
+This enables already established connections to be handed over seamlessly across network interfaces without requiring a new handshake/negotiation.
+SRT may expand on this to enable network bonded delivery workflows to switch between optimal transports without a latency hit.
 
 ## Datagram vs H3 Datagram
 
@@ -297,6 +309,7 @@ TODO
 # Acknowledgments
 {:numbered="false"}
 
-It is worth acknowledging the participation of the following people in the project discussions: Ying Yin (Google), Ian Swett (Google), Victor Vasiliev (Google), Kazuko Oku (Fastly), Marc Cymontkowski (Haivision), Jake Weissman (Facebook), Jordi Cenzano (Facebook), Alan Frindell (Facebook), Jeongseok Kim (SK Telecom), Joonwoong Kim (SK Telecom).
+It is worth acknowledging the participation of the following people in the project discussions: Ying Yin (Google), Ian Swett (Google), Victor Vasiliev (Google), Kazuko Oku (Fastly),
+Marc Cymontkowski (Haivision), Nikos Kyriopoulos (Haivision), Jake Weissman (Facebook), Jordi Cenzano (Facebook), Alan Frindell (Facebook), Jeongseok Kim (SK Telecom), Joonwoong Kim (SK Telecom).
 
 Quicly library {{QUICLY}} from Fastly was chosen to provide a QUIC datagram transport layer for SRT over QUIC PoC. We would like to thank Kazuho Oku (Fastly) for his help.
