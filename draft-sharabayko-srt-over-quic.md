@@ -283,7 +283,7 @@ by the SRT and QUIC protocols.
 
 SRT uses ACK/ACKACK packet pairs to measure RTT on a link, and to track latency and clock drift.
 It also uses packet pair probing to estimate connection bandwidth, although in live configurations
-it has only an informative use.
+such estimates are informative only.
 
 Buffering and pacing of SRT packets by QUIC SHOULD be done with the understanding that this would interfere with the corresponding SRT mechanisms.
 Alternatively, SRT may implement a pacer on top of QUIC’s congestion control and probing mechanisms to abstract the complexity associated with live streaming use cases.
