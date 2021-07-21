@@ -275,8 +275,9 @@ It is also possible for QUIC to not apply any congestion control, relying on SRT
 If the bitrate of the original stream already exceeds network throughput, SRT would still try to deliver it, maintaining congestion and
 eventually breaking the SRT connection.
 
-It is worth mentioning that, in live streaming scenario it may be beneficial to move congestion control mechanisms outside of the protocol towards the encoder (payload producer),
-implementing a network adaptive encoding based on the telemetry provided by SRT and QUIC protocols.
+It is worth mentioning that in a live streaming scenario it may be beneficial to move congestion control mechanisms outside of the protocol 
+towards the encoder (payload producer), implementing a network adaptive encoding based on the telemetry provided 
+by the SRT and QUIC protocols.
 
 ## Pacing
 
@@ -284,12 +285,12 @@ SRT uses ACK/ACKACK packet pairs to measure RTT on a link, and to track latency 
 It also uses packet pair probing to estimate connection bandwidth, although in live configurations
 it has only an informative use.
 
-Buffering and pacing SRT packets by QUIC SHOULD be done with the understanding that would interfere with the corresponding SRT mechanisms.
-Alternatively, SRT may implement a pacer on top of QUIC’s congestion control and probing provisions in order to abstract the complexity for the live streaming use cases.
+Buffering and pacing of SRT packets by QUIC SHOULD be done with the understanding that this would interfere with the corresponding SRT mechanisms.
+Alternatively, SRT may implement a pacer on top of QUIC’s congestion control and probing mechanisms to abstract the complexity associated with live streaming use cases.
 
 ## Connection Mitigation
 
-QUIC utilizes Connection UUID in order to distinguish between connections (compared to the IP:Port scheme used by UDP and TCP).
+QUIC utilizes Connection UUID to distinguish between connections (compared to the IP:Port scheme used by UDP and TCP).
 This enables already established connections to be handed over seamlessly across network interfaces without requiring a new handshake/negotiation.
 SRT may expand on this to enable network bonded delivery workflows to switch between optimal transports without a latency hit.
 
