@@ -70,12 +70,12 @@ QUIC {{RFC9000}} is a UDP-based transport protocol providing TLS encryption, str
 and connection migration. It was designed to become a faster alternative to the TCP protocol {{RFC7323}}.
 
 An Unreliable Datagram Extension to QUIC {{QUIC-DATAGRAM}} adds support for sending and receiving
-unreliable datagrams over a QUIC connection, but transits the responsibility of multiplexing different kinds
-of datagrams, or flows of datagrams to an application protocol.
+unreliable datagrams over a QUIC connection, but transfers the responsibility for multiplexing different kinds
+of datagrams, or flows of datagrams, to an application protocol.
 
 SRT {{SRTRFC}} is a UDP-based transport protocol. Essentially, it can operate over any unreliable datagram transport.
-SRT provides loss recovery, stream multiplexing mechanisms.
-In live streaming configuration SRT provides an end-to-end latency-aware mechanisms for packet loss recovery.
+SRT provides loss recovery and stream multiplexing mechanisms.
+In its live streaming configuration SRT provides an end-to-end latency-aware mechanism for packet loss recovery.
 If SRT fails to recover a packet loss within a specified latency, then the packet is dropped to avoid
 blocking playback of further packets.
 
@@ -110,7 +110,7 @@ as listener or caller to initiate a connection.
 
 The SRT protocol provides an internal multiplexing mechanism, allowing multiple SRT connections
 to share the same UDP port, providing access control functionality to identify the caller on the listener side.
-It is exactly what QUIC DATAGRAM wants to be a responsibility of the application protocol.
+This mechanism is exactly what QUIC DATAGRAM describes as a responsibility of the application protocol.
 
 Supporting forward error correction (FEC) and selective packet retransmission (ARQ), 
 SRT provides the flexibility to use either of the two mechanisms or both combined, 
