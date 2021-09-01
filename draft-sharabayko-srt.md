@@ -459,7 +459,7 @@ The value "0x7FFF" is reserved for a user-defined type.
 | PEERERROR          |  0x0008      |   0x0   | {{ctrl-pkt-peer-error}}    |
 | User-Defined Type  |  0x7FFF      |    -    | N/A                        |
 | ------------------ | ------------ | ------- | -------------------------- |
-{: #srt-ctrl-pkt-type-table title="SRT Control Packet Types"}
+{: #srt-ctrl-pkt-type-table title="SRT control packet types"}
 
 ### Handshake {#ctrl-pkt-handshake}
 
@@ -514,13 +514,13 @@ Encryption Field: 16 bits.
 : Block cipher family and key size. The values of this field are
   described in {{handshake-encr-fld}}. The default value is AES-128.
 
- | Value | Cipher family and key size |
+ | Value | Cipher Family and Key Size |
  | ----- | :--------------------------: |
  |     0 | No Encryption Advertised     |
  |     2 | AES-128                      |
  |     3 | AES-192                      |
  |     4 | AES-256                      |
-{: #handshake-encr-fld title="Handshake Encryption Field Values"}
+{: #handshake-encr-fld title="Handshake Encryption Field values"}
 
 Extension Field: 16 bits.
 : This field is message specific extension related to Handshake Type field.
@@ -556,7 +556,7 @@ Handshake Type: 32 bits.
   The possible values are described in {{handshake-type}}.
   For more details refer to {{handshake-messages}}.
 
-| Value      | Handshake type               |
+| Value      | Handshake Type               |
 | ---------- | :--------------------------: |
 | 0xFFFFFFFD | DONE                         |
 | 0xFFFFFFFE | AGREEMENT                    |
@@ -1016,8 +1016,8 @@ Last Acknowledged Packet Sequence Number: 32 bits.
   In other words, if it the sequence number of the first unacknowledged packet.
 
 RTT: 32 bits.
-: RTT value, in microseconds, estimated by the receiver based on the previous ACK-ACKACK
-packet exchange.
+: RTT value, in microseconds, estimated by the receiver based on the previous ACK/ACKACK
+packet pair exchange.
 
 RTT Variance: 32 bits.
 : The variance of the RTT estimate, in microseconds.
@@ -1050,7 +1050,7 @@ received data packets more often than every 10 ms. This is usually needed at hig
 It is up to the receiver to decide the condition and the type of ACK packet to send (Light or Small).
 The recommendation is to send a Light ACK for every 64 packets received.
 
-### NAK (Loss Report) {#ctrl-pkt-nak}
+### NAK (Negative Acknowledgement or Loss Report) {#ctrl-pkt-nak}
 
 Negative acknowledgment (NAK) control packets are used to signal failed data packet 
 deliveries. The receiver notifies the sender about lost data packets by sending a NAK 
@@ -1182,12 +1182,12 @@ Type-specific Information.
 
 Shutdown control packets do not contain Control Information Field (CIF).
 
-### ACKACK {#ctrl-pkt-ackack}
+### ACKACK (Acknowledgement of Acknowledgement) {#ctrl-pkt-ackack}
 
-ACKACK control packets are sent to acknowledge the reception of a Full ACK, and are used 
-in the calculation of RTT by the receiver.
+Acknowledgement of Acknowledgement (ACKACK) control packets are sent to acknowledge the reception of a Full ACK and used 
+in the calculation of the round-trip time by the SRT receiver.
 
-An SRT ACKACK Control packet is formatted as follows:
+An SRT ACKACK control packet is formatted as follows:
 
 ~~~
  0                   1                   2                   3
@@ -2445,7 +2445,7 @@ On the receiver side, when a loss report is sent, the sending interval of
 periodic NAK reports ({{packet-naks}}) is updated as follows:
 
 ~~~
-NAKInterval = min((RTT + 4 * RTTVar) / 2, 20000)
+NAKInterval = max((RTT + 4 * RTTVar) / 2, 20000)
 ~~~
 
 where RTT and RTTVar are receiver's estimates (see {{ctrl-pkt-ack}},
@@ -3034,6 +3034,8 @@ The default SRT data transmission mode for continuous live streaming is message 
 
 - Live Congestion Control (LiveCC) ({{liveCC}}) must be used.
 
+- Periodic NAK reports ({{packet-naks}}) must be enabled.
+
 - The Order Flag ({{data-pkt}}) needs special attention. In the case
   of live streaming, it is set to 0 allowing out of order
   delivery of a packet. However, in this use case the Order Flag has to be ignored
@@ -3120,7 +3122,7 @@ This document makes no requests of the IANA.
 # Contributors
 {:numbered="false"}
 
-This specification is heavily based on the SRT Protocol Technical Overview {{SRTTO}}
+This specification is based on the SRT Protocol Technical Overview {{SRTTO}}
 written by Jean Dube and Steve Matthews.
 
 In alphabetical order, the contributors to the pre-IETF SRT project and
@@ -3131,9 +3133,12 @@ Maxim Sharabayko, Adam Yellen.
 The contributors to this specification at SK Telecom
 are Jeongseok Kim and Joonwoong Kim.
 
+It is worth acknowledging also the contribution
+of the following people in this document: Justus Rogmann.
+
 We cannot list all the contributors to the open-sourced implementation of SRT on GitHub.
 But we appreciate the help, contribution, integrations and feedback of the
-SRT and SRT Alliances community.
+SRT and SRT Alliance community.
 
 # Acknowledgments
 {:numbered="false"}
@@ -3273,7 +3278,7 @@ The next example specifies that the file is expected to be transmitted from the 
 
 # Changelog
 
-## Since Version 00
+## Since draft-sharabayko-mops-srt-00
 
 - Improved and extended the description of "Encryption" section.
 - Improved and extended the description of "Round-Trip Time Estimation" section.
@@ -3285,7 +3290,7 @@ The next example specifies that the file is expected to be transmitted from the 
 - Fixed broken links.
 - Extended the list of references.
 
-## Since Version 01
+## Since draft-sharabayko-mops-srt-01
 
 - Extended "Congestion Control" section with the detailed description of SRT packet pacing for both live streaming and file transmission cases.
 - Improved "Group Membership Extension" section.
@@ -3296,6 +3301,11 @@ The next example specifies that the file is expected to be transmitted from the 
 - Changed the intended status of the document from "Standards Track" to "Informational".
 - Overall corrections throughout the document: fixed lists, punctuation, etc.
 
-## Since Version 00 Network Working Group
+## Since draft-sharabayko-srt-00
 
 - Message Drop Request control packet: added note about possible zero-valued message number.
+- Corrected an error in the formula for NAKInterval: changed min to max.
+- Added a note in "Best Practices and Configuration Tips for Data Transmission via SRT" section that Periodic NAK reports must be enabled in the case of live streaming.
+
+
+- Overall corrections throughout the document: fixed lists, punctuation, etc.
