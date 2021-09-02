@@ -1,7 +1,7 @@
 ---
 title: The SRT Protocol
 abbrev: SRT
-docname: draft-sharabayko-mops-srt-00
+docname: draft-sharabayko-srt-01
 category: info
 
 ipr: trust200902
@@ -1473,7 +1473,7 @@ connection. See the list of error codes in {{hs-rej-reason}}.
 | 1013 | REJ_CONGESTION   | incompatible congestion-controller type |
 | 1014 | REJ_FILTER       | incompatible packet filter              |
 | 1015 | REJ_GROUP        | incompatible group                      |
-{: #hs-rej-reason title="Handshake Rejection Reason Codes"}
+{: #hs-rej-reason title="Handshake Rejection Reason codes"}
 
 The specification of the cipher family and block size is decided by the data Sender.
 When the transmission is bidirectional, this value MUST be agreed upon at the outset
@@ -1878,7 +1878,7 @@ State         |           |              |                   |
               ----------------------------------------------------->
                                                                 Time
 ~~~
-{: #fig-latency-points title="Key Latency Points during the Packet Transmission"}
+{: #fig-latency-points title="Key latency points during the packet transmission"}
 
 The main packet states shown in {{fig-latency-points}} are the following:
 
@@ -1966,20 +1966,18 @@ have no chance to be delivered in time, and allows the receiver to skip missing 
 that have not been delivered in time. The timeout of dropping a packet is based on the 
 TSBPD mechanism ({{tsbpd}}).
 
-With TLPKTDROP is enabled, when a packet timestamp is older than TLPKTDROP_THRESHOLD,
-the packet is considered "Too-Late" to be delivered. Thus, the sender might need to drop
-the packet.
+When TLPKTDROP mechanism is enabled, a packet is considered "too late" to be
+delivered and may be dropped by the sender if the packet timestamp is older than
+TLPKTDROP_THRESHOLD.
 
-TLPKTDROP_THRESHOLD: a marginal value that defines a limit for when a packet is considered
-to be delivered in time. 
-: The value is related to SRT Latency ({{srt-latency}}). For an efficient packet drop mechanism,
-  it is recommended that a higher value than the latency be used. This will allow the receiver
-  to drop the packet first so that the sender drops the packet only when no proper response is
-  received from the peer (due to severe congestion, for example). When considering RTT, it is
-  recommended that the threshold value be 1.25 times the SRT Latency value.
+TLPKTDROP_THRESHOLD is related to the SRT latency ({{srt-latency}}). For an effective functioning of
+the Too-Late Packet Drop mechanism, it is recommended that a higher value than the SRT latency is used.
+This will allow the SRT receiver to drop missing packets first while the sender drops packets if
+only no proper response is received from the peer in time (e.g., due to severe congestion).
+The recommended threshold value is 1.25 times the SRT latency value.
 
-Note that the sender keeps packets for at least 1 second in case the
-SRT latency is not enough for a large RTT (that is, if TLPKTDROP_THRESHOLD is less 
+Note that the SRT sender keeps packets for at least 1 second in case the
+latency is not enough for a large RTT (that is, if TLPKTDROP_THRESHOLD is less 
 than 1 second).
 
 When enabled on the receiver, the receiver drops packets that have not been delivered 
@@ -2015,19 +2013,19 @@ the following:
 
 where T_NOW is the current time according to the receiver clock.
 
+When a receiver encounters the situation where the next packet to be played was not
+successfully received from the sender, the receiver will "skip" this packet
+and send a fake ACK packet ({{packet-acks}}). To the sender, this fake ACK is a real ACK,
+and so it just behaves as if the packet had been received.
+This facilitates the synchronization between SRT sender and receiver. The fact that a packet was
+skipped remains unknown by the sender. It is recommended that skipped packets are recorded
+in the statistics on the SRT receiver.
+
 The TLPKTDROP mechanism can be turned off to always ensure a clean
 delivery. However, a lost packet can simply pause a delivery for some
 longer, potentially undefined time, and cause even worse tearing
 for the player. Setting higher SRT latency will help much more in the
 case when TLPKTDROP causes packet drops too often.
-
-When a receiver encounters the situation where the next packet to be played was not
-successfully received from the sender, the receiver will "skip" the packet
-and send a fake ACK. To the sender, this fake ACK is a real ACK ({{packet-acks}}), 
-and so it just behaves as if the packet had been received.
-This facilitates the synchronization between SRT sender and receiver. The fact that a packet was
-skipped remains unknown by the sender. It is recommended that skipped packets are recorded
-in the statistics on the SRT receiver.
 
 ## Drift Management {#drift-management}
 
@@ -2130,6 +2128,12 @@ received that the ACK position on the sender does not advance quickly enough. To
 after 64 packets (even if the ACK period has not fully elapsed) the receiver sends a light ACK.
 A light ACK is a shorter ACK (SRT header  and one 32-bit field). It does not trigger an ACKACK.
 
+When a receiver encounters the situation where the next packet to be played was not
+successfully received from the sender, it will "skip" this packet (see {{too-late-packet-drop}})
+and send a fake ACK. To the sender, this fake ACK is a real ACK, and so it just behaves as if the packet had been received.
+This facilitates the synchronization between SRT sender and receiver. The fact that a packet was
+skipped remains unknown by the sender. Skipped packets are recorded in the statistics on the
+SRT receiver.
 
 ### Packet Retransmission (NAKs) {#packet-naks}
 
@@ -3204,21 +3208,24 @@ all SRT users speak the same language. The intent of the convention is to:
 ## General Syntax
 
 This recommended syntax starts with the characters known as an executable specification in POSIX: `#!`.
-The first following character is `:` that marks the YAML format.
-As the content format, key-value pair or nesting block can be presented.
+
+The next character defines the format used for the following key-value pair syntax.
+At the moment, there is only one supported syntax identified by `:` and described below.
+
+Everything that comes after syntax identifier is further referenced as the content of Stream ID.
+
+The content starts with `:` or `{` character identifying the its format:
 
 `:`
-: the comma-separated keys with no nesting
+: a comma-separated key-value pairs with no nesting,
 
 `{`
-: a nested block that can have one or more key-value pairs, but it must end with `}`
-
-Note that nesting means multiple level brace-enclosed parts are allowed.
+: a nested block with one or several key-value pairs that must end with `}` character. Nesting means that multiple level brace-enclosed parts are allowed.
 
 The form of the key-value pair is
 
 ~~~
-key1=value1,key2=value2...
+key1=value1,key2=value2,...
 ~~~
 
 ## Standard Keys
@@ -3262,7 +3269,7 @@ and is therefore required to know what the caller is attempting to do.
 
 ## Examples
 
-The example content of the StreamID is the following:
+The example content of the Stream ID is the following:
 
 ~~~
 #!::u=admin,r=bluesbrothers1_hi
@@ -3306,6 +3313,7 @@ The next example specifies that the file is expected to be transmitted from the 
 - Message Drop Request control packet: added note about possible zero-valued message number.
 - Corrected an error in the formula for NAKInterval: changed min to max.
 - Added a note in "Best Practices and Configuration Tips for Data Transmission via SRT" section that Periodic NAK reports must be enabled in the case of live streaming.
-
-
-- Overall corrections throughout the document: fixed lists, punctuation, etc.
+- Introduces the value of TLPKTDROP_THRESHOLD for Too-Late Packet Drop mechanism.
+- Improved the description of general syntax for SRT Access Control.
+- Updated the list of contributors.
+- Overall corrections throughout the document.
