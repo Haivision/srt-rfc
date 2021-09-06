@@ -1966,18 +1966,16 @@ have no chance to be delivered in time, and allows the receiver to skip missing 
 that have not been delivered in time. The timeout of dropping a packet is based on the 
 TSBPD mechanism ({{tsbpd}}).
 
-When TLPKTDROP mechanism is enabled, a packet is considered "too late" to be
+When the TLPKTDROP mechanism is enabled, a packet is considered "too late" to be
 delivered and may be dropped by the sender if the packet timestamp is older than
 TLPKTDROP_THRESHOLD.
 
-TLPKTDROP_THRESHOLD is related to the SRT latency ({{srt-latency}}). For an effective functioning of
-the Too-Late Packet Drop mechanism, it is recommended that a higher value than the SRT latency is used.
-This will allow the SRT receiver to drop missing packets first while the sender drops packets if
-only no proper response is received from the peer in time (e.g., due to severe congestion).
+TLPKTDROP_THRESHOLD is related to SRT latency ({{srt-latency}}). For the Too-Late Packet Drop mechanism to function effectively, it is recommended that a value higher than the SRT latency is used.
+This will allow the SRT receiver to drop missing packets first while the sender drops packets if a proper response is not received from the peer in time (e.g., due to severe congestion).
 The recommended threshold value is 1.25 times the SRT latency value.
 
 Note that the SRT sender keeps packets for at least 1 second in case the
-latency is not enough for a large RTT (that is, if TLPKTDROP_THRESHOLD is less 
+latency is not high enough for a large RTT (that is, if TLPKTDROP_THRESHOLD is less 
 than 1 second).
 
 When enabled on the receiver, the receiver drops packets that have not been delivered 
@@ -2024,8 +2022,7 @@ in the statistics on the SRT receiver.
 The TLPKTDROP mechanism can be turned off to always ensure a clean
 delivery. However, a lost packet can simply pause a delivery for some
 longer, potentially undefined time, and cause even worse tearing
-for the player. Setting higher SRT latency will help much more in the
-case when TLPKTDROP causes packet drops too often.
+for the player. Setting SRT latency higher will help much more in the event that TLPKTDROP causes packet drops too often.
 
 ## Drift Management {#drift-management}
 
@@ -3212,15 +3209,15 @@ This recommended syntax starts with the characters known as an executable specif
 The next character defines the format used for the following key-value pair syntax.
 At the moment, there is only one supported syntax identified by `:` and described below.
 
-Everything that comes after syntax identifier is further referenced as the content of Stream ID.
+Everything that comes after a syntax identifier is further referenced as the content of the Stream ID.
 
-The content starts with `:` or `{` character identifying the its format:
+The content starts with a `:` or `{` character identifying its format:
 
 `:`
-: a comma-separated key-value pairs with no nesting,
+: comma-separated key-value pairs with no nesting,
 
 `{`
-: a nested block with one or several key-value pairs that must end with `}` character. Nesting means that multiple level brace-enclosed parts are allowed.
+: a nested block with one or several key-value pairs that must end with a `}` character. Nesting means that multiple level brace-enclosed parts are allowed.
 
 The form of the key-value pair is
 
