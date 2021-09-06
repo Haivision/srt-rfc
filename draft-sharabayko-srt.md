@@ -1,7 +1,7 @@
 ---
 title: The SRT Protocol
 abbrev: SRT
-docname: draft-sharabayko-mops-srt-00
+docname: draft-sharabayko-srt-01
 category: info
 
 ipr: trust200902
@@ -459,7 +459,7 @@ The value "0x7FFF" is reserved for a user-defined type.
 | PEERERROR          |  0x0008      |   0x0   | {{ctrl-pkt-peer-error}}    |
 | User-Defined Type  |  0x7FFF      |    -    | N/A                        |
 | ------------------ | ------------ | ------- | -------------------------- |
-{: #srt-ctrl-pkt-type-table title="SRT Control Packet Types"}
+{: #srt-ctrl-pkt-type-table title="SRT control packet types"}
 
 ### Handshake {#ctrl-pkt-handshake}
 
@@ -514,13 +514,13 @@ Encryption Field: 16 bits.
 : Block cipher family and key size. The values of this field are
   described in {{handshake-encr-fld}}. The default value is AES-128.
 
- | Value | Cipher family and key size |
+ | Value | Cipher Family and Key Size |
  | ----- | :--------------------------: |
  |     0 | No Encryption Advertised     |
  |     2 | AES-128                      |
  |     3 | AES-192                      |
  |     4 | AES-256                      |
-{: #handshake-encr-fld title="Handshake Encryption Field Values"}
+{: #handshake-encr-fld title="Handshake Encryption Field values"}
 
 Extension Field: 16 bits.
 : This field is message specific extension related to Handshake Type field.
@@ -556,7 +556,7 @@ Handshake Type: 32 bits.
   The possible values are described in {{handshake-type}}.
   For more details refer to {{handshake-messages}}.
 
-| Value      | Handshake type               |
+| Value      | Handshake Type               |
 | ---------- | :--------------------------: |
 | 0xFFFFFFFD | DONE                         |
 | 0xFFFFFFFE | AGREEMENT                    |
@@ -1016,8 +1016,8 @@ Last Acknowledged Packet Sequence Number: 32 bits.
   In other words, if it the sequence number of the first unacknowledged packet.
 
 RTT: 32 bits.
-: RTT value, in microseconds, estimated by the receiver based on the previous ACK-ACKACK
-packet exchange.
+: RTT value, in microseconds, estimated by the receiver based on the previous ACK/ACKACK
+packet pair exchange.
 
 RTT Variance: 32 bits.
 : The variance of the RTT estimate, in microseconds.
@@ -1050,7 +1050,7 @@ received data packets more often than every 10 ms. This is usually needed at hig
 It is up to the receiver to decide the condition and the type of ACK packet to send (Light or Small).
 The recommendation is to send a Light ACK for every 64 packets received.
 
-### NAK (Loss Report) {#ctrl-pkt-nak}
+### NAK (Negative Acknowledgement or Loss Report) {#ctrl-pkt-nak}
 
 Negative acknowledgment (NAK) control packets are used to signal failed data packet 
 deliveries. The receiver notifies the sender about lost data packets by sending a NAK 
@@ -1182,12 +1182,12 @@ Type-specific Information.
 
 Shutdown control packets do not contain Control Information Field (CIF).
 
-### ACKACK {#ctrl-pkt-ackack}
+### ACKACK (Acknowledgement of Acknowledgement) {#ctrl-pkt-ackack}
 
-ACKACK control packets are sent to acknowledge the reception of a Full ACK, and are used 
-in the calculation of RTT by the receiver.
+Acknowledgement of Acknowledgement (ACKACK) control packets are sent to acknowledge the reception of a Full ACK and used 
+in the calculation of the round-trip time by the SRT receiver.
 
-An SRT ACKACK Control packet is formatted as follows:
+An SRT ACKACK control packet is formatted as follows:
 
 ~~~
  0                   1                   2                   3
@@ -1473,7 +1473,7 @@ connection. See the list of error codes in {{hs-rej-reason}}.
 | 1013 | REJ_CONGESTION   | incompatible congestion-controller type |
 | 1014 | REJ_FILTER       | incompatible packet filter              |
 | 1015 | REJ_GROUP        | incompatible group                      |
-{: #hs-rej-reason title="Handshake Rejection Reason Codes"}
+{: #hs-rej-reason title="Handshake Rejection Reason codes"}
 
 The specification of the cipher family and block size is decided by the data Sender.
 When the transmission is bidirectional, this value MUST be agreed upon at the outset
@@ -1878,7 +1878,7 @@ State         |           |              |                   |
               ----------------------------------------------------->
                                                                 Time
 ~~~
-{: #fig-latency-points title="Key Latency Points during the Packet Transmission"}
+{: #fig-latency-points title="Key latency points during the packet transmission"}
 
 The main packet states shown in {{fig-latency-points}} are the following:
 
@@ -1966,20 +1966,16 @@ have no chance to be delivered in time, and allows the receiver to skip missing 
 that have not been delivered in time. The timeout of dropping a packet is based on the 
 TSBPD mechanism ({{tsbpd}}).
 
-With TLPKTDROP is enabled, when a packet timestamp is older than TLPKTDROP_THRESHOLD,
-the packet is considered "Too-Late" to be delivered. Thus, the sender might need to drop
-the packet.
+When the TLPKTDROP mechanism is enabled, a packet is considered "too late" to be
+delivered and may be dropped by the sender if the packet timestamp is older than
+TLPKTDROP_THRESHOLD.
 
-TLPKTDROP_THRESHOLD: a marginal value that defines a limit for when a packet is considered
-to be delivered in time. 
-: The value is related to SRT Latency ({{srt-latency}}). For an efficient packet drop mechanism,
-  it is recommended that a higher value than the latency be used. This will allow the receiver
-  to drop the packet first so that the sender drops the packet only when no proper response is
-  received from the peer (due to severe congestion, for example). When considering RTT, it is
-  recommended that the threshold value be 1.25 times the SRT Latency value.
+TLPKTDROP_THRESHOLD is related to SRT latency ({{srt-latency}}). For the Too-Late Packet Drop mechanism to function effectively, it is recommended that a value higher than the SRT latency is used.
+This will allow the SRT receiver to drop missing packets first while the sender drops packets if a proper response is not received from the peer in time (e.g., due to severe congestion).
+The recommended threshold value is 1.25 times the SRT latency value.
 
-Note that the sender keeps packets for at least 1 second in case the
-SRT latency is not enough for a large RTT (that is, if TLPKTDROP_THRESHOLD is less 
+Note that the SRT sender keeps packets for at least 1 second in case the
+latency is not high enough for a large RTT (that is, if TLPKTDROP_THRESHOLD is less 
 than 1 second).
 
 When enabled on the receiver, the receiver drops packets that have not been delivered 
@@ -2015,19 +2011,18 @@ the following:
 
 where T_NOW is the current time according to the receiver clock.
 
-The TLPKTDROP mechanism can be turned off to always ensure a clean
-delivery. However, a lost packet can simply pause a delivery for some
-longer, potentially undefined time, and cause even worse tearing
-for the player. Setting higher SRT latency will help much more in the
-case when TLPKTDROP causes packet drops too often.
-
 When a receiver encounters the situation where the next packet to be played was not
-successfully received from the sender, the receiver will "skip" the packet
-and send a fake ACK. To the sender, this fake ACK is a real ACK ({{packet-acks}}), 
+successfully received from the sender, the receiver will "skip" this packet
+and send a fake ACK packet ({{packet-acks}}). To the sender, this fake ACK is a real ACK,
 and so it just behaves as if the packet had been received.
 This facilitates the synchronization between SRT sender and receiver. The fact that a packet was
 skipped remains unknown by the sender. It is recommended that skipped packets are recorded
 in the statistics on the SRT receiver.
+
+The TLPKTDROP mechanism can be turned off to always ensure a clean
+delivery. However, a lost packet can simply pause a delivery for some
+longer, potentially undefined time, and cause even worse tearing
+for the player. Setting SRT latency higher will help much more in the event that TLPKTDROP causes packet drops too often.
 
 ## Drift Management {#drift-management}
 
@@ -2130,6 +2125,12 @@ received that the ACK position on the sender does not advance quickly enough. To
 after 64 packets (even if the ACK period has not fully elapsed) the receiver sends a light ACK.
 A light ACK is a shorter ACK (SRT header  and one 32-bit field). It does not trigger an ACKACK.
 
+When a receiver encounters the situation where the next packet to be played was not
+successfully received from the sender, it will "skip" this packet (see {{too-late-packet-drop}})
+and send a fake ACK. To the sender, this fake ACK is a real ACK, and so it just behaves as if the packet had been received.
+This facilitates the synchronization between SRT sender and receiver. The fact that a packet was
+skipped remains unknown by the sender. Skipped packets are recorded in the statistics on the
+SRT receiver.
 
 ### Packet Retransmission (NAKs) {#packet-naks}
 
@@ -2445,7 +2446,7 @@ On the receiver side, when a loss report is sent, the sending interval of
 periodic NAK reports ({{packet-naks}}) is updated as follows:
 
 ~~~
-NAKInterval = min((RTT + 4 * RTTVar) / 2, 20000)
+NAKInterval = max((RTT + 4 * RTTVar) / 2, 20000)
 ~~~
 
 where RTT and RTTVar are receiver's estimates (see {{ctrl-pkt-ack}},
@@ -3034,6 +3035,8 @@ The default SRT data transmission mode for continuous live streaming is message 
 
 - Live Congestion Control (LiveCC) ({{liveCC}}) must be used.
 
+- Periodic NAK reports ({{packet-naks}}) must be enabled.
+
 - The Order Flag ({{data-pkt}}) needs special attention. In the case
   of live streaming, it is set to 0 allowing out of order
   delivery of a packet. However, in this use case the Order Flag has to be ignored
@@ -3120,7 +3123,7 @@ This document makes no requests of the IANA.
 # Contributors
 {:numbered="false"}
 
-This specification is heavily based on the SRT Protocol Technical Overview {{SRTTO}}
+This specification is based on the SRT Protocol Technical Overview {{SRTTO}}
 written by Jean Dube and Steve Matthews.
 
 In alphabetical order, the contributors to the pre-IETF SRT project and
@@ -3131,9 +3134,12 @@ Maxim Sharabayko, Adam Yellen.
 The contributors to this specification at SK Telecom
 are Jeongseok Kim and Joonwoong Kim.
 
+It is worth acknowledging also the contribution
+of the following people in this document: Justus Rogmann.
+
 We cannot list all the contributors to the open-sourced implementation of SRT on GitHub.
 But we appreciate the help, contribution, integrations and feedback of the
-SRT and SRT Alliances community.
+SRT and SRT Alliance community.
 
 # Acknowledgments
 {:numbered="false"}
@@ -3199,21 +3205,24 @@ all SRT users speak the same language. The intent of the convention is to:
 ## General Syntax
 
 This recommended syntax starts with the characters known as an executable specification in POSIX: `#!`.
-The first following character is `:` that marks the YAML format.
-As the content format, key-value pair or nesting block can be presented.
+
+The next character defines the format used for the following key-value pair syntax.
+At the moment, there is only one supported syntax identified by `:` and described below.
+
+Everything that comes after a syntax identifier is further referenced as the content of the Stream ID.
+
+The content starts with a `:` or `{` character identifying its format:
 
 `:`
-: the comma-separated keys with no nesting
+: comma-separated key-value pairs with no nesting,
 
 `{`
-: a nested block that can have one or more key-value pairs, but it must end with `}`
-
-Note that nesting means multiple level brace-enclosed parts are allowed.
+: a nested block with one or several key-value pairs that must end with a `}` character. Nesting means that multiple level brace-enclosed parts are allowed.
 
 The form of the key-value pair is
 
 ~~~
-key1=value1,key2=value2...
+key1=value1,key2=value2,...
 ~~~
 
 ## Standard Keys
@@ -3257,7 +3266,7 @@ and is therefore required to know what the caller is attempting to do.
 
 ## Examples
 
-The example content of the StreamID is the following:
+The example content of the Stream ID is the following:
 
 ~~~
 #!::u=admin,r=bluesbrothers1_hi
@@ -3273,7 +3282,7 @@ The next example specifies that the file is expected to be transmitted from the 
 
 # Changelog
 
-## Since Version 00
+## Since draft-sharabayko-mops-srt-00
 
 - Improved and extended the description of "Encryption" section.
 - Improved and extended the description of "Round-Trip Time Estimation" section.
@@ -3285,7 +3294,7 @@ The next example specifies that the file is expected to be transmitted from the 
 - Fixed broken links.
 - Extended the list of references.
 
-## Since Version 01
+## Since draft-sharabayko-mops-srt-01
 
 - Extended "Congestion Control" section with the detailed description of SRT packet pacing for both live streaming and file transmission cases.
 - Improved "Group Membership Extension" section.
@@ -3296,6 +3305,12 @@ The next example specifies that the file is expected to be transmitted from the 
 - Changed the intended status of the document from "Standards Track" to "Informational".
 - Overall corrections throughout the document: fixed lists, punctuation, etc.
 
-## Since Version 00 Network Working Group
+## Since draft-sharabayko-srt-00
 
 - Message Drop Request control packet: added note about possible zero-valued message number.
+- Corrected an error in the formula for NAKInterval: changed min to max.
+- Added a note in "Best Practices and Configuration Tips for Data Transmission via SRT" section that Periodic NAK reports must be enabled in the case of live streaming.
+- Introduces the value of TLPKTDROP_THRESHOLD for Too-Late Packet Drop mechanism.
+- Improved the description of general syntax for SRT Access Control.
+- Updated the list of contributors.
+- Overall corrections throughout the document.
