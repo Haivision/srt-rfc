@@ -71,6 +71,7 @@ informative:
   RFC6528:
   RFC8312:
   RFC4987:
+  RFC9000:
   GuAnAO:
     title: An Analysis of AIMD Algorithm with Decreasing Increases
     author:
@@ -137,7 +138,6 @@ informative:
     seriesinfo:
       "ISO/IEC": 13818-1
   I-D.ietf-quic-http:
-  I-D.ietf-quic-transport:
   H.265:
     title: "H.265 : High efficiency video coding"
     author:
@@ -210,7 +210,7 @@ VP9 {{VP9}}, or AV1 {{AV1}}.
 Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee acceptable
 reliability over connections with low RTTs, and can not use the bandwidth of network
 connections to their full extent due to limitations imposed by congestion control.
-Notably, QUIC {{I-D.ietf-quic-transport}} has been designed to address these problems with HTTP-based delivery
+Notably, QUIC {{RFC9000}} has been designed to address these problems with HTTP-based delivery
 protocols in HTTP/3 {{I-D.ietf-quic-http}}. Like QUIC, SRT {{SRTSRC}} uses UDP instead of the TCP transport protocol,
 but assures more reliable delivery using Automatic Repeat Request (ARQ), packet acknowledgments,
 end-to-end latency management, etc.
