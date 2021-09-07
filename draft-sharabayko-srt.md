@@ -3310,7 +3310,7 @@ The next example specifies that the file is expected to be transmitted from the 
 - Message Drop Request control packet: added note about possible zero-valued message number.
 - Corrected an error in the formula for NAKInterval: changed min to max.
 - Added a note in "Best Practices and Configuration Tips for Data Transmission via SRT" section that Periodic NAK reports must be enabled in the case of live streaming.
-- Introduces the value of TLPKTDROP_THRESHOLD for Too-Late Packet Drop mechanism.
+- Introduced the value of TLPKTDROP_THRESHOLD for Too-Late Packet Drop mechanism.
 - Improved the description of general syntax for SRT Access Control.
 - Updated the list of contributors.
 - Overall corrections throughout the document.
