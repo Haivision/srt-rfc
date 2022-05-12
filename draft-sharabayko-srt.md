@@ -1391,9 +1391,11 @@ portions of any size.
 
 ## Handshake Messages {#handshake-messages}
 
+SRT uses UDP system protocol as an underlying connectionless transport protocol.
 SRT is a connection-oriented protocol. It embraces the concepts of "connection"
-and "session". The UDP system protocol is used by SRT for sending data
-and control packets.
+and "session". Every SRT session starts with the connection phase, where
+peers exchange configuration parameters and relevant information by the means of
+SRT handshake control packets.
 
 An SRT connection is characterized by the fact that it is:
 
@@ -1401,11 +1403,11 @@ An SRT connection is characterized by the fact that it is:
 
 - maintained as long as any packets are being exchanged in a timely manner, and
 
-- considered closed when a party receives the appropriate close command from
+- considered closed when a party receives the appropriate SHUTDOWN command from
   its peer (connection closed by the foreign host), or when it receives no
   packets at all for some predefined time (connection broken on timeout).
 
-SRT supports two connection configurations:
+SRT supports two connection modes:
 
 1. Caller-Listener, where one side waits for the other to initiate a connection;
 2. Rendezvous, where both sides attempt to initiate a connection.
@@ -1440,14 +1442,14 @@ indicates the handshake message type.
 
 Caller-Listener handshake exchange has the following order of Handshake Types:
 
-1. Caller to Listener: INDUCTION
-2. Listener to Caller: INDUCTION (reports cookie)
-3. Caller to Listener: CONCLUSION (uses previously returned cookie)
-4. Listener to Caller: CONCLUSION (confirms connection established).
+1. Caller to Listener: INDUCTION Request
+2. Listener to Caller: INDUCTION Response (reports cookie)
+3. Caller to Listener: CONCLUSION Request (uses previously returned cookie)
+4. Listener to Caller: CONCLUSION Response (confirms connection established).
 
 Rendezvous handshake exchange has the following order of Handshake Types:
 
-1. After starting the connection: WAVEAHAND
+1. Both peers after starting the connection: WAVEAHAND with a cookie.
 2. After receiving the above message from the peer: CONCLUSION
 3. After receiving the above message from the peer: AGREEMENT.
 
@@ -1583,7 +1585,7 @@ whereas Version 5 clients can detect version 5.
 The parties only continue with the Version 5 Rendezvous process when Version is set to 5
 for both. Otherwise the process continues exclusively according to Version 4 rules {{GHG04b}}.
 
-With Version 5 Rendezvous, both parties create a cookie for a process called the
+With SRT Handshake Version 5 Rendezvous, both parties create a cookie for a process called the
 "cookie contest". This is necessary for the assignment of Initiator and Responder
 roles. Each party generates a cookie value (a 32-bit number) based on the host,
 port, and current time with 1 minute accuracy. This value is scrambled using
@@ -1601,6 +1603,34 @@ the cookies will always be identical, and so the connection will never be establ
 
 When one party's cookie value is greater than its peer's, it wins the cookie
 contest and becomes Initiator (the other party becomes the Responder).
+
+The intent is to let the side with the greater cookie value become the Initiator
+(the other party becomes the Responder). However, with a special handling
+of the higher bit of the difference.
+
+    <CODE BEGINS>
+    enum ContestResult
+    {
+      DRAW,
+      RESPONDER,
+      INITIATOR
+    };
+
+    ContestResult CookieContest(int32_t host, int32_t peer)
+    {
+      // peer - Requestor-side (peer) cookie value.
+      // host - Responder-side (host) cookie value.
+      int64_t contest = int64_t(peer) - int64_t(host);
+
+      if ((contest & 0xFFFFFFFF) == 0)
+        return DRAW;
+
+      if (contest & 0x80000000)
+        return RESPONDER;
+
+      return INITIATOR;
+    }
+    <CODE ENDS>
 
 At this point there are two possible "handshake flows":
 serial and parallel.
