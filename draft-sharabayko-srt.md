@@ -3344,3 +3344,7 @@ The next example specifies that the file is expected to be transmitted from the 
 - Improved the description of general syntax for SRT Access Control.
 - Updated the list of contributors.
 - Overall corrections throughout the document.
+
+## Since draft-sharabayko-srt-01
+
+- Improved the cookie contest description in the Renzezvous connection mode.
