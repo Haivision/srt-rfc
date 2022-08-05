@@ -842,8 +842,10 @@ Key Encryption Key Index (KEKI): 32 bits, value = {0}.
 Cipher: 8 bits, value = {0..2}.
 : This is a fixed-width field for specifying encryption cipher and mode:
 
-  - 0: None or KEKI indexed crypto context
-  - 2: AES-CTR {{SP800-38A}}.
+  - 0: None or KEKI indexed crypto context;
+  - 1: AES-ECB (Reserved, not supported);
+  - 2: AES-CTR {{SP800-38A}}
+  - 3: AES-CBC (Reserved, not supported).
 
 Authentication (Auth): 8 bits, value = {0}.
 : This is a fixed-width field for specifying a message authentication code algorithm:
