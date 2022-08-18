@@ -679,7 +679,7 @@ For more details refer to {{handshake-messages}}.
 
 The KM message is placed in the Extension Contents. See {{sec-ctrlpkt-km}} for the structure of the KM message.
 
-In case of the SRT_CMD_KMRSP the Extension Length value can be equal to 1 (meaning 4 bytes).
+In case of SRT_CMD_KMRSP the Extension Length value can be equal to 1 (meaning 4 bytes).
 It is an indication of encryption failure. In this case the Extension Content has a different format, {{fig-hsext-kmerror}}.
 
 ~~~
@@ -694,12 +694,14 @@ It is an indication of encryption failure. In this case the Extension Content ha
 KM State: 32 bits.
 : Key Material State of the peer:
 
+NOTE: In the descriptions below, "peer" refers to the remote SRT side sending the KM response, and "agent" refers to the local side interpreting the KM response.
+
 - 0: unsecured (the peer will encrypt the payload, while the agent has not declared any encryption),
-- 3: no secret (the peer does not have a key to decrypt the incoming payload),
-- 4: bad secret (the peer has a wrong key and can't decrypt the incoming payload),
+- 3: no secret (the peer does not have the key to decrypt the incoming payload),
+- 4: bad secret (the peer has the wrong key and can't decrypt the incoming payload),
 - 5: bad crypto mode (the peer expects to use a different cryptographic mode). Since protocol v1.6.
 
-Here "peer" indicates the remove SRT side sending the KM response, and "agent" means the local side interpreting the KM response.
+
 
 #### Stream ID Extension Message {#sec-hsext-streamid}
 
