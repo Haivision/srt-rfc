@@ -580,16 +580,16 @@ Extension Type: 16 bits.
 : The value of this field is used to process an integrated handshake.
   Each extension can have a pair of request and response types.
 
-| Value   | Extension Type       | HS Extension Flag |
-| ------- | :------------------: | :---------------: |
-|       1 | SRT_CMD_HSREQ        | HSREQ             |
-|       2 | SRT_CMD_HSRSP        | HSREQ             |
-|       3 | SRT_CMD_KMREQ        | KMREQ             |
-|       4 | SRT_CMD_KMRSP        | KMREQ             |
-|       5 | SRT_CMD_SID          | CONFIG            |
-|       6 | SRT_CMD_CONGESTION   | CONFIG            |
-|       7 | SRT_CMD_FILTER       | CONFIG            |
-|       8 | SRT_CMD_GROUP        | CONFIG            |
+| Value   | Extension Type       | HS Extension Flag | Section                     |
+| ------- | :------------------: | :---------------: | --------------------------- |
+|       1 | SRT_CMD_HSREQ        | HSREQ             | {{handshake-extension-msg}} |
+|       2 | SRT_CMD_HSRSP        | HSREQ             | {{handshake-extension-msg}} |
+|       3 | SRT_CMD_KMREQ        | KMREQ             | {{sec-hsext-km}}            |
+|       4 | SRT_CMD_KMRSP        | KMREQ             | {{sec-hsext-km}}            |
+|       5 | SRT_CMD_SID          | CONFIG            | {{sec-hsext-streamid}}      |
+|       6 | SRT_CMD_CONGESTION   | CONFIG            | {{sec-hsext-streamid}}      |
+|       7 | SRT_CMD_FILTER       | CONFIG            |                             |
+|       8 | SRT_CMD_GROUP        | CONFIG            | {{sec-hsext-group}}         |
 {: #handshake-ext-type title="Handshake Extension Type values"}
 
 Extension Length: 16 bits.
@@ -674,10 +674,34 @@ The purpose of the extension is to let peers exchange and negotiate encryption-r
 to be used to encrypt and decrypt the payload of the stream.
 
 The extension can be supplied with the Handshake Extension Type field set
-to either SRT_CMD_KMREQ or SRT_CMD_HSRSP (see {{handshake-ext-type}} in {{ctrl-pkt-handshake}}).
+to either SRT_CMD_KMREQ or SRT_CMD_KMRSP (see {{handshake-ext-type}} in {{ctrl-pkt-handshake}}).
 For more details refer to {{handshake-messages}}.
 
 The KM message is placed in the Extension Contents. See {{sec-ctrlpkt-km}} for the structure of the KM message.
+
+In case of SRT_CMD_KMRSP the Extension Length value can be equal to 1 (meaning 4 bytes).
+It is an indication of encryption failure. In this case the Extension Content has a different format, {{fig-hsext-kmerror}}.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           KM State                            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #fig-hsext-kmerror title="KM Response Error"}
+
+KM State: 32 bits.
+: Key Material State of the peer:
+
+NOTE: In the descriptions below, "peer" refers to the remote SRT side sending the KM response, and "agent" refers to the local side interpreting the KM response.
+
+- 0: unsecured (the peer will encrypt the payload, while the agent has not declared any encryption),
+- 3: no secret (the peer does not have the key to decrypt the incoming payload),
+- 4: bad secret (the peer has the wrong key and can't decrypt the incoming payload),
+- 5: bad crypto mode (the peer expects to use a different cryptographic mode). Since protocol v1.6.
+
+
 
 #### Stream ID Extension Message {#sec-hsext-streamid}
 
@@ -708,7 +732,7 @@ four byte blocks. If the actual payload is less than the declared length, the re
 
 The content is stored as 32-bit little endian words.
 
-#### Group Membership Extension
+#### Group Membership Extension {#sec-hsext-group}
 
 The Group Membership handshake extension is reserved for the future and is
 going to be used to allow multipath SRT connections.
@@ -1477,6 +1501,7 @@ connection. See the list of error codes in {{hs-rej-reason}}.
 | 1013 | REJ_CONGESTION   | incompatible congestion-controller type |
 | 1014 | REJ_FILTER       | incompatible packet filter              |
 | 1015 | REJ_GROUP        | incompatible group                      |
+| 1015 | REJ_CRYPTO       | incompatible cryptographic mode         |
 {: #hs-rej-reason title="Handshake Rejection Reason codes"}
 
 The specification of the cipher family and block size is decided by the data Sender.
@@ -3349,4 +3374,5 @@ The next example specifies that the file is expected to be transmitted from the 
 
 ## Since draft-sharabayko-srt-01
 
-- Improved the cookie contest description in the Renzezvous connection mode.
+- Improved the cookie contest description in the Rendezvous connection mode.
+- Described the key material negotiation error during the handshake.
