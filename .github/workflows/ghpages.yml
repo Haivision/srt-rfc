@@ -39,7 +39,7 @@ jobs:
         restore-keys: i-d-
 
     - name: "Build Drafts"
-      uses: martinthomson/i-d-template@v1
+      uses: martinthomson/i-d-template@main
       with:
         token: ${{ github.token }}
 
