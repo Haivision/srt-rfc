@@ -868,13 +868,19 @@ Cipher: 8 bits, value = {0..2}.
 
   - 0: None or KEKI indexed crypto context;
   - 1: AES-ECB (Reserved, not supported);
-  - 2: AES-CTR {{SP800-38A}}
-  - 3: AES-CBC (Reserved, not supported).
+  - 2: AES-CTR {{SP800-38A}};
+  - 3: AES-CBC (Reserved, not supported);
+  - 4: AES-GCM (Galois Counter Mode), starting from v1.6.0.
+
+If AES-GCM is set as the cipher, AES-GCM MUST also be set as the message authentication code algorithm (the Auth field).
 
 Authentication (Auth): 8 bits, value = {0}.
-: This is a fixed-width field for specifying a message authentication code algorithm:
+: This is a fixed-width field for specifying a message authentication code (MAC) algorithm:
 
-  - 0: None or KEKI indexed crypto context.
+  - 0: None or KEKI indexed crypto context;
+  - 1: AES-GCM, starting from v1.6.0.
+
+If AES-GCM is selected as the MAC algorithm, it MUST also be selected as the cipher.
 
 Stream Encapsulation (SE): 8 bits, value = {2}.
 : This is a fixed-width field for describing the stream encapsulation:
@@ -3377,3 +3383,4 @@ The next example specifies that the file is expected to be transmitted from the 
 
 - Improved the cookie contest description in the Rendezvous connection mode.
 - Described the key material negotiation error during the handshake.
+- Added AES-GCM mode to the key material message (SRT v1.6.0).
