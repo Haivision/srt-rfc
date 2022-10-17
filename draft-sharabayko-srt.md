@@ -1501,7 +1501,8 @@ connection. See the list of error codes in {{hs-rej-reason}}.
 | 1013 | REJ_CONGESTION   | incompatible congestion-controller type |
 | 1014 | REJ_FILTER       | incompatible packet filter              |
 | 1015 | REJ_GROUP        | incompatible group                      |
-| 1015 | REJ_CRYPTO       | incompatible cryptographic mode         |
+| 1016 | REJ_TIMEOUT      | timeout expired                         |
+| 1017 | REJ_CRYPTO       | incompatible cryptographic mode         |
 {: #hs-rej-reason title="Handshake Rejection Reason codes"}
 
 The specification of the cipher family and block size is decided by the data Sender.
