@@ -315,7 +315,7 @@ The structure of the SRT packet is shown in {{srtpacket}}.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                  Destination SRT Socket ID                    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
 +                        Packet Contents                        |
@@ -335,7 +335,7 @@ Timestamp: 32 bits.
   Depending on the transmission mode ({{data-transmission-modes}}),
   the field stores the packet send time or the packet origin time.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : A fixed-width field providing the SRT socket ID to which a packet should be dispatched.
   The field may have the special value "0" when the packet is a connection request.
 
@@ -353,7 +353,7 @@ The structure of the SRT data packet is shown in {{srtdatapacket}}.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                  Destination SRT Socket ID                    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
 +                              Data                             +
@@ -392,7 +392,7 @@ Message Number: 26 bits.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 Data: variable length.
@@ -413,7 +413,7 @@ An SRT control packet has the following structure.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                  Destination SRT Socket ID                    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+- CIF -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
 +                   Control Information Field                   +
@@ -437,7 +437,7 @@ Type-specific Information: 32 bits.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 Control Information Field (CIF): variable length.
@@ -474,7 +474,7 @@ in {{handshake-packet-structure}}.
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                            Version                            |
+|                          HS Version                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |        Encryption Field       |        Extension Field        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -507,18 +507,19 @@ in {{handshake-packet-structure}}.
 ~~~
 {: #handshake-packet-structure title="Handshake packet structure"}
 
-Version: 32 bits.
-: A base protocol version number. Currently used values are 4 and 5.
+HS Version: 32 bits.
+: The handshake version number. Currently used values are 4 and 5.
   Values greater than 5 are reserved for future use.
 
 Encryption Field: 16 bits.
 : Block cipher family and key size. The values of this field are
-  described in {{handshake-encr-fld}}. The default value is AES-128.
+  described in {{handshake-encr-fld}}. The default value is 0 - no encryption advertised.
+  If both peers do not advertise encryption, AES-128 is selected by default (see {{handshake-messages}}).
 
- | Value | Cipher Family and Key Size |
+ | Value | Cipher Family and Key Size   |
  | ----- | :--------------------------: |
  |     0 | No Encryption Advertised     |
- |     2 | AES-128                      |
+ |     2 | AES-128 *                    |
  |     3 | AES-192                      |
  |     4 | AES-256                      |
 {: #handshake-encr-fld title="Handshake Encryption Field values"}
@@ -826,10 +827,10 @@ The structure of the Key Material message is illustrated in {{fig-km-msg}}.
 S: 1 bit, value = {0}.
 : This is a fixed-width field that is reserved for future usage.
 
-Version (V): 3 bits, value = {1}.
-: This is a fixed-width field that indicates the SRT version:
+KM Version (V): 3 bits, value = {1}.
+: This is a fixed-width field that indicates the KM message version:
 
-  - 1: Initial version.
+  - 1: Initial KM message format version.
 
 Packet Type (PT): 4 bits, value = {2}.
 : This is a fixed-width field that indicates the Packet Type:
@@ -960,7 +961,7 @@ An SRT keep-alive packet is formatted as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                   Destination SRT Socket ID                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~~
 {: #keepalive-structure title="Keep-Alive control packet"}
@@ -980,7 +981,7 @@ Type-specific Information.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 Keep-alive controls packet do not contain Control Information Field (CIF).
@@ -1007,7 +1008,7 @@ expanded as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                   Destination SRT Socket ID                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+- CIF -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Last Acknowledged Packet Sequence Number           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1041,7 +1042,7 @@ Acknowledgement Number: 32 bits.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 Last Acknowledged Packet Sequence Number: 32 bits.
@@ -1101,7 +1102,7 @@ An SRT NAK packet is formatted as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                   Destination SRT Socket ID                   |
 +-+-+-+-+-+-+-+-+-+-+-+- CIF (Loss List) -+-+-+-+-+-+-+-+-+-+-+-+
 |0|                 Lost packet sequence number                 |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1129,7 +1130,7 @@ Type-specific Information: 32 bits.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 Control Information Field (CIF).
@@ -1157,7 +1158,7 @@ Note that the conditions for a receiver to issue this type of packet are not yet
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                   Destination SRT Socket ID                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #congestion-warning-control-packet title="Congestion Warning control packet"}
@@ -1171,7 +1172,7 @@ Control Type: 15 bits, value = 4.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 Type-specific Information.
@@ -1193,7 +1194,7 @@ An SRT shutdown control packet is formatted as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                   Destination SRT Socket ID                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #shutdown-control-packet title="Shutdown control packet"}
@@ -1207,7 +1208,7 @@ Control Type: 15 bits, value = SHUTDOWN{0x0005}.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 Type-specific Information.
@@ -1232,7 +1233,7 @@ An SRT ACKACK control packet is formatted as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                   Destination SRT Socket ID                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #ackack-control-packet title="ACKACK control packet"}
@@ -1250,7 +1251,7 @@ Acknowledgement Number.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 ACKACK control packets do not contain Control Information Field (CIF).
@@ -1284,7 +1285,7 @@ Number field must be set to zero, and the receiver should drop packets in the pr
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                   Destination SRT Socket ID                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                 First Packet Sequence Number                  |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1306,7 +1307,7 @@ Message Number: 32 bits.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 First Packet Sequence Number: 32 bits.
@@ -1335,7 +1336,7 @@ The sender receiving this type of control packet must unblock any sending operat
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                           Timestamp                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Destination Socket ID                     |
+|                   Destination SRT Socket ID                   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #peer-error-control-packet title="Peer Error control packet"}
@@ -1352,7 +1353,7 @@ Error Code: 32 bits.
 Timestamp: 32 bits.
 : See {{packet-structure}}.
 
-Destination Socket ID: 32 bits.
+Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 # SRT Data Transmission and Control
@@ -1373,7 +1374,7 @@ received to this UDP socket will be correctly dispatched to those
 SRT sockets they are currently destined.
 
 During the handshake, the parties exchange their SRT Socket IDs.
-These IDs are then used in the Destination Socket ID field of
+These IDs are then used in the Destination SRT Socket ID field of
 every control and data packet (see {{packet-structure}}).
 
 ## Data Transmission Modes {#data-transmission-modes}
@@ -1424,11 +1425,16 @@ portions of any size.
 
 ## Handshake Messages {#handshake-messages}
 
-SRT uses UDP system protocol as an underlying connectionless transport protocol.
+SRT uses UDP as an underlying connectionless transport protocol.
 SRT is a connection-oriented protocol. It embraces the concepts of "connection"
 and "session". Every SRT session starts with the connection phase, where
 peers exchange configuration parameters and relevant information by the means of
 SRT handshake control packets.
+
+SRT versions prior to v1.3.0 uses the version 4 of the handshaking procedure.
+Starting from SRT v1.3.0 the HS version 5 is used.
+The HS v4 is not described in this specification.
+SRT implementations MUST support HS version 5, but MAY not support HS v4.
 
 An SRT connection is characterized by the fact that it is:
 
@@ -1490,26 +1496,26 @@ When a connection process has failed before either party can send the CONCLUSION
 the Handshake Type field will contain the appropriate error value for the rejected
 connection. See the list of error codes in {{hs-rej-reason}}.
 
-| Code | Error            | Description                             |
-| ---- | ---------------- | --------------------------------------- |
-| 1000 | REJ_UNKNOWN      | Unknown reason                          |
-| 1001 | REJ_SYSTEM       | System function error                   |
-| 1002 | REJ_PEER         | Rejected by peer                        |
-| 1003 | REJ_RESOURCE     | Resource allocation problem             |
-| 1004 | REJ_ROGUE        | incorrect data in handshake             |
-| 1005 | REJ_BACKLOG      | listener's backlog exceeded             |
-| 1006 | REJ_IPE          | internal program error                  |
-| 1007 | REJ_CLOSE        | socket is closing                       |
-| 1008 | REJ_VERSION      | peer is older version than agent's min  |
-| 1009 | REJ_RDVCOOKIE    | rendezvous cookie collision             |
-| 1010 | REJ_BADSECRET    | wrong password                          |
-| 1011 | REJ_UNSECURE     | password required or unexpected         |
-| 1012 | REJ_MESSAGEAPI   | Stream flag collision                   |
-| 1013 | REJ_CONGESTION   | incompatible congestion-controller type |
-| 1014 | REJ_FILTER       | incompatible packet filter              |
-| 1015 | REJ_GROUP        | incompatible group                      |
-| 1016 | REJ_TIMEOUT      | timeout expired                         |
-| 1017 | REJ_CRYPTO       | incompatible cryptographic mode         |
+| Code | Error                | Description                             |
+| ---- | -------------------- | --------------------------------------- |
+| 1000 | SRT_REJ_UNKNOWN      | Unknown reason                          |
+| 1001 | SRT_REJ_SYSTEM       | System function error                   |
+| 1002 | SRT_REJ_PEER         | Rejected by peer                        |
+| 1003 | SRT_REJ_RESOURCE     | Resource allocation problem             |
+| 1004 | SRT_REJ_ROGUE        | incorrect data in handshake             |
+| 1005 | SRT_REJ_BACKLOG      | listener's backlog exceeded             |
+| 1006 | SRT_REJ_IPE          | internal program error                  |
+| 1007 | SRT_REJ_CLOSE        | socket is closing                       |
+| 1008 | SRT_REJ_VERSION      | peer is older version than agent's min  |
+| 1009 | SRT_REJ_RDVCOOKIE    | rendezvous cookie collision             |
+| 1010 | SRT_REJ_BADSECRET    | wrong password                          |
+| 1011 | SRT_REJ_UNSECURE     | password required or unexpected         |
+| 1012 | SRT_REJ_MESSAGEAPI   | Stream flag collision                   |
+| 1013 | SRT_REJ_CONGESTION   | incompatible congestion-controller type |
+| 1014 | SRT_REJ_FILTER       | incompatible packet filter              |
+| 1015 | SRT_REJ_GROUP        | incompatible group                      |
+| 1016 | SRT_REJ_TIMEOUT      | timeout expired                         |
+| 1017 | SRT_REJ_CRYPTO       | incompatible cryptographic mode         |
 {: #hs-rej-reason title="Handshake Rejection Reason codes"}
 
 The specification of the cipher family and block size is decided by the data Sender.
@@ -1531,82 +1537,127 @@ The INDUCTION phase serves only to set a cookie on the Listener so that it
 doesn't allocate resources, thus mitigating a potential DoS attack that might be
 perpetrated by flooding the Listener with handshake commands.
 
+##### The Induction Request
+
 The Caller begins by sending the INDUCTION handshake which contains the following
 significant fields:
 
-- Version: MUST always be 4
-- Encryption Field: 0
+- Destination SRT Socket ID: 0.
+- HS Version: MUST always be 4.
+- Encryption Field: 0.
 - Extension Field: 2
 - Handshake Type: INDUCTION
 - SRT Socket ID: SRT Socket ID of the Caller
 - SYN Cookie: 0.
+- There MUST be no HS extensions.
 
-The Destination Socket ID of the SRT packet header in this message is 0, which is
+The Destination SRT Socket ID of the SRT packet header in this message is 0, which is
 interpreted as a connection request.
 
 The handshake version number is set to 4 in this initial handshake.
 This is due to the initial design of SRT that was to be compliant with the UDT
 protocol {{GHG04b}} on which it is based.
 
+##### The Induction Response
+
 The Listener responds with the following:
 
-- Version: 5
-- Encryption Field: Advertised cipher family and block size
-- Extension Field: SRT magic code 0x4A17
+- HS Version: 5.
+- Encryption Field: Advertised cipher family and block size.
+- Extension Field: SRT magic code 0x4A17.
 - Handshake Type: INDUCTION
 - SRT Socket ID: Socket ID of the Listener
 - SYN Cookie: a cookie that is crafted based on host, port and current time
   with 1 minute accuracy to avoid SYN flooding attack {{RFC4987}}.
+- There MUST be no HS extensions.
 
 At this point the Listener still does not know if the Caller is SRT or UDT,
 and it responds with the same set of values regardless of whether the Caller is
 SRT or UDT.
 
-If the party is SRT, it does interpret the values in Version and Extension Field.
-If it receives the value 5 in Version, it understands that it comes from an SRT
-party, so it knows that it should prepare the proper handshake messages
-phase. It also checks the following:
-
-- whether the Extension Flags contains the magic value 0x4A17; otherwise the
-  connection is rejected. This is a contingency for the case where someone who,
-  in an attempt to extend UDT independently, increases the Version value to 5
-  and tries to test it against SRT;
-
-- whether the Encryption Flags contain a non-zero
-  value, which is interpreted as an advertised cipher family and block size.
-
-A legacy UDT party completely ignores the values reported in Version and Handshake Type.
-It is, however, interested in the SYN Cookie value, as this must be passed to the next
+A legacy UDT party completely ignores the values reported in the HS Version and the Handshake Type field.  
+It is, however, interested in the SYN Cookie value, as this must be passed to the next 
 phase. It does interpret these fields, but only in the "conclusion" message.
 
 #### The Conclusion Phase
 
-Once the Caller gets the SYN cookie from the Listener, it sends the CONCLUSION handshake
-to the Listener.
+##### The Conclusion Request
 
-The following values are set by the compliant Caller:
+The SRT caller receives the Induction Response from the SRT listener. The SRT caller MUST check the Induction response from the SRT listener.
 
-- Version: 5
-- Handshake Type: CONCLUSION
-- SRT Socket ID: Socket ID of the Caller
-- SYN Cookie: the cookie previously received in the induction phase
-- Encryption Flags: advertised cipher family and block size
-- Extension Flags: a set of flags that define the extensions provided in the handshake
-- The Destination Socket ID in this message is the socket ID that was previously received in the induction phase in the SRT Socket ID field
-of the handshake structure.
+If the HS Version value is 5, the response came from SRT, and the handshake version 5 procedure is performed
+as covered further. 
+If the HS Version value is 4, the legacy handshake procedure can be applied if supported. The procedure is deprecated and is not covered here.
+The caller MAY reject the connection with the `SRT_REJ_VERSION` reason. In this case there is nothing to send to the SRT listener, as there is no
+connection established at this point.
+
+The Extension Flags field MUST contain the magic value 0x4A17. If it does not, the
+connection MUST be rejected with rejection reason `SRT_REJ_ROGUE`. This is, among other things,
+a contingency for the case when someone, in an attempt to extend UDT independently, increases the HS Version value to 5
+and tries to test it against SRT. In this case there is nothing to send to the SRT listener, as there is no
+connection established at this point.
+
+If the Encryption Flag field is set to 0 - not advertised, the caller MAY advertise its own cipher and key length.
+If the induction response already advertises a certain value in the Encryption Flag, the caller MAY accept it or force its own value.
+It is RECOMMENDED that if a caller is to be sending the content, then it SHOULD force its own value. If it expects to receive a content from the
+SRT listener, then is it RECOMMENDED that it accepts the value advertised in the Encryption Flag field.
+
+An alternative behavior MAY be for a caller to take the longer key length in such case.
+
+~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          SRT Version                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           SRT Flags                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      Receiver TSBPD Delay     |       Sender TSBPD Delay      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #handshake-extension-msg-structure title="Handshake Extension Message structure"}
+
+A legacy UDT party completely ignores the values reported in Version and Handshake Type.  
+It is, however, interested in the SYN Cookie value, as this must be passed to the next 
+phase. It does interpret these fields, but only in the "conclusion" message.
+
+
+TODO: Receiver TSBPD Delay,  Sender TSBPD Delay.
+
+The SRT Caller forms a Conclusion Request. The following values of a Handshake packet MUST be set by the compliant Caller:
+
+- Destination SRT Socket ID: 0.
+- HS Version: 5.
+- Handshake Type: CONCLUSION.
+- SRT Socket ID: Socket ID of the Caller.
+- SYN Cookie: the listener's cookie from the induction response.
+- Encryption Flags: advertised cipher family and block size.
+- Extension Flags: a set of flags that define the extensions provided in the handshake.
 
 The Listener responds with the same values shown above, without the cookie (which
 is not needed here), as well as the extensions for HS Version 5 (which will probably be
 exactly the same).
 
-There is not any "negotiation" here. If the values passed in the
-handshake are in any way not acceptable by the other side, the connection will
-be rejected. The only case when the Listener can have precedence over the Caller
+##### The Conclusion Response
+
+The SRT listener receives the Conclusion Request.
+If the values of the conclusion request are in any way not acceptable by the SRT listener side, the connection MUST
+be rejected by sending a Conclusion Response with the Handshake Type field carrying the rejection reason {{hs-rej-reason}}.
+
+TODO: latency value.
+
+TODO: Incorrect?
+The only case when the Listener can have precedence over the Caller
 is the advertised Cipher Family and Block Size (see {{handshake-encr-fld}})
 in the Encryption Field of the Handshake.
 
 The value for latency is always agreed to be the greater of those reported
 by each party.
+
+- Destination SRT Socket ID: the SRT Socket ID field value of the previously received conclusion request.
+
+
+There is no "negotiation" at this point. 
 
 ### Rendezvous Handshake
 
