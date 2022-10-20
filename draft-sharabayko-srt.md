@@ -1633,6 +1633,7 @@ The SRT Caller forms a Conclusion Request. The following values of a Handshake p
 - SYN Cookie: the listener's cookie from the induction response.
 - Encryption Flags: advertised cipher family and block size.
 - Extension Flags: a set of flags that define the extensions provided in the handshake.
+- The Handshake Extension Message {{handshake-extension-msg}} MUST be present in the conclusion response.
 
 The Listener responds with the same values shown above, without the cookie (which
 is not needed here), as well as the extensions for HS Version 5 (which will probably be
@@ -3436,3 +3437,4 @@ The next example specifies that the file is expected to be transmitted from the 
 - Improved the cookie contest description in the Rendezvous connection mode.
 - Described the key material negotiation error during the handshake.
 - Added AES-GCM mode to the key material message (SRT v1.6.0).
+- Imrpved handshake negotiation description.
