@@ -1,8 +1,9 @@
 ---
 title: Tunnelling SRT over QUIC
 abbrev: SRTQ
-docname: draft-sharabayko-srt-over-quic-00
-category: info
+docname: draft-sharabayko-srt-over-quic-latest
+category: experimental
+submissiontype: independent
 
 ipr: trust200902
 area:

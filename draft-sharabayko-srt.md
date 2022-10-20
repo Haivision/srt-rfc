@@ -1,8 +1,9 @@
 ---
 title: The SRT Protocol
 abbrev: SRT
-docname: draft-sharabayko-srt-01
+docname: draft-sharabayko-srt-latest
 category: info
+submissiontype: independent
 
 ipr: trust200902
 area:
