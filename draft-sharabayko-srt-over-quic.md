@@ -34,15 +34,15 @@ informative:
     target: https://datatracker.ietf.org/doc/draft-sharabayko-srt/
     title: The SRT Protocol
     author:
-      - 
+      -
         name: Maxim Sharabayko
-      - 
+      -
         name: Maria Sharabayko
-      - 
+      -
         name: Jean Dube
-      - 
+      -
         name: Jeongseok Kim
-      - 
+      -
         name: Joonwoong Kim
     date: December, 2019
 
@@ -91,31 +91,31 @@ SRT on its side would provide end-to-end latency tracking and latency-aware loss
 ## SRT for Low Latency
 
 The Secure Reliable Transport (SRT) protocol {{SRTRFC}} is a connection-based transport protocol
-that enables the secure, reliable transport of data across 
-unpredictable networks, such as the Internet. While any data type can be transferred 
+that enables the secure, reliable transport of data across
+unpredictable networks, such as the Internet. While any data type can be transferred
 via SRT, it is ideal for low latency (sub-second) video streaming.
 SRT enables high contribution bitrates over long distance connections.
 
-To achieve low latency streaming, SRT addresses timing issues. The characteristics 
-of a stream from a source network can be notably changed by transmission over the public 
-Internet, introducing delays, jitter, and packet loss. This, in turn, leads to 
-problems with decoding, as audio and video decoders do not receive packets at the 
-expected pace. The use of large buffers helps, but latency is increased. 
+To achieve low latency streaming, SRT addresses timing issues. The characteristics
+of a stream from a source network can be notably changed by transmission over the public
+Internet, introducing delays, jitter, and packet loss. This, in turn, leads to
+problems with decoding, as audio and video decoders do not receive packets at the
+expected pace. The use of large buffers helps, but latency is increased.
 SRT includes a mechanism to keep a constant end-to-end latency, thus recreating
 the signal characteristics on the receiver side, and reducing the need for buffering.
 
-SRT employs a listener (server) / caller (client) model. The data flow is bi-directional and 
-independent of the connection initiation - either the sender or receiver can operate 
+SRT employs a listener (server) / caller (client) model. The data flow is bi-directional and
+independent of the connection initiation - either the sender or receiver can operate
 as listener or caller to initiate a connection.
 
 The SRT protocol provides an internal multiplexing mechanism, allowing multiple SRT connections
 to share the same UDP port, providing access control functionality to identify the caller on the listener side.
 This mechanism is exactly what QUIC DATAGRAM describes as a responsibility of the application protocol.
 
-Supporting forward error correction (FEC) and selective packet retransmission (ARQ), 
-SRT provides the flexibility to use either of the two mechanisms or both combined, 
-allowing for use cases ranging from the lowest possible latency to the highest possible 
-reliability. 
+Supporting forward error correction (FEC) and selective packet retransmission (ARQ),
+SRT provides the flexibility to use either of the two mechanisms or both combined,
+allowing for use cases ranging from the lowest possible latency to the highest possible
+reliability.
 
 SRT also allows fast file transfers, and adds support for AES encryption.
 
@@ -232,7 +232,7 @@ SRT assumes that the underlying transport protocol delivers a single and undamag
 Therefore, the underlying transport MUST provide a mechanism for SRT to send and receive
 exactly one packet.
 
-One SRT packet MUST be sent over exactly one QUIC Datagram frame.  
+One SRT packet MUST be sent over exactly one QUIC Datagram frame.
 
 ## Connection Establishment
 
@@ -279,8 +279,8 @@ It is also possible for QUIC to not apply any congestion control, relying on SRT
 If the bitrate of the original stream already exceeds network throughput, SRT would still try to deliver it, maintaining congestion and
 eventually breaking the SRT connection.
 
-It is worth mentioning that in a live streaming scenario it may be beneficial to move congestion control mechanisms outside of the protocol 
-towards the encoder (payload producer), implementing a network adaptive encoding based on the telemetry provided 
+It is worth mentioning that in a live streaming scenario it may be beneficial to move congestion control mechanisms outside of the protocol
+towards the encoder (payload producer), implementing a network adaptive encoding based on the telemetry provided
 by the SRT and QUIC protocols.
 
 ## Pacing
