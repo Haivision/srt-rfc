@@ -1604,19 +1604,6 @@ SRT listener, then is it RECOMMENDED that it accepts the value advertised in the
 
 An alternative behavior MAY be for a caller to take the longer key length in such case.
 
-~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                          SRT Version                          |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           SRT Flags                           |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      Receiver TSBPD Delay     |       Sender TSBPD Delay      |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-~~~
-{: #handshake-extension-msg-structure title="Handshake Extension Message structure"}
-
 A legacy UDT party completely ignores the values reported in Version and Handshake Type.  
 It is, however, interested in the SYN Cookie value, as this must be passed to the next 
 phase. It does interpret these fields, but only in the "conclusion" message.
