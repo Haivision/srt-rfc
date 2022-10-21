@@ -1,8 +1,9 @@
 ---
 title: The SRT Protocol
 abbrev: SRT
-docname: draft-sharabayko-srt-01
+docname: draft-sharabayko-srt-latest
 category: info
+submissiontype: independent
 
 ipr: trust200902
 area:
@@ -45,11 +46,11 @@ normative:
   GHG04b:
     title: Experiences in Design and Implementation of a High Performance Transport Protocol
     author:
-      - 
+      -
         name: Yunhong Gu
-      - 
+      -
         name: Xinwei Hong
-      - 
+      -
         name: Robert L. Grossman
     date: December, 2004
     seriesinfo:
@@ -72,29 +73,30 @@ informative:
   RFC8312:
   RFC4987:
   RFC9000:
+  RFC9114:
   GuAnAO:
     title: An Analysis of AIMD Algorithm with Decreasing Increases
     author:
-      - 
+      -
         name: Yunhong Gu
-      - 
+      -
         name: Xinwei Hong
-      - 
+      -
         name: Robert L. Grossman
     seriesinfo: Proceedings of the 1st International Workshop on Networks for Grid Applications (GridNets ’04)
     date: October, 2004
   BBR:
     title: "BBR: Congestion-Based Congestion Control"
     author:
-      - 
+      -
         name: Neal Cardwell
-      - 
+      -
         name: Yuchung Cheng
-      - 
+      -
         name: C. Stephen Gunn
-      - 
+      -
         name: Soheil Hassas Yeganeh
-      - 
+      -
         name: Van Jacobson
     seriesinfo: ACM Queue, vol. 14
     date: September-October, 2016
@@ -111,9 +113,9 @@ informative:
   SRTTO:
     title: SRT Protocol Technical Overview
     author:
-      - 
+      -
         name: Jean Dube
-      - 
+      -
         name: Steve Matthews
     date: December, 2019
   RTMP:
@@ -129,7 +131,7 @@ informative:
       "ISO/IEC": 23009:2019
   ISO13818-1:
     title: >
-      Information technology 
+      Information technology
       — Generic coding of moving pictures and associated audio information:
       Systems
     author:
@@ -137,7 +139,6 @@ informative:
     date: none
     seriesinfo:
       "ISO/IEC": 13818-1
-  I-D.ietf-quic-http:
   H.265:
     title: "H.265 : High efficiency video coding"
     author:
@@ -149,7 +150,7 @@ informative:
     target: https://www.webmproject.org/vp9
     title: VP9 Video Codec
     author:
-      org: WebM 
+      org: WebM
     date: none
   AV1:
     target: https://aomediacodec.github.io/av1-spec/av1-spec.pdf
@@ -169,9 +170,9 @@ informative:
 
 --- abstract
 
-This document specifies Secure Reliable Transport (SRT) protocol. 
-SRT is a user-level protocol over User Datagram Protocol and provides 
-reliability and security optimized for low latency live video streaming, 
+This document specifies Secure Reliable Transport (SRT) protocol.
+SRT is a user-level protocol over User Datagram Protocol and provides
+reliability and security optimized for low latency live video streaming,
 as well as generic bulk data transfer. For this, SRT introduces control
 packet extension, improved flow control, enhanced congestion control
 and a mechanism for data encryption.
@@ -180,7 +181,7 @@ and a mechanism for data encryption.
 
 # Introduction
 
-## Motivation 
+## Motivation
 
 The demand for live video streaming has been increasing steadily for many years. With
 the emergence of cloud technologies, many video processing pipeline components have
@@ -194,7 +195,7 @@ point transitioned to segmentation-based technologies like HLS (HTTP Live Stream
 and DASH (Dynamic Adaptive Streaming over HTTP) {{ISO23009}}. This move increased the end-to-end
 latency of live streaming to over few tens of seconds, which makes it unattractive for specific
 use cases where real-time is important. Over time, the industry optimized these delivery methods, bringing the
-latency down to few seconds.  
+latency down to few seconds.
 
 While the delivery side scaled up, improvements to video transcoding became a necessity.
 Viewers watch video streams on a variety of different devices, connected over different
@@ -211,60 +212,60 @@ Since RTMP, HLS and DASH rely on TCP, these protocols can only guarantee accepta
 reliability over connections with low RTTs, and can not use the bandwidth of network
 connections to their full extent due to limitations imposed by congestion control.
 Notably, QUIC {{RFC9000}} has been designed to address these problems with HTTP-based delivery
-protocols in HTTP/3 {{I-D.ietf-quic-http}}. Like QUIC, SRT {{SRTSRC}} uses UDP instead of the TCP transport protocol,
+protocols in HTTP/3 {{RFC9114}}. Like QUIC, SRT {{SRTSRC}} uses UDP instead of the TCP transport protocol,
 but assures more reliable delivery using Automatic Repeat Request (ARQ), packet acknowledgments,
 end-to-end latency management, etc.
 
-## Secure Reliable Transport Protocol 
+## Secure Reliable Transport Protocol
 
-Low latency video transmissions across reliable (usually local) IP based networks 
-typically take the form of MPEG-TS {{ISO13818-1}} unicast or multicast streams using the UDP/RTP 
-protocol, where any packet loss can be mitigated by enabling forward error correction 
-(FEC). Achieving the same low latency between sites in different cities, countries or 
-even continents is more challenging. While it is possible with satellite links or 
-dedicated MPLS {{RFC3031}} networks, these are expensive solutions. The use of public Internet 
-connectivity, while less expensive, imposes significant bandwidth overhead to achieve 
-the necessary level of packet loss recovery. Introducing selective packet retransmission 
-(reliable UDP) to recover from packet loss removes those limitations.  
+Low latency video transmissions across reliable (usually local) IP based networks
+typically take the form of MPEG-TS {{ISO13818-1}} unicast or multicast streams using the UDP/RTP
+protocol, where any packet loss can be mitigated by enabling forward error correction
+(FEC). Achieving the same low latency between sites in different cities, countries or
+even continents is more challenging. While it is possible with satellite links or
+dedicated MPLS {{RFC3031}} networks, these are expensive solutions. The use of public Internet
+connectivity, while less expensive, imposes significant bandwidth overhead to achieve
+the necessary level of packet loss recovery. Introducing selective packet retransmission
+(reliable UDP) to recover from packet loss removes those limitations.
 
-Derived from the UDP-based Data Transfer (UDT) protocol {{GHG04b}}, SRT is a user-level protocol 
-that retains most of the core concepts and mechanisms while introducing several 
-refinements and enhancements, including control packet modifications, improved flow 
-control for handling live streaming, enhanced congestion control, and a mechanism for 
+Derived from the UDP-based Data Transfer (UDT) protocol {{GHG04b}}, SRT is a user-level protocol
+that retains most of the core concepts and mechanisms while introducing several
+refinements and enhancements, including control packet modifications, improved flow
+control for handling live streaming, enhanced congestion control, and a mechanism for
 encrypting packets.
 
-SRT is a transport protocol that enables the secure, reliable transport of data across 
-unpredictable networks, such as the Internet. While any data type can be transferred 
-via SRT, it is ideal for low latency (sub-second) video streaming. SRT provides 
-improved bandwidth utilization compared to RTMP, allowing much higher 
-contribution bitrates over long distance connections. 
+SRT is a transport protocol that enables the secure, reliable transport of data across
+unpredictable networks, such as the Internet. While any data type can be transferred
+via SRT, it is ideal for low latency (sub-second) video streaming. SRT provides
+improved bandwidth utilization compared to RTMP, allowing much higher
+contribution bitrates over long distance connections.
 
-As packets are streamed from source to destination, SRT detects and adapts to the 
-real-time network conditions between the two endpoints, and helps compensate for 
-jitter and bandwidth fluctuations due to congestion over noisy networks. Its error 
+As packets are streamed from source to destination, SRT detects and adapts to the
+real-time network conditions between the two endpoints, and helps compensate for
+jitter and bandwidth fluctuations due to congestion over noisy networks. Its error
 recovery mechanism minimizes the packet loss typical of Internet connections.
 
-To achieve low latency streaming, SRT had to address timing issues. The characteristics 
-of a stream from a source network are completely changed by transmission over the public 
-Internet, which introduces delays, jitter, and packet loss. This, in turn, leads to 
-problems with decoding, as the audio and video decoders do not receive packets at the 
-expected times. The use of large buffers helps, but latency is increased. 
+To achieve low latency streaming, SRT had to address timing issues. The characteristics
+of a stream from a source network are completely changed by transmission over the public
+Internet, which introduces delays, jitter, and packet loss. This, in turn, leads to
+problems with decoding, as the audio and video decoders do not receive packets at the
+expected times. The use of large buffers helps, but latency is increased.
 SRT includes a mechanism to keep a constant end-to-end latency, thus recreating
 the signal characteristics on the receiver side, and reducing the need for buffering.
 
-Like TCP, SRT employs a listener/caller model. The data flow is bi-directional and 
-independent of the connection initiation - either the sender or receiver can operate 
-as listener or caller to initiate a connection. The protocol provides an internal 
-multiplexing mechanism, allowing multiple SRT connections to share the same UDP port, 
-providing access control functionality to identify the caller on the listener side. 
+Like TCP, SRT employs a listener/caller model. The data flow is bi-directional and
+independent of the connection initiation - either the sender or receiver can operate
+as listener or caller to initiate a connection. The protocol provides an internal
+multiplexing mechanism, allowing multiple SRT connections to share the same UDP port,
+providing access control functionality to identify the caller on the listener side.
 
-Supporting forward error correction (FEC) and selective packet retransmission (ARQ), 
-SRT provides the flexibility to use either of the two mechanisms or both combined, 
-allowing for use cases ranging from the lowest possible latency to the highest possible 
-reliability. 
+Supporting forward error correction (FEC) and selective packet retransmission (ARQ),
+SRT provides the flexibility to use either of the two mechanisms or both combined,
+allowing for use cases ranging from the lowest possible latency to the highest possible
+reliability.
 
-SRT maintains the ability for fast file transfers introduced in UDT, and adds support 
-for AES encryption. 
+SRT maintains the ability for fast file transfers introduced in UDT, and adds support
+for AES encryption.
 
 # Terms and Definitions
 
@@ -366,13 +367,13 @@ Packet Sequence Number: 31 bits.
 
 PP: 2 bits.
 : Packet Position Flag. This field indicates the position of the data packet in the message.
-  The value "10b" (binary) means the first packet of the message. "00b" indicates a packet 
-  in the middle. "01b" designates the last packet. If a single data packet forms the whole 
+  The value "10b" (binary) means the first packet of the message. "00b" indicates a packet
+  in the middle. "01b" designates the last packet. If a single data packet forms the whole
   message, the value is "11b".
 
 O: 1 bit.
-: Order Flag. Indicates whether the message should be delivered by the receiver in order (1) 
-  or not (0). Certain restrictions apply depending on the data transmission mode used 
+: Order Flag. Indicates whether the message should be delivered by the receiver in order (1)
+  or not (0). Certain restrictions apply depending on the data transmission mode used
   ({{data-transmission-modes}}).
 
 KK: 2 bits.
@@ -395,7 +396,7 @@ Destination Socket ID: 32 bits.
 : See {{packet-structure}}.
 
 Data: variable length.
-: The payload of the data packet. The length of the data is the remaining length of 
+: The payload of the data packet. The length of the data is the remaining length of
   the UDP packet.
 
 ## Control Packets
@@ -647,9 +648,9 @@ Sender TSBPD Delay: 16 bits.
 
 - TSBPDSND flag defines if the TSBPD mechanism ({{tsbpd}}) will be used for sending.
 
-- TSBPDRCV flag defines if the TSBPD mechanism ({{tsbpd}}) will be used for receiving. 
+- TSBPDRCV flag defines if the TSBPD mechanism ({{tsbpd}}) will be used for receiving.
 
-- CRYPT flag MUST be set. It is a legacy flag that indicates the party understands 
+- CRYPT flag MUST be set. It is a legacy flag that indicates the party understands
 KK field of the SRT Packet ({{srtdatapacket}}).
 
 - TLPKTDROP flag should be set if too-late packet drop mechanism will be used during transmission.
@@ -668,7 +669,7 @@ Otherwise, the message mode ({{transmission-mode-msg}}) is used.
 
 #### Key Material Extension Message {#sec-hsext-km}
 
-If an encrypted connection is being established, the Key Material (KM) is first transmitted as a 
+If an encrypted connection is being established, the Key Material (KM) is first transmitted as a
 Handshake Extension message. This extension is not supplied for unprotected connections.
 The purpose of the extension is to let peers exchange and negotiate encryption-related information
 to be used to encrypt and decrypt the payload of the stream.
@@ -705,7 +706,7 @@ NOTE: In the descriptions below, "peer" refers to the remote SRT side sending th
 
 #### Stream ID Extension Message {#sec-hsext-streamid}
 
-The Stream ID handshake extension message can be used to identify the stream content. 
+The Stream ID handshake extension message can be used to identify the stream content.
 The Stream ID value can be free-form, but there is also a recommended convention
 that can be used to achieve interoperability.
 
@@ -938,11 +939,11 @@ xSEK: variable width.
 
 oSEK: variable width.
 : This field with the odd key is present only when the message carries the two SEKs (identified by he KK field).
-  
+
 ### Keep-Alive {#ctrl-pkt-keepalive}
 
 Keep-alive control packets are sent after a certain timeout from the last time
-any packet (Control or Data) was sent. The purpose of this control packet is to 
+any packet (Control or Data) was sent. The purpose of this control packet is to
 notify the peer to keep the connection open when no data exchange is taking place.
 
 The default timeout for a keep-alive packet to be sent is 1 second.
@@ -1084,8 +1085,8 @@ The recommendation is to send a Light ACK for every 64 packets received.
 
 ### NAK (Negative Acknowledgement or Loss Report) {#ctrl-pkt-nak}
 
-Negative acknowledgment (NAK) control packets are used to signal failed data packet 
-deliveries. The receiver notifies the sender about lost data packets by sending a NAK 
+Negative acknowledgment (NAK) control packets are used to signal failed data packet
+deliveries. The receiver notifies the sender about lost data packets by sending a NAK
 packet that contains a list of sequence numbers for those lost packets.
 
 An SRT NAK packet is formatted as follows:
@@ -1137,10 +1138,10 @@ coding in {{packet-seq-list-coding}}.
 
 ### Congestion Warning {#ctrl-pkt-congestion}
 
-The Congestion Warning control packet is reserved for future use. 
-Its purpose is to allow a receiver to signal a sender that there is congestion 
-happening at the receiving side. The expected behaviour is that upon 
-receiving this packet the sender slows down its sending rate by increasing the 
+The Congestion Warning control packet is reserved for future use.
+Its purpose is to allow a receiver to signal a sender that there is congestion
+happening at the receiving side. The expected behaviour is that upon
+receiving this packet the sender slows down its sending rate by increasing the
 minimum inter-packet sending interval by a discrete value (posited to be 12.5%).
 
 Note that the conditions for a receiver to issue this type of packet are not yet defined.
@@ -1216,7 +1217,7 @@ Shutdown control packets do not contain Control Information Field (CIF).
 
 ### ACKACK (Acknowledgement of Acknowledgement) {#ctrl-pkt-ackack}
 
-Acknowledgement of Acknowledgement (ACKACK) control packets are sent to acknowledge the reception of a Full ACK and used 
+Acknowledgement of Acknowledgement (ACKACK) control packets are sent to acknowledge the reception of a Full ACK and used
 in the calculation of the round-trip time by the SRT receiver.
 
 An SRT ACKACK control packet is formatted as follows:
@@ -1269,8 +1270,8 @@ Too Late Packet Drop mechanism ({{too-late-packet-drop}}) causes the sender
 to drop a message, as in this case the receiver is expected to drop it anyway.
 
 A Message Drop Request contains the message number and corresponding range of packet sequence numbers
-which form the whole message. If the sender does not already have in its buffer the specific packet or packets for 
-which retransmission was requested, then it is unable to restore the message number. In this case the Message 
+which form the whole message. If the sender does not already have in its buffer the specific packet or packets for
+which retransmission was requested, then it is unable to restore the message number. In this case the Message
 Number field must be set to zero, and the receiver should drop packets in the provided packet sequence number range.
 
 ~~~
@@ -1316,8 +1317,8 @@ Last Packet Sequence Number: 32 bits.
 
 ### Peer Error {#ctrl-pkt-peer-error}
 
-The Peer Error control packet is sent by a receiver when a processing error 
-(e.g. write to disk failure) occurs. This informs the sender of the situation 
+The Peer Error control packet is sent by a receiver when a processing error
+(e.g. write to disk failure) occurs. This informs the sender of the situation
 and unblocks it from waiting for further responses from the receiver.
 
 The sender receiving this type of control packet must unblock any sending operation in progress.
@@ -1359,9 +1360,9 @@ Destination Socket ID: 32 bits.
 This section describes key concepts related to the handling of control
 and data packets during the transmission process.
 
-After the handshake and exchange of capabilities is completed, packet data 
-can be sent and received over the established connection. To fully utilize 
-the features of low latency and error recovery provided by SRT, the sender 
+After the handshake and exchange of capabilities is completed, packet data
+can be sent and received over the established connection. To fully utilize
+the features of low latency and error recovery provided by SRT, the sender
 and receiver must handle control packets, timers, and buffers for the connection
 as specified in this section.
 
@@ -1401,16 +1402,16 @@ set to 1. The last packet of the message has the second bit of the Packet Positi
 set to 1. Thus, a PP equal to "11b" indicates a packet that forms the whole message.
 A PP equal to "00b" indicates a packet that belongs to the inner part of the message.
 
-The concept of the message in SRT comes from UDT {{GHG04b}}. In this mode, a single 
-sending instruction passes exactly one piece of data that has boundaries (a message). 
-This message may span multiple UDP packets and multiple SRT data packets. The 
-only size limitation is that it shall fit as a whole in the buffers of the sender and the 
-receiver. Although internally all operations (e.g., ACK, NAK) on data packets are performed 
-independently, an application must send and receive the whole message. Until the message 
+The concept of the message in SRT comes from UDT {{GHG04b}}. In this mode, a single
+sending instruction passes exactly one piece of data that has boundaries (a message).
+This message may span multiple UDP packets and multiple SRT data packets. The
+only size limitation is that it shall fit as a whole in the buffers of the sender and the
+receiver. Although internally all operations (e.g., ACK, NAK) on data packets are performed
+independently, an application must send and receive the whole message. Until the message
 is complete (all packets are received) the application will not be allowed to read it.
 
 When the Order Flag of a data packet is set to 1, this imposes a sequential reading order
-on messages. An Order Flag set to 0 allows an application to read messages that are 
+on messages. An Order Flag set to 0 allows an application to read messages that are
 already fully available, before any preceding messages that may have some packets missing.
 
 ### Buffer Mode {#transmission-mode-buffer}
@@ -1418,7 +1419,7 @@ already fully available, before any preceding messages that may have some packet
 Buffer mode is negotiated during the handshake by setting the STREAM flag
 of the handshake Extension Message Flags ({{hs-ext-msg-flags}}) to 1.
 
-In this mode, consecutive packets form one continuous stream that can be read with 
+In this mode, consecutive packets form one continuous stream that can be read with
 portions of any size.
 
 ## Handshake Messages {#handshake-messages}
@@ -1469,7 +1470,7 @@ the Listener is the Responder.
 For Rendezvous connections: the Initiator and Responder roles are assigned
 based on the initial data interchange during the handshake.
 
-The Handshake Type field in the Handshake Structure (see {{handshake-packet-structure}}) 
+The Handshake Type field in the Handshake Structure (see {{handshake-packet-structure}})
 indicates the handshake message type.
 
 Caller-Listener handshake exchange has the following order of Handshake Types:
@@ -1485,8 +1486,8 @@ Rendezvous handshake exchange has the following order of Handshake Types:
 2. After receiving the above message from the peer: CONCLUSION
 3. After receiving the above message from the peer: AGREEMENT.
 
-When a connection process has failed before either party can send the CONCLUSION handshake, 
-the Handshake Type field will contain the appropriate error value for the rejected 
+When a connection process has failed before either party can send the CONCLUSION handshake,
+the Handshake Type field will contain the appropriate error value for the rejected
 connection. See the list of error codes in {{hs-rej-reason}}.
 
 | Code | Error            | Description                             |
@@ -1515,7 +1516,7 @@ The specification of the cipher family and block size is decided by the data Sen
 When the transmission is bidirectional, this value MUST be agreed upon at the outset
 because when both are set the Responder wins. For Caller-Listener connections it is
 reasonable to set this value on the Listener only. In the case of Rendezvous the only
-reasonable approach is to decide upon the correct value from the different sources and to 
+reasonable approach is to decide upon the correct value from the different sources and to
 set it on both parties (note that **AES-128** is the default).
 
 ### Caller-Listener Handshake {#caller-listener-handshake}
@@ -1574,8 +1575,8 @@ phase. It also checks the following:
 - whether the Encryption Flags contain a non-zero
   value, which is interpreted as an advertised cipher family and block size.
 
-A legacy UDT party completely ignores the values reported in Version and Handshake Type.  
-It is, however, interested in the SYN Cookie value, as this must be passed to the next 
+A legacy UDT party completely ignores the values reported in Version and Handshake Type.
+It is, however, interested in the SYN Cookie value, as this must be passed to the next
 phase. It does interpret these fields, but only in the "conclusion" message.
 
 #### The Conclusion Phase
@@ -1820,7 +1821,7 @@ Here is how the parallel handshake flow works, based on roles and states:
 3. Initiated
 
    Receives:
-   
+
    - CONCLUSION message with HSREQ, then responds with CONCLUSION with HSRSP and remains in this state;
    - AGREEMENT message, then responds with AGREEMENT and switches to Connected;
    - Payload packet, then responds with AGREEMENT and switches to Connected.
@@ -1867,63 +1868,63 @@ never become aware. The missing packet problem is resolved this way:
 The SRT sender and receiver have buffers to store packets.
 
 On the sender, latency is the time that SRT holds a packet to give it a chance to be
-delivered successfully while maintaining the rate of the sender at the receiver. If an 
-acknowledgment (ACK) is missing or late for more than the configured latency, the packet 
+delivered successfully while maintaining the rate of the sender at the receiver. If an
+acknowledgment (ACK) is missing or late for more than the configured latency, the packet
 is dropped from the sender buffer. A packet can be retransmitted as long as it remains
-in the buffer for the duration of the latency window. On the receiver, packets are 
-delivered to an application from a buffer after the latency interval has passed. This 
-helps to recover from potential packet losses. See {{tsbpd}}, 
+in the buffer for the duration of the latency window. On the receiver, packets are
+delivered to an application from a buffer after the latency interval has passed. This
+helps to recover from potential packet losses. See {{tsbpd}},
 {{too-late-packet-drop}} for details.
 
-Latency is a value, in milliseconds, that can cover the time to transmit 
-hundreds or even thousands of packets at high bitrate. Latency can be thought of as a 
-window that slides over time, during which a number of activities take place, such as 
-the reporting of acknowledged packets (ACKs) ({{packet-acks}}) and unacknowledged 
+Latency is a value, in milliseconds, that can cover the time to transmit
+hundreds or even thousands of packets at high bitrate. Latency can be thought of as a
+window that slides over time, during which a number of activities take place, such as
+the reporting of acknowledged packets (ACKs) ({{packet-acks}}) and unacknowledged
 packets (NAKs) ({{packet-naks}}).
 
-Latency is configured through the exchange of capabilities during the extended handshake 
-process between initiator and responder. The Handshake Extension Message ({{handshake-extension-msg}}) 
-has TSBPD delay information, in milliseconds, from the SRT receiver and sender. The 
-latency for a connection will be established as the maximum value of latencies proposed 
+Latency is configured through the exchange of capabilities during the extended handshake
+process between initiator and responder. The Handshake Extension Message ({{handshake-extension-msg}})
+has TSBPD delay information, in milliseconds, from the SRT receiver and sender. The
+latency for a connection will be established as the maximum value of latencies proposed
 by the initiator and responder.
 
 ## Timestamp-Based Packet Delivery {#tsbpd}
 
-The goal of the SRT Timestamp-Based Packet Delivery (TSBPD) mechanism is to reproduce 
-the output of the sending application (e.g., encoder) at the input of the receiving 
-application (e.g., decoder) in the case of live streaming ({{data-transmission-modes}}, {{live-streaming-use-case}}). 
-It attempts to reproduce the timing of packets committed by the sending application to 
-the SRT sender. This allows packets to be scheduled for delivery by the SRT receiver, 
+The goal of the SRT Timestamp-Based Packet Delivery (TSBPD) mechanism is to reproduce
+the output of the sending application (e.g., encoder) at the input of the receiving
+application (e.g., decoder) in the case of live streaming ({{data-transmission-modes}}, {{live-streaming-use-case}}).
+It attempts to reproduce the timing of packets committed by the sending application to
+the SRT sender. This allows packets to be scheduled for delivery by the SRT receiver,
 making them ready to be read by the receiving application (see {{fig-latency-points}}).
 
-The SRT receiver, using the timestamp of the SRT data packet header, delivers packets to 
-a receiving application with a fixed minimum delay from the time the packet was scheduled 
+The SRT receiver, using the timestamp of the SRT data packet header, delivers packets to
+a receiving application with a fixed minimum delay from the time the packet was scheduled
 for sending on the SRT sender side. Basically, the sender timestamp in the received packet
-is adjusted to the receiver’s local time (compensating for the time drift or different 
-time zones) before releasing the packet to the application. Packets can be withheld by 
-the SRT receiver for a configured receiver delay. A higher delay can accommodate a larger 
-uniform packet drop rate, or a larger packet burst drop. Packets received after their 
-"play time" are dropped if the Too-Late Packet Drop feature is enabled 
+is adjusted to the receiver’s local time (compensating for the time drift or different
+time zones) before releasing the packet to the application. Packets can be withheld by
+the SRT receiver for a configured receiver delay. A higher delay can accommodate a larger
+uniform packet drop rate, or a larger packet burst drop. Packets received after their
+"play time" are dropped if the Too-Late Packet Drop feature is enabled
 ({{too-late-packet-drop}}).
 For example, in the case of live video streaming, TSBPD and Too-Late Packet Drop mechanisms
 allow to intentionally drop those packets that were lost and have no chance to be retransmitted
 before their play time. Thus, SRT provides a fixed end-to-end latency of the stream.
 
-The packet timestamp, in microseconds, is relative to the SRT connection creation time. 
-Packets are inserted based on the sequence number in the header field. The origin time, 
-in microseconds, of the packet is already sampled when a packet is first submitted by 
-the application to the SRT sender unless explicitly provided. The TSBPD feature uses this time to stamp the packet 
-for first transmission and any subsequent retransmission. This timestamp and the 
-configured SRT latency ({{srt-latency}}) control the recovery buffer size and the 
-instant that packets are delivered at the destination (the aforementioned "play time" 
+The packet timestamp, in microseconds, is relative to the SRT connection creation time.
+Packets are inserted based on the sequence number in the header field. The origin time,
+in microseconds, of the packet is already sampled when a packet is first submitted by
+the application to the SRT sender unless explicitly provided. The TSBPD feature uses this time to stamp the packet
+for first transmission and any subsequent retransmission. This timestamp and the
+configured SRT latency ({{srt-latency}}) control the recovery buffer size and the
+instant that packets are delivered at the destination (the aforementioned "play time"
 which is decided by adding the timestamp to the configured latency).
 
 It is worth mentioning that the use of the packet sending time to stamp the packets is
-inappropriate for the TSBPD feature, since a new time (current sending time) is used for 
-retransmitted packets, putting them out of order when inserted at their proper place 
-in the stream. 
+inappropriate for the TSBPD feature, since a new time (current sending time) is used for
+retransmitted packets, putting them out of order when inserted at their proper place
+in the stream.
 
-{{fig-latency-points}} illustrates the key latency points during the packet transmission 
+{{fig-latency-points}} illustrates the key latency points during the packet transmission
 with the TSBPD feature enabled.
 
 ~~~
@@ -2025,9 +2026,9 @@ During the transmission process, the value of TSBPD time base may be adjusted in
 
 ## Too-Late Packet Drop {#too-late-packet-drop}
 
-The Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop packets that 
-have no chance to be delivered in time, and allows the receiver to skip missing packets 
-that have not been delivered in time. The timeout of dropping a packet is based on the 
+The Too-Late Packet Drop (TLPKTDROP) mechanism allows the sender to drop packets that
+have no chance to be delivered in time, and allows the receiver to skip missing packets
+that have not been delivered in time. The timeout of dropping a packet is based on the
 TSBPD mechanism ({{tsbpd}}).
 
 When the TLPKTDROP mechanism is enabled, a packet is considered "too late" to be
@@ -2039,11 +2040,11 @@ This will allow the SRT receiver to drop missing packets first while the sender 
 The recommended threshold value is 1.25 times the SRT latency value.
 
 Note that the SRT sender keeps packets for at least 1 second in case the
-latency is not high enough for a large RTT (that is, if TLPKTDROP_THRESHOLD is less 
+latency is not high enough for a large RTT (that is, if TLPKTDROP_THRESHOLD is less
 than 1 second).
 
-When enabled on the receiver, the receiver drops packets that have not been delivered 
-or retransmitted in time, and delivers the subsequent packets to the application when 
+When enabled on the receiver, the receiver drops packets that have not been delivered
+or retransmitted in time, and delivers the subsequent packets to the application when
 it is their time to play.
 
 In pseudo-code, the algorithm of reading from the receiver buffer is
@@ -2051,9 +2052,9 @@ the following:
 
     <CODE BEGINS>
     pos = 0;  /* Current receiver buffer position */
-    i = 0;    /* Position of the next available in the receiver buffer 
+    i = 0;    /* Position of the next available in the receiver buffer
                  packet relatively to the current buffer position pos */
-    
+
     while(True) {
         // Get the position i of the next available packet
         // in the receiver buffer
@@ -2061,14 +2062,14 @@ the following:
         // Calculate packet delivery time PktTsbpdTime
         // for the next available packet
         PktTsbpdTime = delivery_time(i);
-    
+
         if T_NOW < PktTsbpdTime:
             continue;
-    
+
         Drop packets which buffer position number is less than i;
-    
+
         Deliver packet with the buffer position i;
-    
+
         pos = i + 1;
     }
     <CODE ENDS>
@@ -2144,7 +2145,7 @@ the latter is the point in time when the socket was created.
 ## Acknowledgement and Lost Packet Handling
 
 To enable the Automatic Repeat reQuest of data packet retransmissions, a sender stores
-all sent data packets in its buffer. 
+all sent data packets in its buffer.
 
 The SRT receiver periodically sends acknowledgments (ACKs) for the
 received data packets so that the SRT sender can remove the
@@ -2157,8 +2158,8 @@ of the full ACK packet being acknowledged.
 
 The SRT receiver also sends NAK control packets to notify the sender about the missing packets ({{packet-naks}}).
 The sending of a NAK packet can be triggered immediately after a gap in sequence numbers of
-data packets is detected. In addition, a Periodic NAK report mechanism can be used to 
-send NAK reports periodically. The NAK packet in that case will list all the packets that 
+data packets is detected. In addition, a Periodic NAK report mechanism can be used to
+send NAK reports periodically. The NAK packet in that case will list all the packets that
 the receiver considers being lost up to the moment the Periodic NAK report is sent.
 
 Upon reception of the NAK packet, the SRT sender prioritizes retransmissions of lost packets over the regular data
@@ -2200,7 +2201,7 @@ SRT receiver.
 
 The SRT receiver sends NAK control packets to notify the sender about the missing packets.
 The NAK packet sending can be triggered immediately after a gap in sequence numbers of
-data packets is detected. 
+data packets is detected.
 
 Upon reception of the NAK packet, the SRT sender prioritizes retransmissions of lost packets over the regular data
 packets to be transmitted for the first time.
@@ -2722,7 +2723,7 @@ calculate PKT_SND_PERIOD as follows:
         inc = max(inc, 1 / S);
     }
 
-    PKT_SND_PERIOD = (PKT_SND_PERIOD * RC_INTERVAL) / 
+    PKT_SND_PERIOD = (PKT_SND_PERIOD * RC_INTERVAL) /
                       (PKT_SND_PERIOD * inc + RC_INTERVAL);
     <CODE ENDS>
 
@@ -2756,7 +2757,7 @@ minimum allowed period, if necessary:
 
         if (PKT_SND_PERIOD < MIN_PERIOD)
             PKT_SND_PERIOD = MIN_PERIOD;
-    <CODE ENDS> 
+    <CODE ENDS>
 
 Note that in the case of file transmission the the maximum allowed bandwidth (MAX_BW)
 for SRT can be defined. This limits the minimum possible interval between packets
@@ -2829,7 +2830,7 @@ Congestion period is defined as the time between two NAKs in which
 the biggest lost packet sequence number carried in the NAK is greater
 than the LastDecSeq.
 
-The coefficients used in the formulas above have been slightly modified 
+The coefficients used in the formulas above have been slightly modified
 to reduce the amount by which the sending rate decreases.
 
 Step 4. If DecCount <= 5, and NAKCount == DecCount * DecRandom:
@@ -3153,17 +3154,17 @@ On the protocol control level, SRT does not encrypt packet headers.
 Therefore it has some vulnerabilities similar to TCP {{RFC6528}}:
 
 - A peer tells a counterpart its public IP during the handshake that is visible to any attacker.
-- An attacker may potentially count the number of SRT processes behind a Network 
-Address Translator (NAT) by establishing multiple SRT connections and tracking 
-the ranges of SRT Socket IDs. If a random Socket ID is generated for the first 
-connection, subsequent connections may get consecutive SRT Socket IDs. Assuming 
-one system runs only one SRT process, for example, then an attacker can estimate 
+- An attacker may potentially count the number of SRT processes behind a Network
+Address Translator (NAT) by establishing multiple SRT connections and tracking
+the ranges of SRT Socket IDs. If a random Socket ID is generated for the first
+connection, subsequent connections may get consecutive SRT Socket IDs. Assuming
+one system runs only one SRT process, for example, then an attacker can estimate
 the number of systems behind a NAT.
-- Similarly, the possibility of attack depends on the implementation of the initial 
-sequence number (ISN) generation. If an ISN is not generated randomly for each 
-connection, an attacker may potentially count the number of systems behind a 
-Network Address Translator (NAT) by establishing a number of SRT connections and 
-identifying the number of different sequence number "spaces", given that no SRT 
+- Similarly, the possibility of attack depends on the implementation of the initial
+sequence number (ISN) generation. If an ISN is not generated randomly for each
+connection, an attacker may potentially count the number of systems behind a
+Network Address Translator (NAT) by establishing a number of SRT connections and
+identifying the number of different sequence number "spaces", given that no SRT
 packet headers are encrypted.
 - An eavesdropper can hijack existing connections only if it steals the IP and
 port of one of the parties. If some stream addresses an existing SRT receiver
@@ -3220,7 +3221,7 @@ TODO acknowledge.
 # Packet Sequence List Coding {#packet-seq-list-coding}
 
 For any single packet sequence number,
-it uses the original sequence number in the field. The first bit 
+it uses the original sequence number in the field. The first bit
 MUST start with "0".
 
 ~~~
@@ -3309,7 +3310,7 @@ The following keys are standard:
   the hostname field should have somehost.com, and the resource name can have videos/querry.php?vid=366 or simply 366.
   Note that this is still a key to be specified explicitly. Support tools that apply simplifications and URI extraction
   are expected to insert only the host portion of the URI here.
-  
+
 - s: Session ID is a temporary resource identifier negotiated with the server, used just for verification.
   This is a one-shot identifier, invalidated after the first use. The expected usage is when details for the resource
   and authorization are negotiated over a separate connection first, and then the session ID is used here alone.
