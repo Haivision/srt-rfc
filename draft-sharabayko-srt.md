@@ -563,7 +563,7 @@ Handshake Type: 32 bits.
 | 0xFFFFFFFD | DONE                         |
 | 0xFFFFFFFE | AGREEMENT                    |
 | 0xFFFFFFFF | CONCLUSION                   |
-| 0x00000000 | WAVEHAND                     |
+| 0x00000000 | WAVEAHAND                    |
 | 0x00000001 | INDUCTION                    |
 {: #handshake-type title="Handshake Type"}
 
@@ -1653,30 +1653,14 @@ The Rendezvous process uses a state machine. It is slightly
 different from UDT Rendezvous handshake {{GHG04b}},
 although it is still based on the same message request types.
 
-Both parties start with WAVEAHAND and use the Version value of 5.
-Legacy Version 4 clients do not look at the Version value,
-whereas Version 5 clients can detect version 5.
-The parties only continue with the Version 5 Rendezvous process when Version is set to 5
-for both. Otherwise the process continues exclusively according to Version 4 rules {{GHG04b}}.
+The states of a party are Waving, Conclusion and Agreement.
 
-With SRT Handshake Version 5 Rendezvous, both parties create a cookie for a process called the
-"cookie contest". This is necessary for the assignment of Initiator and Responder
-roles. Each party generates a cookie value (a 32-bit number) based on the host,
-port, and current time with 1 minute accuracy. This value is scrambled using
-an MD5 sum calculation. The cookie values are then compared with one another.
+#### Cookie Contest {#cookie-contest}
 
-Since it is impossible to have two sockets on the same machine bound to the same NIC
-and port and operating independently, it is virtually impossible that the
-parties will generate identical cookies. However, this situation may occur if an
-application tries to "connect to itself" - that is, either connects to a local
-IP address, when the socket is bound to INADDR_ANY, or to the same IP address to
-which the socket was bound. If the cookies are identical (for any reason), the
-connection will not be made until new, unique cookies are generated (after a
-delay of up to one minute). In the case of an application "connecting to itself",
-the cookies will always be identical, and so the connection will never be established.
-
-When one party's cookie value is greater than its peer's, it wins the cookie
-contest and becomes Initiator (the other party becomes the Responder).
+The cookie contest is intended to determine the connection role of a peer.
+When one party's cookie value is greater (with certain conditions, see below)
+than its peer's, it wins the cookie contest and becomes Initiator
+(the other party becomes the Responder).
 
 The intent is to let the side with the greater cookie value become the Initiator
 (the other party becomes the Responder). However, with a special handling
@@ -1708,6 +1692,97 @@ of the higher bit of the difference.
 
 At this point there are two possible "handshake flows":
 serial and parallel.
+
+#### Waving {#waving-state}
+
+Both parties start in a Waving state.
+In the Waving state both Bob and Alice send a WAVEAHAND handshake
+with the fields set to the following values:
+
+- HS Version: 5
+- Type: Extension field: 0, Encryption field: advertised "PBKEYLEN"
+- Handshake Type: WAVEAHAND ({{#handshake-type}})
+- SRT Socket ID: Alice's socket ID
+- SYN Cookie: Created based on host/port and current time.
+- HS Extensions: none.
+
+Legacy HS Version 4 clients do not look at the HS Version value,
+whereas HS Version 5 clients can detect version 5.
+The parties only continue with the HS Version 5 Rendezvous process when Version is set to 5
+for both. Otherwise the process continues exclusively according to Version 4 rules {{GHG04b}}.
+Implementations MUST support HS Version 5, and MAY not support HS Version 4.
+
+The WAVEAHAND Handshake packet SHOULD not have extensions.
+
+With SRT Handshake Version 5 Rendezvous, both parties create a cookie for a process called the
+"cookie contest". This is necessary for the assignment of Initiator and Responder
+roles. Each party generates a cookie value (a 32-bit number) based on the host,
+port, and current time with 1 minute accuracy. This value is scrambled using
+an MD5 sum calculation. The cookie values are then compared with one another.
+
+Since it is impossible to have two sockets on the same machine bound to the same NIC
+and port and operating independently, it is virtually impossible that the
+parties will generate identical cookies. However, this situation may occur if an
+application tries to "connect to itself" - that is, either connects to a local
+IP address, when the socket is bound to INADDR_ANY, or to the same IP address to
+which the socket was bound. If the cookies are identical (for any reason), the
+connection will not be made until new, unique cookies are generated (after a
+delay of up to one minute). In the case of an application "connecting to itself",
+the cookies will always be identical, and so the connection will never be established.
+
+If there is no response from a peer the WAVEAHAND handshake SHOULD be repeated every 250 ms
+until a connection timeout expires. The connection timeout value is defined by the implementation.
+
+If a WAVEAHAND of CONCLUSION handshake is received from the peer, the state is transitioned to the Attention.
+
+#### Conclusion {#conclusion-state}
+
+In the Conclusion state the party knowns the peer's cookie value.
+Thus it can perform the Cookie Contest
+(compare both cookie values according to {{#cookie-contest}})
+and resolve its role.
+The resolution of the Handshake Role (Initiator or Responder) is essential for further processing.
+
+Initiator replies with a Conclusion request handshake:
+
+- HS Version: 5
+- Extension field: appropriate flags.
+- Encryption field: advertised PBKEYLEN
+- Handshake Type: CONCLUSION.
+- Required Handshake Extension: HS Extension Message ({{handshake-extension-msg}})
+  with HS Extension Type SRT_CMD_HSREQ.
+- Other handshake extensions are allowed.
+
+If encryption is on, the Initiator will use either his
+own cipher family and block size or the one received from Alice (if she has advertised
+those values).
+
+The Responder with a Conclusion or a WAVEAHAND handshake without extensions until it receives the Conclusion Request from the peer:
+
+- HS Version: 5
+- Extension field: 0.
+- Encryption field: advertised PBKEYLEN.
+- Handshake Type: CONCLUSION.
+- Handshake extensions are NOT allowed.
+
+If 
+
+
+#### Initiated
+
+Alice receives Bob's CONCLUSION message. While at this point she also
+   performs the "cookie contest", the outcome will be the same. She switches to the
+   "fine" state, and sends:
+   - Version: 5
+   - Appropriate extension flags and encryption flags
+   - Handshake Type: CONCLUSION.
+
+   Both parties always send extension flags at this point, which will
+   contain HSREQ if the message comes from an Initiator, or
+   HSRSP if it comes from a Responder. If the Initiator has received a
+   previous message from the Responder containing an advertised cipher family and block size in the
+   encryption flags field, it will be used as the key length
+   for key generation sent next in the KMREQ extension.
 
 #### Serial Handshake Flow
 
