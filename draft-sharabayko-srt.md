@@ -356,8 +356,11 @@ The structure of the SRT data packet is shown in {{srtdatapacket}}.
 |                  Destination SRT Socket ID                    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
-+                              Data                             +
++                            Payload                            +
 |                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                       Authentication Tag                      |
+|                        (GCM: 16 bytes)                        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #srtdatapacket title="Data packet structure"}
@@ -395,9 +398,12 @@ Timestamp: 32 bits.
 Destination SRT Socket ID: 32 bits.
 : See {{packet-structure}}.
 
-Data: variable length.
+Payload: variable length.
 : The payload of the data packet. The length of the data is the remaining length of
   the UDP packet.
+
+Authentication Tag: optional, 128 bits in case of AES-GCM.
+: The message authentication tag (AES-GCM). The field is only present if AES-GCM crypto mode has been negotiated.
 
 ## Control Packets
 
@@ -1701,7 +1707,7 @@ with the fields set to the following values:
 
 - HS Version: 5
 - Type: Extension field: 0, Encryption field: advertised "PBKEYLEN"
-- Handshake Type: WAVEAHAND ({{#handshake-type}})
+- Handshake Type: WAVEAHAND ({{handshake-type}})
 - SRT Socket ID: Alice's socket ID
 - SYN Cookie: Created based on host/port and current time.
 - HS Extensions: none.
@@ -1739,7 +1745,7 @@ If a WAVEAHAND of CONCLUSION handshake is received from the peer, the state is t
 
 In the Conclusion state the party knowns the peer's cookie value.
 Thus it can perform the Cookie Contest
-(compare both cookie values according to {{#cookie-contest}})
+(compare both cookie values according to {{cookie-contest}})
 and resolve its role.
 The resolution of the Handshake Role (Initiator or Responder) is essential for further processing.
 
@@ -1765,7 +1771,7 @@ The Responder with a Conclusion or a WAVEAHAND handshake without extensions unti
 - Handshake Type: CONCLUSION.
 - Handshake extensions are NOT allowed.
 
-If 
+TODO: What to do if WAVEAHAND or AGREEMENT or else is received in this stage?
 
 
 #### Initiated
