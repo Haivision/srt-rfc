@@ -473,6 +473,7 @@ The value "0x7FFF" is reserved for a user-defined type.
 Handshake control packets (Control Type = 0x0000) are used to exchange peer configurations,
 to agree on connection parameters, and to establish a connection.
 
+The Type-specific Information field is unused in case of the HS message.
 The Control Information Field (CIF) of a handshake control packet is shown
 in {{handshake-packet-structure}}.
 
@@ -1610,11 +1611,6 @@ SRT listener, then is it RECOMMENDED that it accepts the value advertised in the
 
 An alternative behavior MAY be for a caller to take the longer key length in such case.
 
-A legacy UDT party completely ignores the values reported in Version and Handshake Type.  
-It is, however, interested in the SYN Cookie value, as this must be passed to the next 
-phase. It does interpret these fields, but only in the "conclusion" message.
-
-
 TODO: Receiver TSBPD Delay,  Sender TSBPD Delay.
 
 The SRT Caller forms a Conclusion Request. The following values of a Handshake packet MUST be set by the compliant Caller:
@@ -1628,17 +1624,13 @@ The SRT Caller forms a Conclusion Request. The following values of a Handshake p
 - Extension Flags: a set of flags that define the extensions provided in the handshake.
 - The Handshake Extension Message {{handshake-extension-msg}} MUST be present in the conclusion response.
 
-The Listener responds with the same values shown above, without the cookie (which
-is not needed here), as well as the extensions for HS Version 5 (which will probably be
-exactly the same).
-
 ##### The Conclusion Response
 
 The SRT listener receives the Conclusion Request.
 If the values of the conclusion request are in any way not acceptable by the SRT listener side, the connection MUST
-be rejected by sending a Conclusion Response with the Handshake Type field carrying the rejection reason {{hs-rej-reason}}.
+be rejected by sending a Conclusion Response with the Handshake Type field carrying the rejection reason ({{hs-rej-reason}}).
 
-TODO: latency value.
+TODO: latency value. Special value 0.
 
 TODO: Incorrect?
 The only case when the Listener can have precedence over the Caller
@@ -1660,6 +1652,8 @@ different from UDT Rendezvous handshake {{GHG04b}},
 although it is still based on the same message request types.
 
 The states of a party are Waving, Conclusion and Agreement.
+The Waving stage is intended to exchange cookie values, perform the cookie contest and
+deduce the role of each party: initiator or responder.
 
 #### Cookie Contest {#cookie-contest}
 
@@ -1696,10 +1690,7 @@ of the higher bit of the difference.
     }
     <CODE ENDS>
 
-At this point there are two possible "handshake flows":
-serial and parallel.
-
-#### Waving {#waving-state}
+#### The Waving State {#waving-state}
 
 Both parties start in a Waving state.
 In the Waving state both Bob and Alice send a WAVEAHAND handshake
@@ -1708,7 +1699,7 @@ with the fields set to the following values:
 - HS Version: 5
 - Type: Extension field: 0, Encryption field: advertised "PBKEYLEN"
 - Handshake Type: WAVEAHAND ({{handshake-type}})
-- SRT Socket ID: Alice's socket ID
+- SRT Socket ID: socket ID of the party (HS sender).
 - SYN Cookie: Created based on host/port and current time.
 - HS Extensions: none.
 
@@ -1743,7 +1734,7 @@ If a WAVEAHAND of CONCLUSION handshake is received from the peer, the state is t
 
 #### Conclusion {#conclusion-state}
 
-In the Conclusion state the party knowns the peer's cookie value.
+In the Conclusion state the party has received and now knows the peer's cookie value.
 Thus it can perform the Cookie Contest
 (compare both cookie values according to {{cookie-contest}})
 and resolve its role.
@@ -1772,7 +1763,7 @@ The Responder with a Conclusion or a WAVEAHAND handshake without extensions unti
 - Handshake extensions are NOT allowed.
 
 TODO: What to do if WAVEAHAND or AGREEMENT or else is received in this stage?
-
+Repeat conclusion response but not more often that every 250 ms.
 
 #### Initiated
 
