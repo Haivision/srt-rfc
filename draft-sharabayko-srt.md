@@ -478,7 +478,7 @@ in {{handshake-packet-structure}}.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |        Encryption Field       |        Extension Field        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                 Initial Packet Sequence Number                |
+|0|               Initial Packet Sequence Number                |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                 Maximum Transmission Unit Size                |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -541,7 +541,7 @@ Extension Field: 16 bits.
 | 0x00000004 | CONFIG            |
 {: #hs-ext-flags title="Handshake Extension Flags"}
 
-Initial Packet Sequence Number: 32 bits.
+Initial Packet Sequence Number: 31 bits.
 : The sequence number of the very first data packet to be sent.
 
 Maximum Transmission Unit Size: 32 bits.
@@ -1009,7 +1009,7 @@ expanded as follows:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Destination Socket ID                     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+- CIF -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Last Acknowledged Packet Sequence Number           |
+|0|          Last Acknowledged Packet Sequence Number           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                              RTT                              |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1044,7 +1044,7 @@ Timestamp: 32 bits.
 Destination Socket ID: 32 bits.
 : See {{packet-structure}}.
 
-Last Acknowledged Packet Sequence Number: 32 bits.
+Last Acknowledged Packet Sequence Number: 31 bits.
 : This field contains the sequence number of the last data packet being acknowledged plus one.
   In other words, if it the sequence number of the first unacknowledged packet.
 
@@ -1286,9 +1286,9 @@ Number field must be set to zero, and the receiver should drop packets in the pr
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Destination Socket ID                     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                 First Packet Sequence Number                  |
+|0|               First Packet Sequence Number                  |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                  Last Packet Sequence Number                  |
+|0|                Last Packet Sequence Number                  |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #dropreq-control-packet title="Drop Request control packet"}
@@ -1309,10 +1309,10 @@ Timestamp: 32 bits.
 Destination Socket ID: 32 bits.
 : See {{packet-structure}}.
 
-First Packet Sequence Number: 32 bits.
+First Packet Sequence Number: 31 bits.
 : The sequence number of the first packet in the message.
 
-Last Packet Sequence Number: 32 bits.
+Last Packet Sequence Number: 31 bits.
 : The sequence number of the last packet in the message.
 
 ### Peer Error {#ctrl-pkt-peer-error}
