@@ -363,7 +363,7 @@ The structure of the SRT data packet is shown in {{srtdatapacket}}.
 {: #srtdatapacket title="Data packet structure"}
 
 Packet Sequence Number: 31 bits.
-: The sequential number of the data packet.
+: The sequential number of the data packet. Range [0; 2^31 - 1].
 
 PP: 2 bits.
 : Packet Position Flag. This field indicates the position of the data packet in the message.
