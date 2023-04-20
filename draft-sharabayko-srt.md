@@ -545,8 +545,8 @@ Initial Packet Sequence Number: 31 bits.
 : The sequence number of the very first data packet to be sent.
 
 Maximum Transmission Unit Size: 32 bits.
-: This value is typically set to 1500, which is the default Maximum Transmission Unit (MTU)
-  size for Ethernet, but can be less.
+: Maximum Transmission Unit (MTU) size, in bytes. This value is typically set to 1500 bytes,
+  which is the default MTU size for Ethernet, but can be less.
 
 Maximum Flow Window Size: 32 bits.
 : The value of this field is the maximum number of data packets allowed to be "in flight"
@@ -627,10 +627,10 @@ SRT Flags: 32 bits.
 : SRT configuration flags (see {{hs-ext-msg-flags}}).
 
 Receiver TSBPD Delay: 16 bits.
-: Timestamp-Based Packet Delivery (TSBPD) Delay of the receiver. Refer to {{tsbpd}}.
+: Timestamp-Based Packet Delivery (TSBPD) Delay of the receiver, in milliseconds. Refer to {{tsbpd}}.
 
 Sender TSBPD Delay: 16 bits.
-: TSBPD of the sender. Refer to {{tsbpd}}.
+: TSBPD of the sender, in milliseconds. Refer to {{tsbpd}}.
 
 ##### Handshake Extension Message Flags {#hs-ext-msg-flags}
 
