@@ -473,7 +473,7 @@ The value "0x7FFF" is reserved for a user-defined type.
 Handshake control packets (Control Type = 0x0000) are used to exchange peer configurations,
 to agree on connection parameters, and to establish a connection.
 
-The Type-specific Information field is unused in case of the HS message.
+The Type-specific Information field is unused in the case of the HS message.
 The Control Information Field (CIF) of a handshake control packet is shown
 in {{handshake-packet-structure}}.
 
@@ -520,8 +520,8 @@ HS Version: 32 bits.
 
 Encryption Field: 16 bits.
 : Block cipher family and key size. The values of this field are
-  described in {{handshake-encr-fld}}. The default value is 0 - no encryption advertised.
-  If both peers do not advertise encryption, AES-128 is selected by default (see {{handshake-messages}}).
+  described in {{handshake-encr-fld}}. The default value is 0 (no encryption advertised).
+  If neither peer advertises encryption, AES-128 is selected by default (see {{handshake-messages}}).
 
  | Value | Cipher Family and Key Size   |
  | ----- | :--------------------------: |
@@ -1438,9 +1438,9 @@ and "session". Every SRT session starts with the connection phase, where
 peers exchange configuration parameters and relevant information by the means of
 SRT handshake control packets.
 
-SRT versions prior to v1.3.0 uses the version 4 of the handshaking procedure.
-Starting from SRT v1.3.0 the HS version 5 is used.
-The HS v4 is not described in this specification.
+SRT versions prior to v1.3.0 use version 4 of the handshaking procedure.
+HS version 5 is used starting from SRT v1.3.0. 
+HS version 4 is not described in this specification.
 SRT implementations MUST support HS version 5, but MAY not support HS v4.
 
 An SRT connection is characterized by the fact that it is:
@@ -1593,7 +1593,7 @@ phase. It does interpret these fields, but only in the "conclusion" message.
 The SRT caller receives the Induction Response from the SRT listener. The SRT caller MUST check the Induction response from the SRT listener.
 
 If the HS Version value is 5, the response came from SRT, and the handshake version 5 procedure is performed
-as covered further. 
+as covered below. 
 If the HS Version value is 4, the legacy handshake procedure can be applied if supported. The procedure is deprecated and is not covered here.
 The caller MAY reject the connection with the `SRT_REJ_VERSION` reason. In this case there is nothing to send to the SRT listener, as there is no
 connection established at this point.
@@ -1604,12 +1604,12 @@ a contingency for the case when someone, in an attempt to extend UDT independent
 and tries to test it against SRT. In this case there is nothing to send to the SRT listener, as there is no
 connection established at this point.
 
-If the Encryption Flag field is set to 0 - not advertised, the caller MAY advertise its own cipher and key length.
+If the Encryption Flag field is set to 0 (not advertised), the caller MAY advertise its own cipher and key length.
 If the induction response already advertises a certain value in the Encryption Flag, the caller MAY accept it or force its own value.
-It is RECOMMENDED that if a caller is to be sending the content, then it SHOULD force its own value. If it expects to receive a content from the
+It is RECOMMENDED that if a caller will be sending the content, then it SHOULD force its own value. If it expects to receive content from the
 SRT listener, then is it RECOMMENDED that it accepts the value advertised in the Encryption Flag field.
 
-An alternative behavior MAY be for a caller to take the longer key length in such case.
+An alternative behavior MAY be for a caller to take the longer key length in such cases.
 
 TODO: Receiver TSBPD Delay,  Sender TSBPD Delay.
 
@@ -1619,16 +1619,16 @@ The SRT Caller forms a Conclusion Request. The following values of a Handshake p
 - HS Version: 5.
 - Handshake Type: CONCLUSION.
 - SRT Socket ID: Socket ID of the Caller.
-- SYN Cookie: the listener's cookie from the induction response.
+- SYN Cookie: the Listener's cookie from the induction response.
 - Encryption Flags: advertised cipher family and block size.
 - Extension Flags: a set of flags that define the extensions provided in the handshake.
 - The Handshake Extension Message {{handshake-extension-msg}} MUST be present in the conclusion response.
 
 ##### The Conclusion Response
 
-The SRT listener receives the Conclusion Request.
-If the values of the conclusion request are in any way not acceptable by the SRT listener side, the connection MUST
-be rejected by sending a Conclusion Response with the Handshake Type field carrying the rejection reason ({{hs-rej-reason}}).
+The SRT Listener receives the conclusion request.
+If the values of the conclusion request are in any way NOT acceptable on the SRT Listener side, the connection MUST
+be rejected by sending a conclusion response with the Handshake Type field carrying the rejection reason ({{hs-rej-reason}}).
 
 TODO: latency value. Special value 0.
 
@@ -1651,7 +1651,7 @@ The Rendezvous process uses a state machine. It is slightly
 different from UDT Rendezvous handshake {{GHG04b}},
 although it is still based on the same message request types.
 
-The states of a party are Waving, Conclusion and Agreement.
+The states of a party are Waving ("Wave A Hand"), Conclusion and Agreement.
 The Waving stage is intended to exchange cookie values, perform the cookie contest and
 deduce the role of each party: initiator or responder.
 
@@ -1693,7 +1693,7 @@ of the higher bit of the difference.
 #### The Waving State {#waving-state}
 
 Both parties start in a Waving state.
-In the Waving state both Bob and Alice send a WAVEAHAND handshake
+In the Waving state, the parties wishing to connect -- Bob and Alice -- each send a WAVEAHAND handshake packet
 with the fields set to the following values:
 
 - HS Version: 5
@@ -1705,8 +1705,8 @@ with the fields set to the following values:
 
 Legacy HS Version 4 clients do not look at the HS Version value,
 whereas HS Version 5 clients can detect version 5.
-The parties only continue with the HS Version 5 Rendezvous process when Version is set to 5
-for both. Otherwise the process continues exclusively according to Version 4 rules {{GHG04b}}.
+The parties only continue with the HS Version 5 Rendezvous process when HS Version is set to 5
+for both. Otherwise the process continues exclusively according to HS Version 4 rules {{GHG04b}}.
 Implementations MUST support HS Version 5, and MAY not support HS Version 4.
 
 The WAVEAHAND Handshake packet SHOULD not have extensions.
@@ -1730,15 +1730,15 @@ the cookies will always be identical, and so the connection will never be establ
 If there is no response from a peer the WAVEAHAND handshake SHOULD be repeated every 250 ms
 until a connection timeout expires. The connection timeout value is defined by the implementation.
 
-If a WAVEAHAND of CONCLUSION handshake is received from the peer, the state is transitioned to the Attention.
+If a WAVEAHAND packet is received from the peer during a CONCLUSION handshake, the state is transitioned to the Attention state.
 
 #### Conclusion {#conclusion-state}
 
-In the Conclusion state the party has received and now knows the peer's cookie value.
-Thus it can perform the Cookie Contest
+In the Conclusion state each peer has received and now knows the other's cookie value.
+Thus each peer can perform the Cookie Contest operation
 (compare both cookie values according to {{cookie-contest}})
-and resolve its role.
-The resolution of the Handshake Role (Initiator or Responder) is essential for further processing.
+and thereby determine its role.
+The determination of the Handshake Role (Initiator or Responder) is essential for further processing.
 
 Initiator replies with a Conclusion request handshake:
 
@@ -1750,7 +1750,7 @@ Initiator replies with a Conclusion request handshake:
   with HS Extension Type SRT_CMD_HSREQ.
 - Other handshake extensions are allowed.
 
-If encryption is on, the Initiator will use either his
+If encryption is on, the Initiator (Bob) will use either his
 own cipher family and block size or the one received from Alice (if she has advertised
 those values).
 
@@ -1768,11 +1768,11 @@ Repeat conclusion response but not more often that every 250 ms.
 #### Initiated
 
 Alice receives Bob's CONCLUSION message. While at this point she also
-   performs the "cookie contest", the outcome will be the same. She switches to the
+   performs the "cookie contest" operation, the outcome will be the same. She switches to the
    "fine" state, and sends:
    - Version: 5
    - Appropriate extension flags and encryption flags
-   - Handshake Type: CONCLUSION.
+   - Handshake Type: CONCLUSION
 
    Both parties always send extension flags at this point, which will
    contain HSREQ if the message comes from an Initiator, or
@@ -3496,4 +3496,4 @@ The next example specifies that the file is expected to be transmitted from the 
 - Improved the cookie contest description in the Rendezvous connection mode.
 - Described the key material negotiation error during the handshake.
 - Added AES-GCM mode to the key material message (SRT v1.6.0).
-- Imrpved handshake negotiation description.
+- Improved handshake negotiation description.
