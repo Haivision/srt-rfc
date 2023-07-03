@@ -1754,7 +1754,7 @@ If encryption is on, the Initiator (Bob) will use either his
 own cipher family and block size or the one received from Alice (if she has advertised
 those values).
 
-The Responder with a Conclusion or a WAVEAHAND handshake without extensions until it receives the Conclusion Request from the peer:
+The Responder responds  with a Conclusion or a WAVEAHAND handshake without extensions until it receives the Conclusion Request from the peer:
 
 - HS Version: 5
 - Extension field: 0.
