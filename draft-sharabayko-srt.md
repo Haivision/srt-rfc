@@ -1439,7 +1439,7 @@ peers exchange configuration parameters and relevant information by the means of
 SRT handshake control packets.
 
 SRT versions prior to v1.3.0 use version 4 of the handshaking procedure.
-HS version 5 is used starting from SRT v1.3.0.  
+HS version 5 is used starting from SRT v1.3.0.\
 HS version 4 is not described in this specification.
 SRT implementations MUST support HS version 5, but MAY not support HS v4.
 
@@ -1582,7 +1582,7 @@ At this point the Listener still does not know if the Caller is SRT or UDT,
 and it responds with the same set of values regardless of whether the Caller is
 SRT or UDT.
 
-A legacy UDT party completely ignores the values reported in the HS Version and the Handshake Type field.  
+A legacy UDT party completely ignores the values reported in the HS Version and the Handshake Type field.\
 It is, however, interested in the SYN Cookie value, as this must be passed to the next
 phase. It does interpret these fields, but only in the "conclusion" message.
 
@@ -1593,7 +1593,7 @@ phase. It does interpret these fields, but only in the "conclusion" message.
 The SRT caller receives the Induction Response from the SRT listener. The SRT caller MUST check the Induction response from the SRT listener.
 
 If the HS Version value is 5, the response came from SRT, and the handshake version 5 procedure is performed
-as covered below.  
+as covered below.\
 If the HS Version value is 4, the legacy handshake procedure can be applied if supported. The procedure is deprecated and is not covered here.
 The caller MAY reject the connection with the `SRT_REJ_VERSION` reason. In this case there is nothing to send to the SRT listener, as there is no
 connection established at this point.
@@ -1642,8 +1642,7 @@ by each party.
 
 - Destination SRT Socket ID: the SRT Socket ID field value of the previously received conclusion request.
 
-
-There is no "negotiation" at this point. 
+There is no "negotiation" at this point.
 
 ### Rendezvous Handshake
 
