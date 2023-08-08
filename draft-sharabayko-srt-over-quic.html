@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Tunnelling SRT over QUIC</title>
+<meta content="Maxim Sharabayko" name="author">
+<meta content="Maria Sharabayko" name="author">
+<meta content="
+       This document presents an approach to tunnelling SRT live streams over QUIC datagrams. 
+       QUIC   is a UDP-based transport protocol providing TLS encryption, stream multiplexing,
+and connection migration. It was designed to become a faster alternative to the TCP protocol  . 
+       An Unreliable Datagram Extension to QUIC   adds support for sending and receiving
+unreliable datagrams over a QUIC connection, but transfers the responsibility for multiplexing different kinds
+of datagrams, or flows of datagrams, to an application protocol. 
+       SRT   is a UDP-based transport protocol. Essentially, it can operate over any unreliable datagram transport.
+SRT provides loss recovery and stream multiplexing mechanisms.
+In its live streaming configuration SRT provides an end-to-end latency-aware mechanism for packet loss recovery.
+If SRT fails to recover a packet loss within a specified latency, then the packet is dropped to avoid
+blocking playback of further packets. 
+       The Datagram Extension to QUIC could be used as an underlying transport instead of UDP.
+This way QUIC would provide TLS-level security, connection migration, and potentially multi-path support.
+It would be easier for existing network facilities to process, route, and load balance the unified QUIC traffic.
+SRT on its side would provide end-to-end latency tracking and latency-aware loss recovery. 
+    " name="description">
+<meta content="xml2rfc 3.17.4" name="generator">
+<meta content="Internet-Draft" name="keyword">
+<meta content="draft-sharabayko-srt-over-quic-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.17.4
+    Python 3.11.4
+    ConfigArgParse 1.5.3
+    google-i18n-address 3.1.0
+    intervaltree 3.1.0
+    Jinja2 3.1.2
+    lxml 4.9.2
+    platformdirs 3.8.0
+    pycountry 22.3.5
+    PyYAML 6.0
+    requests 2.31.0
+    setuptools 67.7.2
+    six 1.16.0
+    wcwidth 0.2.6
+-->
+<link href="draft-sharabayko-srt-over-quic.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Cabin Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Cabin Condensed SemiBold'), local('CabinCondensed-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/cabincondensed-semibold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Cabin Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Cabin Condensed SemiBold'), local('CabinCondensed-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/cabincondensed-semibold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Cabin Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Cabin Condensed SemiBold'), local('CabinCondensed-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/cabincondensed-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Cabin Condensed", sans-serif;
+  font-weight: 600;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+}
+:is(ol, ul) :is(ol, ul) {
+  margin-left: 1em;
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+.ulCompact li {
+  margin: 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+}
+ul.empty li, .ulEmpty li {
+  margin-top: 0.5em;
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  line-height: 1;
+  margin: 0 0 0 2em;
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+}
+dl.olPercent {
+  --indent: 5ch;
+}
+dl > dt {
+  float: left;
+  margin-right: 2ch;
+  min-width: 8ch;
+}
+dl.dlNewline > dt {
+  float: none;
+}
+dl > dd {
+  margin-bottom: .8em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
+}
+dl.olPercent > dt {
+  min-width: calc(var(--indent) - 2ch);
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+}
+:is(dl.compact, .dlCompact) > dd > :is(:first-child, .break:first-child + *) {
+  margin-top: 0;
+}
+:is(dl.compact, .dlCompact) > dd > :is(:last-child) {
+  margin-bottom: 0;
+}
+dl > dd > dl {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href].selfRef, .iref + a[href].internal {
+  color: var(--text-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) p {
+    margin: -2px 0;
+    max-height: 0;
+    transition: max-height 2s ease, margin 0.5s ease 0.5s;
+    overflow: hidden;
+  }
+  :is(#status-of-memo, #copyright):hover p,
+  :is(#status-of-memo, #copyright) h2:target ~ p {
+    margin: 0.5em 0;
+    max-height: 500px;
+    overflow: auto;
+  }
+  pre, svg {
+    display: inline-block;
+    overflow-x: auto;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+}
+a.pilcrow[href] { color: var(--pilcrow-weak); }
+a.pilcrow[href]:hover { text-decoration: none; }
+@media not print {
+  :hover > a.pilcrow {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+}
+#identifiers dt {
+  width: var(--identifier-width);
+  min-width: var(--identifier-width);
+  clear: left;
+  float: left;
+  text-align: right;
+  margin-right: 1ch;
+}
+#identifiers dd {
+  margin: 0;
+  margin-left: calc(1em + var(--identifier-width)) !important;
+  min-width: 5em;
+}
+#identifiers .authors .author {
+  display: inline-block;
+  margin-right: 1.5em;
+}
+#identifiers .authors .org {
+  font-style: italic;
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: left;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+}
+#toc nav ul {
+  margin: 0 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+}
+#toc nav li {
+  line-height: 1.3em;
+  margin: 0.75em 0;
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+#toc a.xref {
+  white-space: normal;
+}
+/* references */
+.references dt {
+  text-align: right;
+  font-weight: bold;
+  min-width: 10ch;
+  margin-right: 1.5ch;
+}
+.references dt:target::before {
+  content: "⇒";
+  width: 15px;
+  margin: 0 10px 0 -25px;
+}
+.references dd {
+  margin-left: 12ch !important;
+  overflow: auto;
+}
+
+.refInstance {
+  margin-bottom: 1.25em;
+}
+
+.references .ascii {
+  margin-bottom: 0.25em;
+}
+
+/* index */
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  margin: 1em 0;
+}
+address.vcard .nameRole {
+  font-weight: 700;
+  margin-left: 0;
+}
+address.vcard .label {
+  margin: 0.5em 0;
+}
+address.vcard .type {
+  display: none;
+}
+.alternative-contact {
+  margin: 1.5em 0 1em;
+}
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+/* alternative layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc.active {
+      opacity: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+  }
+  #toc h2::before { /* css hamburger */
+    float: right;
+    position: relative;
+    width: 1em;
+    height: 1px;
+    left: -164px;
+    margin: 8px 0 0 0;
+    background: white none repeat scroll 0 0;
+    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+    content: "";
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active nav {
+    display: block;
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:link,
+  #toc h2 a:focus,
+  #toc h2 a:hover,
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin-top: 2px;
+  }
+}
+
+/* alternative layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  #toc nav > ul  {
+    margin-bottom: 2em;
+  }
+  #toc ul {
+    margin: 0 0 0 4px;
+    font-size: var(--small-font-size);
+  }
+  #toc ul :is(p, li) {
+    margin: 2px 0;
+    line-height: 22px;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre {
+    page-break-inside: avoid;
+  }
+  figure {
+    overflow: scroll;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  h2+*, h3+*, h4+*, h5+*, h6+* {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Changes introduced to fix issues found during implementation */
+
+/* Separate body from document info even without intervening H1 */
+section {
+  clear: both;
+}
+
+/* Top align author divs, to avoid names without organization dropping level with org names */
+.author {
+  vertical-align: top;
+}
+
+/* Style section numbers with more space between number and title */
+.section-number {
+  padding-right: 0.5em;
+}
+
+/* Add styling for a link in the ToC that points to the top of the document */
+a.toplink {
+  float: right;
+  margin: 8px 0.5em 0;
+}
+
+/* Provide styling for table cell text alignment */
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
+/* Make the alternative author contact information look less like just another
+   author, and group it closer with the primary author contact information */
+.alternative-contact {
+  margin: 0.5em 0 0.25em 0;
+}
+address .non-ascii {
+  margin: 0 0 0 2em;
+}
+
+/* With it being possible to set tables with alignment
+  left, center, and right, { width: 100%; } does not make sense */
+table {
+  width: auto;
+}
+
+/* Avoid reference text that sits in a block with very wide left margin,
+   because of a long floating dt label.*/
+.references dd {
+  overflow: visible;
+}
+
+/* Control caption placement */
+caption {
+  caption-side: bottom;
+}
+
+/* Limit the width of the author address vcard, so names in right-to-left
+   script don't end up on the other side of the page. */
+
+address.vcard {
+  max-width: 20em;
+  margin-right: auto;
+}
+
+/* For address alignment dependent on LTR or RTL scripts */
+address div.left {
+  text-align: left;
+}
+address div.right {
+  text-align: right;
+}
+
+/* Give the table caption label the same styling as the figcaption */
+
+@media print {
+  .toplink {
+    display: none;
+  }
+
+  /* avoid overwriting the top border line with the ToC header */
+  #toc {
+    padding-top: 1px;
+  }
+
+  /* Avoid page breaks inside dl and author address entries */
+  dd {
+    page-break-before: avoid;
+  }
+  .vcard {
+    page-break-inside: avoid;
+  }
+
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg :is([stroke="black"], [stroke^="#000"]) {
+  stroke: var(--text-color);
+}
+svg :is([stroke="white"], [stroke^="#fff"]) {
+  stroke: var(--background-color);
+}
+svg :is([fill="black"], [fill^="#000"], :not([fill])) {
+  fill: var(--text-color);
+}
+svg :is([fill="white"], [fill^="#fff"]) {
+  fill: var(--background-color);
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">SRTQ</td>
+<td class="right">July 2023</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Sharabayko &amp; Sharabayko</td>
+<td class="center">Expires 12 January 2024</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">TODO Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-sharabayko-srt-over-quic-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2023-07-11" class="published">11 July 2023</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Experimental</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2024-01-12">12 January 2024</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">M. P. Sharabayko</div>
+<div class="org">Haivision Network Video, GmbH</div>
+</div>
+<div class="author">
+      <div class="author-name">M. A. Sharabayko</div>
+<div class="org">Haivision Network Video, GmbH</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Tunnelling SRT over QUIC</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document presents an approach to tunnelling SRT live streams over QUIC datagrams.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">QUIC <span>[<a href="#RFC9000" class="cite xref">RFC9000</a>]</span> is a UDP-based transport protocol providing TLS encryption, stream multiplexing,
+and connection migration. It was designed to become a faster alternative to the TCP protocol <span>[<a href="#RFC7323" class="cite xref">RFC7323</a>]</span>.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">An Unreliable Datagram Extension to QUIC <span>[<a href="#QUIC-DATAGRAM" class="cite xref">QUIC-DATAGRAM</a>]</span> adds support for sending and receiving
+unreliable datagrams over a QUIC connection, but transfers the responsibility for multiplexing different kinds
+of datagrams, or flows of datagrams, to an application protocol.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+<p id="section-abstract-4">SRT <span>[<a href="#SRTRFC" class="cite xref">SRTRFC</a>]</span> is a UDP-based transport protocol. Essentially, it can operate over any unreliable datagram transport.
+SRT provides loss recovery and stream multiplexing mechanisms.
+In its live streaming configuration SRT provides an end-to-end latency-aware mechanism for packet loss recovery.
+If SRT fails to recover a packet loss within a specified latency, then the packet is dropped to avoid
+blocking playback of further packets.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
+<p id="section-abstract-5">The Datagram Extension to QUIC could be used as an underlying transport instead of UDP.
+This way QUIC would provide TLS-level security, connection migration, and potentially multi-path support.
+It would be easier for existing network facilities to process, route, and load balance the unified QUIC traffic.
+SRT on its side would provide end-to-end latency tracking and latency-aware loss recovery.<a href="#section-abstract-5" class="pilcrow">¶</a></p>
+</section>
+<section class="note" id="section-note.1">
+      <h2 id="name-note-to-readers">
+<a href="#name-note-to-readers" class="section-name selfRef">Note to Readers</a>
+      </h2>
+<p id="section-note.1-1">Source for this draft and an issue tracker can be found at
+  <a href="https://github.com/haivision/srt-rfc">https://github.com/haivision/srt-rfc</a>.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 12 January 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2023 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-srt-for-low-latency" class="internal xref">SRT for Low Latency</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-quic-for-universal-transpor" class="internal xref">QUIC for Universal Transport</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terms-and-definitions" class="internal xref">Terms and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-use-cases-for-srt-over-quic" class="internal xref">Use Cases for SRT over QUIC</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-tunnelling-srt-over-quic" class="internal xref">Tunnelling SRT over QUIC</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-overhead" class="internal xref">Overhead</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-packet-integrity" class="internal xref">Packet Integrity</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-connection-establishment" class="internal xref">Connection Establishment</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-bidirectional-transmission" class="internal xref">Bidirectional Transmission</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-congestion-control" class="internal xref">Congestion Control</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-pacing" class="internal xref">Pacing</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.7">
+                <p id="section-toc.1-1.4.2.7.1"><a href="#section-4.7" class="auto internal xref">4.7</a>.  <a href="#name-connection-mitigation" class="internal xref">Connection Mitigation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.8">
+                <p id="section-toc.1-1.4.2.8.1"><a href="#section-4.8" class="auto internal xref">4.8</a>.  <a href="#name-datagram-vs-h3-datagram" class="internal xref">Datagram vs H3 Datagram</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref"></a><a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref"></a><a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref"></a><a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<div id="srt-for-low-latency">
+<section id="section-1.1">
+        <h3 id="name-srt-for-low-latency">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-srt-for-low-latency" class="section-name selfRef">SRT for Low Latency</a>
+        </h3>
+<p id="section-1.1-1">The Secure Reliable Transport (SRT) protocol <span>[<a href="#SRTRFC" class="cite xref">SRTRFC</a>]</span> is a connection-based transport protocol
+that enables the secure, reliable transport of data across
+unpredictable networks, such as the Internet. While any data type can be transferred
+via SRT, it is ideal for low latency (sub-second) video streaming.
+SRT enables high contribution bitrates over long distance connections.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">To achieve low latency streaming, SRT addresses timing issues. The characteristics
+of a stream from a source network can be notably changed by transmission over the public
+Internet, introducing delays, jitter, and packet loss. This, in turn, leads to
+problems with decoding, as audio and video decoders do not receive packets at the
+expected pace. The use of large buffers helps, but latency is increased.
+SRT includes a mechanism to keep a constant end-to-end latency, thus recreating
+the signal characteristics on the receiver side, and reducing the need for buffering.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
+<p id="section-1.1-3">SRT employs a listener (server) / caller (client) model. The data flow is bi-directional and
+independent of the connection initiation - either the sender or receiver can operate
+as listener or caller to initiate a connection.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+<p id="section-1.1-4">The SRT protocol provides an internal multiplexing mechanism, allowing multiple SRT connections
+to share the same UDP port, providing access control functionality to identify the caller on the listener side.
+This mechanism is exactly what QUIC DATAGRAM describes as a responsibility of the application protocol.<a href="#section-1.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.1-5">Supporting forward error correction (FEC) and selective packet retransmission (ARQ),
+SRT provides the flexibility to use either of the two mechanisms or both combined,
+allowing for use cases ranging from the lowest possible latency to the highest possible
+reliability.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
+<p id="section-1.1-6">SRT also allows fast file transfers, and adds support for AES encryption.<a href="#section-1.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="quic-for-universal-transport">
+<section id="section-1.2">
+        <h3 id="name-quic-for-universal-transpor">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-quic-for-universal-transpor" class="section-name selfRef">QUIC for Universal Transport</a>
+        </h3>
+<p id="section-1.2-1">The QUIC transport protocol <span>[<a href="#RFC9000" class="cite xref">RFC9000</a>]</span> is a connection-based transport protocol built on top of UDP.
+It provides a workflow similar to that of TCP, but for modern fast networks.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+<p id="section-1.2-2">TODO: Add more details to the current section. Write about lower connection times, faster delivery, ARQ, CC, etc.<a href="#section-1.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="terms-and-definitions">
+<section id="section-2">
+      <h2 id="name-terms-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terms-and-definitions" class="section-name selfRef">Terms and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span>
+when, and only when, they appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-2">
+        <dt id="section-2-2.1">SRT:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.2">
+          <p id="section-2-2.2.1">The Secure Reliable Transport protocol.<a href="#section-2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="use-cases-for-srt-over-quic">
+<section id="section-3">
+      <h2 id="name-use-cases-for-srt-over-quic">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-use-cases-for-srt-over-quic" class="section-name selfRef">Use Cases for SRT over QUIC</a>
+      </h2>
+<p id="section-3-1">SRT itself is very close to QUIC, and provides similar transport mechanisms.
+However, the main focus of SRT is on low-latency live contribution and distribution.
+SRT is widely used by various broadcasters to enable low-latency streaming of live events.
+It is also used in various mobile and IoT devices to get low-latency feedback and live feeds.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">QUIC is supported by CDN companies. Many facilities know how to handle and route QUIC traffic.
+QUIC provides certain security advantages (TLS, encrypting headers so that traffic is not distinguishable).<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">SRT tunnelled over QUIC allows managing live delivery mechanisms (preserving end-to-end latency and dropping "too late" data).<a href="#section-3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="tunnelling-srt-over-quic">
+<section id="section-4">
+      <h2 id="name-tunnelling-srt-over-quic">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-tunnelling-srt-over-quic" class="section-name selfRef">Tunnelling SRT over QUIC</a>
+      </h2>
+<p id="section-4-1">The QUIC DATAGRAM frame is structured as follows:<a href="#section-4-1" class="pilcrow">¶</a></p>
+<span id="name-quic-datagram-frame-format"></span><div id="quic-datagram-frame">
+<figure id="figure-1">
+        <div class="alignLeft art-text artwork" id="section-4-2.1">
+<pre>
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                        [Length (i)]                         ...
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                      Datagram Data (*)                      ...
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-quic-datagram-frame-format" class="selfRef">QUIC DATAGRAM Frame Format</a>
+        </figcaption></figure>
+</div>
+<span class="break"></span><dl class="dlParallel" id="section-4-3">
+        <dt id="section-4-3.1">Length.</dt>
+        <dd style="margin-left: 1.5em" id="section-4-3.2">
+          <p id="section-4-3.2.1">A variable-length integer specifying the length of the
+datagram in bytes.<a href="#section-4-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-4-3.3">Datagram Data.</dt>
+        <dd style="margin-left: 1.5em" id="section-4-3.4">
+          <p id="section-4-3.4.1">The bytes of the datagram to be delivered.<a href="#section-4-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-4-4">The structure of the SRT packet is shown in <a href="#srt-packet" class="auto internal xref">Figure 2</a>. For SRT over QUIC tunnelling
+the full SRT packet is placed inside the Datagram Data field.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<span id="name-srt-packet-structure"></span><div id="srt-packet">
+<figure id="figure-2">
+        <div class="alignLeft art-text artwork" id="section-4-5.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+- SRT Header +-+-+-+-+-+-+-+-+-+-+-+-+-+
+|F|        (Field meaning depends on the packet type)           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|          (Field meaning depends on the packet type)           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Destination Socket ID                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                        Packet Contents                        |
+|                  (depends on the packet type)                 +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-srt-packet-structure" class="selfRef">SRT Packet Structure</a>
+        </figcaption></figure>
+</div>
+<span class="break"></span><dl class="dlParallel" id="section-4-6">
+        <dt id="section-4-6.1">F: 1 bit.</dt>
+        <dd style="margin-left: 1.5em" id="section-4-6.2">
+          <p id="section-4-6.2.1">Packet Type Flag. A control packet has this flag set to "1".
+A data packet has this flag set to "0".<a href="#section-4-6.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-4-6.3">Timestamp: 32 bits.</dt>
+        <dd style="margin-left: 1.5em" id="section-4-6.4">
+          <p id="section-4-6.4.1">The timestamp of the packet, in microseconds.
+The value is relative to the time the SRT connection was established.
+Depending on the transmission mode,
+the field stores the packet send time or the packet origin time.<a href="#section-4-6.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-4-6.5">Destination Socket ID: 32 bits.</dt>
+        <dd style="margin-left: 1.5em" id="section-4-6.6">
+          <p id="section-4-6.6.1">A fixed-width field providing the SRT socket ID to which a packet should be dispatched.
+The field may have the special value "0" when the packet is a connection request.<a href="#section-4-6.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-4-6.7">Packet Contents.</dt>
+        <dd style="margin-left: 1.5em" id="section-4-6.8">
+          <p id="section-4-6.8.1">Packet Contents as per packet type.<a href="#section-4-6.8.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<div id="overhead">
+<section id="section-4.1">
+        <h3 id="name-overhead">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-overhead" class="section-name selfRef">Overhead</a>
+        </h3>
+<p id="section-4.1-1">An SRT data packet has a 16-byte header, which adds to the payload of a QUIC packet.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">For example, let us consider a payload size of 1128 bytes (six 188-byte MPEG-TS packets).
+For a 20 Mbps stream, knowing that each data packet gets an additional 16 bytes of overhead,
+SRT would provide an overhead of only ~280 kbits/s (or 1.4%).<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">Increasing the size of the payload, e.g., to 1316 bytes (seven 188-byte MPEG-TS packets), SRT overhead at 20 Mbps
+would be ~240 kbits/s (or 1.2%).<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">An SRT receiver also sends a full ACK packet every 10 ms. The size of the ACK packet is 44 bytes. This traffic goes in the opposite direction: from the payload receiver to the payload sender. The payload sender responds to every ACK packet with a corresponding 16-byte ACKACK packet. This gives an additional 1600 bytes per second, which may be considered negligible.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="packet-integrity">
+<section id="section-4.2">
+        <h3 id="name-packet-integrity">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-packet-integrity" class="section-name selfRef">Packet Integrity</a>
+        </h3>
+<p id="section-4.2-1">SRT does not provide mechanisms to verify the integrity of packets,
+nor to distinguish a packet from a continuous data stream.
+SRT assumes that the underlying transport protocol delivers a single and undamaged packet to SRT.
+Therefore, the underlying transport MUST provide a mechanism for SRT to send and receive
+exactly one packet.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">One SRT packet MUST be sent over exactly one QUIC Datagram frame.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="connection-establishment">
+<section id="section-4.3">
+        <h3 id="name-connection-establishment">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-connection-establishment" class="section-name selfRef">Connection Establishment</a>
+        </h3>
+<p id="section-4.3-1">QUIC has a fast and secure crypto handshake based on TLS.
+A client connects to a server, and it can verify the server based on its certificate.
+A new client connection takes two times the RTT to be established.
+If a client connects to a known server, then it can try to establish a faster 0-RTT connection.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">Once a QUIC connection is established, QUIC datagrams can be sent in both directions.
+SRT can use this QUIC datagram tunnelling to establish one or many connections on its own.
+Each SRT connection would take two times the RTT for handshaking.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">The first handshake round of SRT is intended to get an initial response from the server,
+identifying handshake procedure version and getting a cookie from the server (listener)
+to mitigate potential DoS attacks. Apart from that, no viable data is exchanged during
+this first "induction" handshake phase.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">If an SRT connection is established over an established and verified QUIC connection,
+the SRT connection time could be reduced to a single RTT interval if only the "conclusion" handshaking phase
+is performed. However SRT does not currently provide this functionality, thus appropriate
+modifications are required.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="bidirectional-transmission">
+<section id="section-4.4">
+        <h3 id="name-bidirectional-transmission">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-bidirectional-transmission" class="section-name selfRef">Bidirectional Transmission</a>
+        </h3>
+<p id="section-4.4-1">Both QUIC and SRT allow bidirectional transmission of a payload over a single SRT connection.
+Even with a payload sent in one direction, some control packets are still sent in the opposite direction over the same connection.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="congestion-control">
+<section id="section-4.5">
+        <h3 id="name-congestion-control">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-congestion-control" class="section-name selfRef">Congestion Control</a>
+        </h3>
+<p id="section-4.5-1">QUIC as a transport mechanism can apply congestion control. It is worth noting, however, the specifics of live streaming compared
+to file-based transmissions. The payload is not available right away, therefore using regular bandwidth probing mechanisms
+to increase or decrease the sending rate would not work.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-2">The current sending rate is provided by SRT, which in turn receives the payload from a live source and can add some overhead
+when retransmission of lost packets is performed.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
+<p id="section-4.5-3">However, QUIC can use congestion control to detect congestion and throughput bottlenecks, and prevent sending above a certain limit.
+SRT MUST handle such cases by eventually dropping packets, which can no longer be recovered.<a href="#section-4.5-3" class="pilcrow">¶</a></p>
+<p id="section-4.5-4">It would make sense for a QUIC connection to provide this throughput limitation value back to SRT. In that case SRT could use the number to
+make clever and transport-aware retransmission decisions.<a href="#section-4.5-4" class="pilcrow">¶</a></p>
+<p id="section-4.5-5">It is also possible for QUIC to not apply any congestion control, relying on SRT. However, SRT does not reduce the sending rate below the input rate.
+If the bitrate of the original stream already exceeds network throughput, SRT would still try to deliver it, maintaining congestion and
+eventually breaking the SRT connection.<a href="#section-4.5-5" class="pilcrow">¶</a></p>
+<p id="section-4.5-6">It is worth mentioning that in a live streaming scenario it may be beneficial to move congestion control mechanisms outside of the protocol
+towards the encoder (payload producer), implementing a network adaptive encoding based on the telemetry provided
+by the SRT and QUIC protocols.<a href="#section-4.5-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="pacing">
+<section id="section-4.6">
+        <h3 id="name-pacing">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-pacing" class="section-name selfRef">Pacing</a>
+        </h3>
+<p id="section-4.6-1">SRT uses ACK/ACKACK packet pairs to measure RTT on a link, and to track latency and clock drift.
+It also uses packet pair probing to estimate connection bandwidth, although in live configurations
+such estimates are informative only.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+<p id="section-4.6-2">Buffering and pacing of SRT packets by QUIC SHOULD be done with the understanding that this would interfere with the corresponding SRT mechanisms.
+Alternatively, SRT may implement a pacer on top of QUIC’s congestion control and probing mechanisms to abstract the complexity associated with live streaming use cases.<a href="#section-4.6-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="connection-mitigation">
+<section id="section-4.7">
+        <h3 id="name-connection-mitigation">
+<a href="#section-4.7" class="section-number selfRef">4.7. </a><a href="#name-connection-mitigation" class="section-name selfRef">Connection Mitigation</a>
+        </h3>
+<p id="section-4.7-1">QUIC utilizes Connection UUID to distinguish between connections (compared to the IP:Port scheme used by UDP and TCP).
+This enables already established connections to be handed over seamlessly across network interfaces without requiring a new handshake/negotiation.
+SRT may expand on this to enable network bonded delivery workflows to switch between optimal transports without a latency hit.<a href="#section-4.7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="datagram-vs-h3-datagram">
+<section id="section-4.8">
+        <h3 id="name-datagram-vs-h3-datagram">
+<a href="#section-4.8" class="section-number selfRef">4.8. </a><a href="#name-datagram-vs-h3-datagram" class="section-name selfRef">Datagram vs H3 Datagram</a>
+        </h3>
+<p id="section-4.8-1">As an alternative to using the QUIC Datagram extension, it might be possible to consider the H3 Datagram version in order to be compatible with more existing load balancers.<a href="#section-4.8-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-5">
+      <h2 id="name-security-considerations">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-5-1">TODO<a href="#section-5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-6">
+      <h2 id="name-iana-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-6-1">TODO<a href="#section-6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="section-7">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="section-7-1">It is worth acknowledging the participation of the following people in the project discussions: Ying Yin (Google), Ian Swett (Google), Victor Vasiliev (Google), Kazuko Oku (Fastly),
+Marc Cymontkowski (Haivision), Nikos Kyriopoulos (Haivision), Jake Weissman (Facebook), Jordi Cenzano (Facebook), Alan Frindell (Facebook), Jeongseok Kim (SK Telecom), Joonwoong Kim (SK Telecom).<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">Quicly library <span>[<a href="#QUICLY" class="cite xref">QUICLY</a>]</span> from Fastly was chosen to provide a QUIC datagram transport layer for SRT over QUIC PoC. We would like to thank Kazuho Oku (Fastly) for his help.<a href="#section-7-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<section id="section-8">
+      <h2 id="name-references">
+<a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<section id="section-8.1">
+        <h3 id="name-normative-references">
+<a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7323">[RFC7323]</dt>
+        <dd>
+<span class="refAuthor">Borman, D.</span>, <span class="refAuthor">Braden, B.</span>, <span class="refAuthor">Jacobson, V.</span>, and <span class="refAuthor">R. Scheffenegger, Ed.</span>, <span class="refTitle">"TCP Extensions for High Performance"</span>, <span class="seriesInfo">RFC 7323</span>, <span class="seriesInfo">DOI 10.17487/RFC7323</span>, <time datetime="2014-09" class="refDate">September 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7323">https://www.rfc-editor.org/rfc/rfc7323</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9000">[RFC9000]</dt>
+      <dd>
+<span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <span class="seriesInfo">DOI 10.17487/RFC9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+<section id="section-8.2">
+        <h3 id="name-informative-references">
+<a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="QUIC-DATAGRAM">[QUIC-DATAGRAM]</dt>
+        <dd>
+<span class="refAuthor">Pauly, T.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">D. Schinazi</span>, <span class="refTitle">"An Unreliable Datagram Extension to QUIC"</span>, <span>n.d.</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-quic-datagram/">https://datatracker.ietf.org/doc/draft-ietf-quic-datagram/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="QUICLY">[QUICLY]</dt>
+        <dd>
+<span class="refTitle">"QUIC protocol implementation quicly for H2O server"</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://github.com/h2o/quicly">https://github.com/h2o/quicly</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SRTRFC">[SRTRFC]</dt>
+      <dd>
+<span class="refAuthor">Sharabayko, M.</span>, <span class="refAuthor">Sharabayko, M.</span>, <span class="refAuthor">Dube, J.</span>, <span class="refAuthor">Kim, J.</span>, and <span class="refAuthor">J. Kim</span>, <span class="refTitle">"The SRT Protocol"</span>, <time datetime="2019-12" class="refDate">December 2019</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-sharabayko-srt/">https://datatracker.ietf.org/doc/draft-sharabayko-srt/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</section>
+<div id="authors-addresses">
+<section id="appendix-A">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Maxim Sharabayko</span></div>
+<div dir="auto" class="left"><span class="org">Haivision Network Video, GmbH</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:maxsharabayko@haivision.com" class="email">maxsharabayko@haivision.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Maria Sharabayko</span></div>
+<div dir="auto" class="left"><span class="org">Haivision Network Video, GmbH</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:msharabayko@haivision.com" class="email">msharabayko@haivision.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
