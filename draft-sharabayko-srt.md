@@ -1044,7 +1044,7 @@ Reserved: 16 bits, value = 0.
 : This is a fixed-width field reserved for future use.
 
 Acknowledgement Number: 32 bits.
-: This field contains the sequential number of the full acknowledgment packet starting from 1.
+: This field contains the sequential number of the full acknowledgment packet starting from 1, except in the case of Light ACKs and Small ACKs, where this value is 0 (see below).
 
 Timestamp: 32 bits.
 : See {{packet-structure}}.
