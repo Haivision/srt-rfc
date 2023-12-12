@@ -18,24 +18,24 @@ as well as generic bulk data transfer. For this, SRT introduces control
 packet extension, improved flow control, enhanced congestion control
 and a mechanism for data encryption. 
     " name="description">
-<meta content="xml2rfc 3.17.4" name="generator">
+<meta content="xml2rfc 3.18.2" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-sharabayko-srt-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.17.4
-    Python 3.11.4
-    ConfigArgParse 1.5.3
+  xml2rfc 3.18.2
+    Python 3.11.6
+    ConfigArgParse 1.7
     google-i18n-address 3.1.0
     intervaltree 3.1.0
     Jinja2 3.1.2
-    lxml 4.9.2
-    platformdirs 3.8.0
+    lxml 4.9.3
+    platformdirs 4.1.0
     pycountry 22.3.5
-    PyYAML 6.0
+    PyYAML 6.0.1
     requests 2.31.0
-    setuptools 67.7.2
+    setuptools 68.2.2
     six 1.16.0
-    wcwidth 0.2.6
+    wcwidth 0.2.12
 -->
 <link href="draft-sharabayko-srt.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -658,7 +658,7 @@ sub, sup {
 }
 #toc nav li {
   line-height: 1.3em;
-  margin: 0.75em 0;
+  margin: 2px 0;
   padding-left: 1.2em;
   text-indent: -1.2em;
 }
@@ -751,7 +751,7 @@ hr.addr {
     z-index: 2;
     top: 0;
     right: 0;
-    padding: 0;
+    padding: 1px 0 0 0;
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
@@ -875,16 +875,13 @@ hr.addr {
     border-top: none;
     padding-top: 0;
   }
-  figure, pre {
+  figure, pre, .vcard {
     page-break-inside: avoid;
-  }
-  figure {
-    overflow: scroll;
   }
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid;
   }
-  h2+*, h3+*, h4+*, h5+*, h6+* {
+  :is(h2, h3, h4, h5, h6)+*, dd {
     page-break-before: avoid;
   }
   pre {
@@ -897,6 +894,9 @@ hr.addr {
   }
   td {
     border-top: 1px solid #ddd;
+  }
+  .toplink {
+    display: none;
   }
 }
 
@@ -998,28 +998,6 @@ address div.right {
   text-align: right;
 }
 
-/* Give the table caption label the same styling as the figcaption */
-
-@media print {
-  .toplink {
-    display: none;
-  }
-
-  /* avoid overwriting the top border line with the ToC header */
-  #toc {
-    padding-top: 1px;
-  }
-
-  /* Avoid page breaks inside dl and author address entries */
-  dd {
-    page-break-before: avoid;
-  }
-  .vcard {
-    page-break-inside: avoid;
-  }
-
-}
-
 /* Dark mode. */
 @media (prefers-color-scheme: dark) {
 :root {
@@ -1056,11 +1034,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">SRT</td>
-<td class="right">July 2023</td>
+<td class="right">December 2023</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Sharabayko, et al.</td>
-<td class="center">Expires 12 January 2024</td>
+<td class="center">Expires 14 June 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1073,12 +1051,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-sharabayko-srt-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-07-11" class="published">11 July 2023</time>
+<time datetime="2023-12-12" class="published">12 December 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-01-12">12 January 2024</time></dd>
+<dd class="expires"><time datetime="2024-06-14">14 June 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1118,7 @@ and a mechanism for data encryption.<a href="#section-abstract-1" class="pilcrow
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 January 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 14 June 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2322,26 +2300,34 @@ and 2 for a Handshake Extension response (SRT_CMD_HSRSP in <a href="#handshake-e
               </table>
 </div>
 <ul class="normal">
-<li class="normal" id="section-3.2.1.1.1-2.1">TSBPDSND flag defines if the TSBPD mechanism (<a href="#tsbpd" class="auto internal xref">Section 4.5</a>) will be used for sending.<a href="#section-3.2.1.1.1-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.1.1.1-2.1">
+                  <p id="section-3.2.1.1.1-2.1.1">TSBPDSND flag defines if the TSBPD mechanism (<a href="#tsbpd" class="auto internal xref">Section 4.5</a>) will be used for sending.<a href="#section-3.2.1.1.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.1.1.1-2.2">TSBPDRCV flag defines if the TSBPD mechanism (<a href="#tsbpd" class="auto internal xref">Section 4.5</a>) will be used for receiving.<a href="#section-3.2.1.1.1-2.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.1.1.1-2.2">
+                  <p id="section-3.2.1.1.1-2.2.1">TSBPDRCV flag defines if the TSBPD mechanism (<a href="#tsbpd" class="auto internal xref">Section 4.5</a>) will be used for receiving.<a href="#section-3.2.1.1.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.1.1.1-2.3">CRYPT flag MUST be set. It is a legacy flag that indicates the party understands
-KK field of the SRT Packet (<a href="#srtdatapacket" class="auto internal xref">Figure 3</a>).<a href="#section-3.2.1.1.1-2.3" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.1.1.1-2.3">
+                  <p id="section-3.2.1.1.1-2.3.1">CRYPT flag MUST be set. It is a legacy flag that indicates the party understands
+KK field of the SRT Packet (<a href="#srtdatapacket" class="auto internal xref">Figure 3</a>).<a href="#section-3.2.1.1.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.1.1.1-2.4">TLPKTDROP flag should be set if too-late packet drop mechanism will be used during transmission.
-See <a href="#too-late-packet-drop" class="auto internal xref">Section 4.6</a>.<a href="#section-3.2.1.1.1-2.4" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.1.1.1-2.4">
+                  <p id="section-3.2.1.1.1-2.4.1">TLPKTDROP flag should be set if too-late packet drop mechanism will be used during transmission.
+See <a href="#too-late-packet-drop" class="auto internal xref">Section 4.6</a>.<a href="#section-3.2.1.1.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.1.1.1-2.5">PERIODICNAK flag set indicates the peer will send periodic NAK packets. See <a href="#packet-naks" class="auto internal xref">Section 4.8.2</a>.<a href="#section-3.2.1.1.1-2.5" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.1.1.1-2.5">
+                  <p id="section-3.2.1.1.1-2.5.1">PERIODICNAK flag set indicates the peer will send periodic NAK packets. See <a href="#packet-naks" class="auto internal xref">Section 4.8.2</a>.<a href="#section-3.2.1.1.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.1.1.1-2.6">REXMITFLG flag MUST be set. It is a legacy flag that indicates the peer understands the R field
-of the SRT DATA Packet (<a href="#srtdatapacket" class="auto internal xref">Figure 3</a>).<a href="#section-3.2.1.1.1-2.6" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.1.1.1-2.6">
+                  <p id="section-3.2.1.1.1-2.6.1">REXMITFLG flag MUST be set. It is a legacy flag that indicates the peer understands the R field
+of the SRT DATA Packet (<a href="#srtdatapacket" class="auto internal xref">Figure 3</a>).<a href="#section-3.2.1.1.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.1.1.1-2.7">STREAM flag identifies the transmission mode (<a href="#data-transmission-modes" class="auto internal xref">Section 4.2</a>) to be used in the connection.
+                <li class="normal" id="section-3.2.1.1.1-2.7">
+                  <p id="section-3.2.1.1.1-2.7.1">STREAM flag identifies the transmission mode (<a href="#data-transmission-modes" class="auto internal xref">Section 4.2</a>) to be used in the connection.
 If the flag is set, the buffer mode (<a href="#transmission-mode-buffer" class="auto internal xref">Section 4.2.2</a>) is used.
-Otherwise, the message mode (<a href="#transmission-mode-msg" class="auto internal xref">Section 4.2.1</a>) is used.<a href="#section-3.2.1.1.1-2.7" class="pilcrow">¶</a>
+Otherwise, the message mode (<a href="#transmission-mode-msg" class="auto internal xref">Section 4.2.1</a>) is used.<a href="#section-3.2.1.1.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.1.1.1-2.8">PACKET_FILTER flag indicates if the peer supports packet filter.<a href="#section-3.2.1.1.1-2.8" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.1.1.1-2.8">
+                  <p id="section-3.2.1.1.1-2.8.1">PACKET_FILTER flag indicates if the peer supports packet filter.<a href="#section-3.2.1.1.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </section>
@@ -2387,13 +2373,17 @@ It is an indication of encryption failure. In this case the Extension Content ha
 </dl>
 <p id="section-3.2.1.2-7">NOTE: In the descriptions below, "peer" refers to the remote SRT side sending the KM response, and "agent" refers to the local side interpreting the KM response.<a href="#section-3.2.1.2-7" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.1.2-8.1">0: unsecured (the peer will encrypt the payload, while the agent has not declared any encryption),<a href="#section-3.2.1.2-8.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.1.2-8.1">
+                <p id="section-3.2.1.2-8.1.1">0: unsecured (the peer will encrypt the payload, while the agent has not declared any encryption),<a href="#section-3.2.1.2-8.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2.1.2-8.2">3: no secret (the peer does not have the key to decrypt the incoming payload),<a href="#section-3.2.1.2-8.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-3.2.1.2-8.2">
+                <p id="section-3.2.1.2-8.2.1">3: no secret (the peer does not have the key to decrypt the incoming payload),<a href="#section-3.2.1.2-8.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2.1.2-8.3">4: bad secret (the peer has the wrong key and can't decrypt the incoming payload),<a href="#section-3.2.1.2-8.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-3.2.1.2-8.3">
+                <p id="section-3.2.1.2-8.3.1">4: bad secret (the peer has the wrong key and can't decrypt the incoming payload),<a href="#section-3.2.1.2-8.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2.1.2-8.4">5: bad crypto mode (the peer expects to use a different cryptographic mode). Since protocol v1.6.<a href="#section-3.2.1.2-8.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-3.2.1.2-8.4">
+                <p id="section-3.2.1.2-8.4.1">5: bad crypto mode (the peer expects to use a different cryptographic mode). Since protocol v1.6.<a href="#section-3.2.1.2-8.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </section>
@@ -2473,15 +2463,20 @@ If such a group does not exist, the target socket MAY create it.<a href="#sectio
             <dd class="break"></dd>
 </dl>
 <ul class="normal">
-<li class="normal" id="section-3.2.1.4-4.1">0: undefined group type,<a href="#section-3.2.1.4-4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.1.4-4.1">
+                <p id="section-3.2.1.4-4.1.1">0: undefined group type,<a href="#section-3.2.1.4-4.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2.1.4-4.2">1: broadcast group type,<a href="#section-3.2.1.4-4.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-3.2.1.4-4.2">
+                <p id="section-3.2.1.4-4.2.1">1: broadcast group type,<a href="#section-3.2.1.4-4.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2.1.4-4.3">2: main/backup group type,<a href="#section-3.2.1.4-4.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-3.2.1.4-4.3">
+                <p id="section-3.2.1.4-4.3.1">2: main/backup group type,<a href="#section-3.2.1.4-4.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2.1.4-4.4">3: balancing group type,<a href="#section-3.2.1.4-4.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-3.2.1.4-4.4">
+                <p id="section-3.2.1.4-4.4.1">3: balancing group type,<a href="#section-3.2.1.4-4.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2.1.4-4.5">4: multicast group type (reserved for future use).<a href="#section-3.2.1.4-4.5" class="pilcrow">¶</a>
+              <li class="normal" id="section-3.2.1.4-4.5">
+                <p id="section-3.2.1.4-4.5.1">4: multicast group type (reserved for future use).<a href="#section-3.2.1.4-4.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <span class="break"></span><dl class="dlParallel" id="section-3.2.1.4-5">
@@ -2497,11 +2492,14 @@ If such a group does not exist, the target socket MAY create it.<a href="#sectio
             <dd class="break"></dd>
 </dl>
 <ul class="normal">
-<li class="normal" id="section-3.2.1.4-6.1">Not used with broadcast group type,<a href="#section-3.2.1.4-6.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.1.4-6.1">
+                <p id="section-3.2.1.4-6.1.1">Not used with broadcast group type,<a href="#section-3.2.1.4-6.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2.1.4-6.2">Defines the link priority for main/backup group type,<a href="#section-3.2.1.4-6.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-3.2.1.4-6.2">
+                <p id="section-3.2.1.4-6.2.1">Defines the link priority for main/backup group type,<a href="#section-3.2.1.4-6.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2.1.4-6.3">Not yet defined for any other cases (reserved for future use).<a href="#section-3.2.1.4-6.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-3.2.1.4-6.3">
+                <p id="section-3.2.1.4-6.3.1">Not yet defined for any other cases (reserved for future use).<a href="#section-3.2.1.4-6.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <span id="name-group-membership-extension-f"></span><div id="fig-hsext-group-flags">
@@ -2538,9 +2536,11 @@ If such a group does not exist, the target socket MAY create it.<a href="#sectio
 is to let peers exchange encryption-related information to be used to encrypt and decrypt the payload of the stream.<a href="#section-3.2.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.2.2-2">This message can be supplied in two possible ways:<a href="#section-3.2.2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.2-3.1">as a Handshake Extension (see <a href="#sec-hsext-km" class="auto internal xref">Section 3.2.1.2</a>)<a href="#section-3.2.2-3.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.2-3.1">
+              <p id="section-3.2.2-3.1.1">as a Handshake Extension (see <a href="#sec-hsext-km" class="auto internal xref">Section 3.2.1.2</a>)<a href="#section-3.2.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.2.2-3.2">in the Content Information Field of the User-Defined control packet (described below).<a href="#section-3.2.2-3.2" class="pilcrow">¶</a>
+            <li class="normal" id="section-3.2.2-3.2">
+              <p id="section-3.2.2-3.2.1">in the Content Information Field of the User-Defined control packet (described below).<a href="#section-3.2.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-3.2.2-4">When the Key Material is transmitted as a control packet, the Control Type field of the SRT packet header
@@ -2585,7 +2585,8 @@ The KM Refresh mechanism is described in <a href="#sec-crypt-km-refresh" class="
             <dd style="margin-left: 1.5em" id="section-3.2.2-7.4">
               <p id="section-3.2.2-7.4.1">This is a fixed-width field that indicates the KM message version:<a href="#section-3.2.2-7.4.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.2-7.4.2.1">1: Initial KM message format version.<a href="#section-3.2.2-7.4.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.2-7.4.2.1">
+                  <p id="section-3.2.2-7.4.2.1.1">1: Initial KM message format version.<a href="#section-3.2.2-7.4.2.1.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </dd>
@@ -2594,13 +2595,17 @@ The KM Refresh mechanism is described in <a href="#sec-crypt-km-refresh" class="
             <dd style="margin-left: 1.5em" id="section-3.2.2-7.6">
               <p id="section-3.2.2-7.6.1">This is a fixed-width field that indicates the Packet Type:<a href="#section-3.2.2-7.6.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.2-7.6.2.1">0: Reserved<a href="#section-3.2.2-7.6.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.2-7.6.2.1">
+                  <p id="section-3.2.2-7.6.2.1.1">0: Reserved<a href="#section-3.2.2-7.6.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.6.2.2">1: Media Stream Message (MSmsg)<a href="#section-3.2.2-7.6.2.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.6.2.2">
+                  <p id="section-3.2.2-7.6.2.2.1">1: Media Stream Message (MSmsg)<a href="#section-3.2.2-7.6.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.6.2.3">2: Keying Material Message (KMmsg)<a href="#section-3.2.2-7.6.2.3" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.6.2.3">
+                  <p id="section-3.2.2-7.6.2.3.1">2: Keying Material Message (KMmsg)<a href="#section-3.2.2-7.6.2.3.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.6.2.4">7: Reserved to discriminate MPEG-TS packet (0x47=sync byte).<a href="#section-3.2.2-7.6.2.4" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.6.2.4">
+                  <p id="section-3.2.2-7.6.2.4.1">7: Reserved to discriminate MPEG-TS packet (0x47=sync byte).<a href="#section-3.2.2-7.6.2.4.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </dd>
@@ -2620,13 +2625,17 @@ PnP Vendor ID <span>[<a href="#PNPID" class="cite xref">PNPID</a>]</span> (in bi
             <dd style="margin-left: 1.5em" id="section-3.2.2-7.12">
               <p id="section-3.2.2-7.12.1">This is a fixed-width field that indicates which SEKs (odd and/or even) are provided in the extension:<a href="#section-3.2.2-7.12.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.2-7.12.2.1">00b: No SEK is provided (invalid extension format);<a href="#section-3.2.2-7.12.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.2-7.12.2.1">
+                  <p id="section-3.2.2-7.12.2.1.1">00b: No SEK is provided (invalid extension format);<a href="#section-3.2.2-7.12.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.12.2.2">01b: Even key is provided;<a href="#section-3.2.2-7.12.2.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.12.2.2">
+                  <p id="section-3.2.2-7.12.2.2.1">01b: Even key is provided;<a href="#section-3.2.2-7.12.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.12.2.3">10b: Odd key is provided;<a href="#section-3.2.2-7.12.2.3" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.12.2.3">
+                  <p id="section-3.2.2-7.12.2.3.1">10b: Odd key is provided;<a href="#section-3.2.2-7.12.2.3.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.12.2.4">11b: Both even and odd keys are provided.<a href="#section-3.2.2-7.12.2.4" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.12.2.4">
+                  <p id="section-3.2.2-7.12.2.4.1">11b: Both even and odd keys are provided.<a href="#section-3.2.2-7.12.2.4.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </dd>
@@ -2639,9 +2648,11 @@ The value 0 is used to indicate the default key of the current stream.
 Other values are reserved for the possible use of a key management system in the future
 to retrieve a cryptographic context.<a href="#section-3.2.2-7.14.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.2-7.14.2.1">0: Default stream associated key (stream/system default)<a href="#section-3.2.2-7.14.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.2-7.14.2.1">
+                  <p id="section-3.2.2-7.14.2.1.1">0: Default stream associated key (stream/system default)<a href="#section-3.2.2-7.14.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.14.2.2">1..255: Reserved for manually indexed keys.<a href="#section-3.2.2-7.14.2.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.14.2.2">
+                  <p id="section-3.2.2-7.14.2.2.1">1..255: Reserved for manually indexed keys.<a href="#section-3.2.2-7.14.2.2.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </dd>
@@ -2650,15 +2661,20 @@ to retrieve a cryptographic context.<a href="#section-3.2.2-7.14.1" class="pilcr
             <dd style="margin-left: 1.5em" id="section-3.2.2-7.16">
               <p id="section-3.2.2-7.16.1">This is a fixed-width field for specifying encryption cipher and mode:<a href="#section-3.2.2-7.16.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.2-7.16.2.1">0: None or KEKI indexed crypto context;<a href="#section-3.2.2-7.16.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.2-7.16.2.1">
+                  <p id="section-3.2.2-7.16.2.1.1">0: None or KEKI indexed crypto context;<a href="#section-3.2.2-7.16.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.16.2.2">1: AES-ECB (Reserved, not supported);<a href="#section-3.2.2-7.16.2.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.16.2.2">
+                  <p id="section-3.2.2-7.16.2.2.1">1: AES-ECB (Reserved, not supported);<a href="#section-3.2.2-7.16.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.16.2.3">2: AES-CTR <span>[<a href="#SP800-38A" class="cite xref">SP800-38A</a>]</span>;<a href="#section-3.2.2-7.16.2.3" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.16.2.3">
+                  <p id="section-3.2.2-7.16.2.3.1">2: AES-CTR <span>[<a href="#SP800-38A" class="cite xref">SP800-38A</a>]</span>;<a href="#section-3.2.2-7.16.2.3.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.16.2.4">3: AES-CBC (Reserved, not supported);<a href="#section-3.2.2-7.16.2.4" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.16.2.4">
+                  <p id="section-3.2.2-7.16.2.4.1">3: AES-CBC (Reserved, not supported);<a href="#section-3.2.2-7.16.2.4.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-7.16.2.5">4: AES-GCM (Galois Counter Mode), starting from v1.6.0.<a href="#section-3.2.2-7.16.2.5" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-7.16.2.5">
+                  <p id="section-3.2.2-7.16.2.5.1">4: AES-GCM (Galois Counter Mode), starting from v1.6.0.<a href="#section-3.2.2-7.16.2.5.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </dd>
@@ -2670,9 +2686,11 @@ to retrieve a cryptographic context.<a href="#section-3.2.2-7.14.1" class="pilcr
             <dd style="margin-left: 1.5em" id="section-3.2.2-9.2">
               <p id="section-3.2.2-9.2.1">This is a fixed-width field for specifying a message authentication code (MAC) algorithm:<a href="#section-3.2.2-9.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.2-9.2.2.1">0: None or KEKI indexed crypto context;<a href="#section-3.2.2-9.2.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.2-9.2.2.1">
+                  <p id="section-3.2.2-9.2.2.1.1">0: None or KEKI indexed crypto context;<a href="#section-3.2.2-9.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-9.2.2.2">1: AES-GCM, starting from v1.6.0.<a href="#section-3.2.2-9.2.2.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-9.2.2.2">
+                  <p id="section-3.2.2-9.2.2.2.1">1: AES-GCM, starting from v1.6.0.<a href="#section-3.2.2-9.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </dd>
@@ -2684,11 +2702,14 @@ to retrieve a cryptographic context.<a href="#section-3.2.2-7.14.1" class="pilcr
             <dd style="margin-left: 1.5em" id="section-3.2.2-11.2">
               <p id="section-3.2.2-11.2.1">This is a fixed-width field for describing the stream encapsulation:<a href="#section-3.2.2-11.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.2-11.2.2.1">0: Unspecified or KEKI indexed crypto context<a href="#section-3.2.2-11.2.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.2-11.2.2.1">
+                  <p id="section-3.2.2-11.2.2.1.1">0: Unspecified or KEKI indexed crypto context<a href="#section-3.2.2-11.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-11.2.2.2">1: MPEG-TS/UDP<a href="#section-3.2.2-11.2.2.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-11.2.2.2">
+                  <p id="section-3.2.2-11.2.2.2.1">1: MPEG-TS/UDP<a href="#section-3.2.2-11.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-3.2.2-11.2.2.3">2: MPEG-TS/SRT.<a href="#section-3.2.2-11.2.2.3" class="pilcrow">¶</a>
+                <li class="normal" id="section-3.2.2-11.2.2.3">
+                  <p id="section-3.2.2-11.2.2.3.1">2: MPEG-TS/SRT.<a href="#section-3.2.2-11.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </dd>
@@ -2904,7 +2925,7 @@ expanded as follows:<a href="#section-3.2.4-2" class="pilcrow">¶</a></p>
             <dd class="break"></dd>
 <dt id="section-3.2.4-4.7">Acknowledgement Number: 32 bits.</dt>
             <dd style="margin-left: 1.5em" id="section-3.2.4-4.8">
-              <p id="section-3.2.4-4.8.1">This field contains the sequential number of the full acknowledgment packet starting from 1.<a href="#section-3.2.4-4.8.1" class="pilcrow">¶</a></p>
+              <p id="section-3.2.4-4.8.1">This field contains the sequential number of the full acknowledgment packet starting from 1, except in the case of Light ACKs and Small ACKs, where this value is 0 (see below).<a href="#section-3.2.4-4.8.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.2.4-4.9">Timestamp: 32 bits.</dt>
@@ -2957,14 +2978,17 @@ packet pair exchange.<a href="#section-3.2.4-4.16.1" class="pilcrow">¶</a></p>
 </dl>
 <p id="section-3.2.4-5">There are several types of ACK packets:<a href="#section-3.2.4-5" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2.4-6.1">A Full ACK control packet is sent every 10 ms and has all the fields
-of <a href="#ack-control-packet" class="auto internal xref">Figure 14</a>.<a href="#section-3.2.4-6.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2.4-6.1">
+              <p id="section-3.2.4-6.1.1">A Full ACK control packet is sent every 10 ms and has all the fields
+of <a href="#ack-control-packet" class="auto internal xref">Figure 14</a>.<a href="#section-3.2.4-6.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.2.4-6.2">A Light ACK control packet includes only the Last Acknowledged Packet Sequence Number
-field. The Type-specific Information field should be set to 0.<a href="#section-3.2.4-6.2" class="pilcrow">¶</a>
+            <li class="normal" id="section-3.2.4-6.2">
+              <p id="section-3.2.4-6.2.1">A Light ACK control packet includes only the Last Acknowledged Packet Sequence Number
+field. The Type-specific Information field should be set to 0.<a href="#section-3.2.4-6.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-3.2.4-6.3">A Small ACK includes the fields up to and including the Available Buffer Size field.
-The Type-specific Information field should be set to 0.<a href="#section-3.2.4-6.3" class="pilcrow">¶</a>
+            <li class="normal" id="section-3.2.4-6.3">
+              <p id="section-3.2.4-6.3.1">A Small ACK includes the fields up to and including the Available Buffer Size field.
+The Type-specific Information field should be set to 0.<a href="#section-3.2.4-6.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-3.2.4-7">The sender only acknowledges the receipt of Full ACK packets (see <a href="#ctrl-pkt-ackack" class="auto internal xref">Section 3.2.8</a>).<a href="#section-3.2.4-7" class="pilcrow">¶</a></p>
@@ -3422,12 +3446,15 @@ every control and data packet (see <a href="#packet-structure" class="auto inter
 <a href="#handshake-extension-msg" class="auto internal xref">Section 3.2.1.1</a> is set to 0, the protocol operates
 in Message mode, characterized as follows:<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.2.1-2.1">Every packet has its own Packet Sequence Number.<a href="#section-4.2.1-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.2.1-2.1">
+              <p id="section-4.2.1-2.1.1">Every packet has its own Packet Sequence Number.<a href="#section-4.2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-4.2.1-2.2">One or several consecutive SRT data packets can form a message.<a href="#section-4.2.1-2.2" class="pilcrow">¶</a>
+            <li class="normal" id="section-4.2.1-2.2">
+              <p id="section-4.2.1-2.2.1">One or several consecutive SRT data packets can form a message.<a href="#section-4.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-4.2.1-2.3">All the packets belonging to the same message have a similar message number set
-    in the Message Number field.<a href="#section-4.2.1-2.3" class="pilcrow">¶</a>
+            <li class="normal" id="section-4.2.1-2.3">
+              <p id="section-4.2.1-2.3.1">All the packets belonging to the same message have a similar message number set
+    in the Message Number field.<a href="#section-4.2.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-4.2.1-3">The first packet of a message has the first bit of the Packet Position Flags (<a href="#data-pkt" class="auto internal xref">Section 3.1</a>)
@@ -3475,42 +3502,52 @@ HS version 4 is not described in this specification.
 SRT implementations MUST support HS version 5, but MAY not support HS v4.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
 <p id="section-4.3-3">An SRT connection is characterized by the fact that it is:<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3-4.1">first engaged by a handshake process,<a href="#section-4.3-4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3-4.1">
+            <p id="section-4.3-4.1.1">first engaged by a handshake process,<a href="#section-4.3-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.3-4.2">maintained as long as any packets are being exchanged in a timely manner, and<a href="#section-4.3-4.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.3-4.2">
+            <p id="section-4.3-4.2.1">maintained as long as any packets are being exchanged in a timely manner, and<a href="#section-4.3-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.3-4.3">considered closed when a party receives the appropriate SHUTDOWN command from
+          <li class="normal" id="section-4.3-4.3">
+            <p id="section-4.3-4.3.1">considered closed when a party receives the appropriate SHUTDOWN command from
 its peer (connection closed by the foreign host), or when it receives no
-packets at all for some predefined time (connection broken on timeout).<a href="#section-4.3-4.3" class="pilcrow">¶</a>
+packets at all for some predefined time (connection broken on timeout).<a href="#section-4.3-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-4.3-5">SRT supports two connection modes:<a href="#section-4.3-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-4.3-6">
-<li id="section-4.3-6.1">Caller-Listener, where one side waits for the other to initiate a connection;<a href="#section-4.3-6.1" class="pilcrow">¶</a>
+<li id="section-4.3-6.1">
+            <p id="section-4.3-6.1.1">Caller-Listener, where one side waits for the other to initiate a connection;<a href="#section-4.3-6.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.3-6.2">Rendezvous, where both sides attempt to initiate a connection.<a href="#section-4.3-6.2" class="pilcrow">¶</a>
+          <li id="section-4.3-6.2">
+            <p id="section-4.3-6.2.1">Rendezvous, where both sides attempt to initiate a connection.<a href="#section-4.3-6.2.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-4.3-7">The handshake is performed between two parties: "Initiator" and "Responder" in
 the following order:<a href="#section-4.3-7" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3-8.1">Initiator starts an extended SRT handshake process and sends appropriate
-SRT extended handshake requests.<a href="#section-4.3-8.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3-8.1">
+            <p id="section-4.3-8.1.1">Initiator starts an extended SRT handshake process and sends appropriate
+SRT extended handshake requests.<a href="#section-4.3-8.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.3-8.2">Responder expects the SRT extended handshake requests to be sent by the
-Initiator and sends SRT extended handshake responses back.<a href="#section-4.3-8.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.3-8.2">
+            <p id="section-4.3-8.2.1">Responder expects the SRT extended handshake requests to be sent by the
+Initiator and sends SRT extended handshake responses back.<a href="#section-4.3-8.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-4.3-9">There are three basic types of SRT handshake extensions that are exchanged
 in the handshake:<a href="#section-4.3-9" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3-10.1">Handshake Extension Message exchanges the basic SRT information;<a href="#section-4.3-10.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3-10.1">
+            <p id="section-4.3-10.1.1">Handshake Extension Message exchanges the basic SRT information;<a href="#section-4.3-10.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.3-10.2">Key Material Exchange exchanges the wrapped stream encryption key (used only if
-an encryption is requested).<a href="#section-4.3-10.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.3-10.2">
+            <p id="section-4.3-10.2.1">Key Material Exchange exchanges the wrapped stream encryption key (used only if
+an encryption is requested).<a href="#section-4.3-10.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.3-10.3">Stream ID extension exchanges some stream-specific information that can be used
-by the application to identify an incoming stream connection.<a href="#section-4.3-10.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.3-10.3">
+            <p id="section-4.3-10.3.1">Stream ID extension exchanges some stream-specific information that can be used
+by the application to identify an incoming stream connection.<a href="#section-4.3-10.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-4.3-11">The Initiator and Responder roles are assigned depending on the connection mode.<a href="#section-4.3-11" class="pilcrow">¶</a></p>
@@ -3522,22 +3559,29 @@ based on the initial data interchange during the handshake.<a href="#section-4.3
 indicates the handshake message type.<a href="#section-4.3-13" class="pilcrow">¶</a></p>
 <p id="section-4.3-14">Caller-Listener handshake exchange has the following order of Handshake Types:<a href="#section-4.3-14" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-4.3-15">
-<li id="section-4.3-15.1">Caller to Listener: INDUCTION Request<a href="#section-4.3-15.1" class="pilcrow">¶</a>
+<li id="section-4.3-15.1">
+            <p id="section-4.3-15.1.1">Caller to Listener: INDUCTION Request<a href="#section-4.3-15.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.3-15.2">Listener to Caller: INDUCTION Response (reports cookie)<a href="#section-4.3-15.2" class="pilcrow">¶</a>
+          <li id="section-4.3-15.2">
+            <p id="section-4.3-15.2.1">Listener to Caller: INDUCTION Response (reports cookie)<a href="#section-4.3-15.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.3-15.3">Caller to Listener: CONCLUSION Request (uses previously returned cookie)<a href="#section-4.3-15.3" class="pilcrow">¶</a>
+          <li id="section-4.3-15.3">
+            <p id="section-4.3-15.3.1">Caller to Listener: CONCLUSION Request (uses previously returned cookie)<a href="#section-4.3-15.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.3-15.4">Listener to Caller: CONCLUSION Response (confirms connection established).<a href="#section-4.3-15.4" class="pilcrow">¶</a>
+          <li id="section-4.3-15.4">
+            <p id="section-4.3-15.4.1">Listener to Caller: CONCLUSION Response (confirms connection established).<a href="#section-4.3-15.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-4.3-16">Rendezvous handshake exchange has the following order of Handshake Types:<a href="#section-4.3-16" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-4.3-17">
-<li id="section-4.3-17.1">Both peers after starting the connection: WAVEAHAND with a cookie.<a href="#section-4.3-17.1" class="pilcrow">¶</a>
+<li id="section-4.3-17.1">
+            <p id="section-4.3-17.1.1">Both peers after starting the connection: WAVEAHAND with a cookie.<a href="#section-4.3-17.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.3-17.2">After receiving the above message from the peer: CONCLUSION<a href="#section-4.3-17.2" class="pilcrow">¶</a>
+          <li id="section-4.3-17.2">
+            <p id="section-4.3-17.2.1">After receiving the above message from the peer: CONCLUSION<a href="#section-4.3-17.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.3-17.3">After receiving the above message from the peer: AGREEMENT.<a href="#section-4.3-17.3" class="pilcrow">¶</a>
+          <li id="section-4.3-17.3">
+            <p id="section-4.3-17.3.1">After receiving the above message from the peer: AGREEMENT.<a href="#section-4.3-17.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-4.3-18">When a connection process has failed before either party can send the CONCLUSION handshake,
@@ -3680,21 +3724,29 @@ perpetrated by flooding the Listener with handshake commands.<a href="#section-4
 <p id="section-4.3.1.1.1-1">The Caller begins by sending the INDUCTION handshake which contains the following
 significant fields:<a href="#section-4.3.1.1.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.1.1.1-2.1">Destination SRT Socket ID: 0.<a href="#section-4.3.1.1.1-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.1.1.1-2.1">
+                  <p id="section-4.3.1.1.1-2.1.1">Destination SRT Socket ID: 0.<a href="#section-4.3.1.1.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.1-2.2">HS Version: MUST always be 4.<a href="#section-4.3.1.1.1-2.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.1-2.2">
+                  <p id="section-4.3.1.1.1-2.2.1">HS Version: MUST always be 4.<a href="#section-4.3.1.1.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.1-2.3">Encryption Field: 0.<a href="#section-4.3.1.1.1-2.3" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.1-2.3">
+                  <p id="section-4.3.1.1.1-2.3.1">Encryption Field: 0.<a href="#section-4.3.1.1.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.1-2.4">Extension Field: 2<a href="#section-4.3.1.1.1-2.4" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.1-2.4">
+                  <p id="section-4.3.1.1.1-2.4.1">Extension Field: 2<a href="#section-4.3.1.1.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.1-2.5">Handshake Type: INDUCTION<a href="#section-4.3.1.1.1-2.5" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.1-2.5">
+                  <p id="section-4.3.1.1.1-2.5.1">Handshake Type: INDUCTION<a href="#section-4.3.1.1.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.1-2.6">SRT Socket ID: SRT Socket ID of the Caller<a href="#section-4.3.1.1.1-2.6" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.1-2.6">
+                  <p id="section-4.3.1.1.1-2.6.1">SRT Socket ID: SRT Socket ID of the Caller<a href="#section-4.3.1.1.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.1-2.7">SYN Cookie: 0.<a href="#section-4.3.1.1.1-2.7" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.1-2.7">
+                  <p id="section-4.3.1.1.1-2.7.1">SYN Cookie: 0.<a href="#section-4.3.1.1.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.1-2.8">There MUST be no HS extensions.<a href="#section-4.3.1.1.1-2.8" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.1-2.8">
+                  <p id="section-4.3.1.1.1-2.8.1">There MUST be no HS extensions.<a href="#section-4.3.1.1.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 <p id="section-4.3.1.1.1-3">The Destination SRT Socket ID of the SRT packet header in this message is 0, which is
@@ -3711,20 +3763,27 @@ protocol <span>[<a href="#GHG04b" class="cite xref">GHG04b</a>]</span> on which 
               </h6>
 <p id="section-4.3.1.1.2-1">The Listener responds with the following:<a href="#section-4.3.1.1.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.1.1.2-2.1">HS Version: 5.<a href="#section-4.3.1.1.2-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.1.1.2-2.1">
+                  <p id="section-4.3.1.1.2-2.1.1">HS Version: 5.<a href="#section-4.3.1.1.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.2-2.2">Encryption Field: Advertised cipher family and block size.<a href="#section-4.3.1.1.2-2.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.2-2.2">
+                  <p id="section-4.3.1.1.2-2.2.1">Encryption Field: Advertised cipher family and block size.<a href="#section-4.3.1.1.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.2-2.3">Extension Field: SRT magic code 0x4A17.<a href="#section-4.3.1.1.2-2.3" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.2-2.3">
+                  <p id="section-4.3.1.1.2-2.3.1">Extension Field: SRT magic code 0x4A17.<a href="#section-4.3.1.1.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.2-2.4">Handshake Type: INDUCTION<a href="#section-4.3.1.1.2-2.4" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.2-2.4">
+                  <p id="section-4.3.1.1.2-2.4.1">Handshake Type: INDUCTION<a href="#section-4.3.1.1.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.2-2.5">SRT Socket ID: Socket ID of the Listener<a href="#section-4.3.1.1.2-2.5" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.2-2.5">
+                  <p id="section-4.3.1.1.2-2.5.1">SRT Socket ID: Socket ID of the Listener<a href="#section-4.3.1.1.2-2.5.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.2-2.6">SYN Cookie: a cookie that is crafted based on host, port and current time
-with 1 minute accuracy to avoid SYN flooding attack <span>[<a href="#RFC4987" class="cite xref">RFC4987</a>]</span>.<a href="#section-4.3.1.1.2-2.6" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.2-2.6">
+                  <p id="section-4.3.1.1.2-2.6.1">SYN Cookie: a cookie that is crafted based on host, port and current time
+with 1 minute accuracy to avoid SYN flooding attack <span>[<a href="#RFC4987" class="cite xref">RFC4987</a>]</span>.<a href="#section-4.3.1.1.2-2.6.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.1.2-2.7">There MUST be no HS extensions.<a href="#section-4.3.1.1.2-2.7" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.1.2-2.7">
+                  <p id="section-4.3.1.1.2-2.7.1">There MUST be no HS extensions.<a href="#section-4.3.1.1.2-2.7.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 <p id="section-4.3.1.1.2-3">At this point the Listener still does not know if the Caller is SRT or UDT,
@@ -3766,21 +3825,29 @@ SRT listener, then is it RECOMMENDED that it accepts the value advertised in the
 <p id="section-4.3.1.2.1-6">TODO: Receiver TSBPD Delay,  Sender TSBPD Delay.<a href="#section-4.3.1.2.1-6" class="pilcrow">¶</a></p>
 <p id="section-4.3.1.2.1-7">The SRT Caller forms a Conclusion Request. The following values of a Handshake packet MUST be set by the compliant Caller:<a href="#section-4.3.1.2.1-7" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.1.2.1-8.1">Destination SRT Socket ID: 0.<a href="#section-4.3.1.2.1-8.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.1.2.1-8.1">
+                  <p id="section-4.3.1.2.1-8.1.1">Destination SRT Socket ID: 0.<a href="#section-4.3.1.2.1-8.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.2.1-8.2">HS Version: 5.<a href="#section-4.3.1.2.1-8.2" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.2.1-8.2">
+                  <p id="section-4.3.1.2.1-8.2.1">HS Version: 5.<a href="#section-4.3.1.2.1-8.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.2.1-8.3">Handshake Type: CONCLUSION.<a href="#section-4.3.1.2.1-8.3" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.2.1-8.3">
+                  <p id="section-4.3.1.2.1-8.3.1">Handshake Type: CONCLUSION.<a href="#section-4.3.1.2.1-8.3.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.2.1-8.4">SRT Socket ID: Socket ID of the Caller.<a href="#section-4.3.1.2.1-8.4" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.2.1-8.4">
+                  <p id="section-4.3.1.2.1-8.4.1">SRT Socket ID: Socket ID of the Caller.<a href="#section-4.3.1.2.1-8.4.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.2.1-8.5">SYN Cookie: the Listener's cookie from the induction response.<a href="#section-4.3.1.2.1-8.5" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.2.1-8.5">
+                  <p id="section-4.3.1.2.1-8.5.1">SYN Cookie: the Listener's cookie from the induction response.<a href="#section-4.3.1.2.1-8.5.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.2.1-8.6">Encryption Flags: advertised cipher family and block size.<a href="#section-4.3.1.2.1-8.6" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.2.1-8.6">
+                  <p id="section-4.3.1.2.1-8.6.1">Encryption Flags: advertised cipher family and block size.<a href="#section-4.3.1.2.1-8.6.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.2.1-8.7">Extension Flags: a set of flags that define the extensions provided in the handshake.<a href="#section-4.3.1.2.1-8.7" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.2.1-8.7">
+                  <p id="section-4.3.1.2.1-8.7.1">Extension Flags: a set of flags that define the extensions provided in the handshake.<a href="#section-4.3.1.2.1-8.7.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-4.3.1.2.1-8.8">The Handshake Extension Message <a href="#handshake-extension-msg" class="auto internal xref">Section 3.2.1.1</a> MUST be present in the conclusion response.<a href="#section-4.3.1.2.1-8.8" class="pilcrow">¶</a>
+                <li class="normal" id="section-4.3.1.2.1-8.8">
+                  <p id="section-4.3.1.2.1-8.8.1">The Handshake Extension Message <a href="#handshake-extension-msg" class="auto internal xref">Section 3.2.1.1</a> MUST be present in the conclusion response.<a href="#section-4.3.1.2.1-8.8.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </section>
@@ -3801,7 +3868,8 @@ in the Encryption Field of the Handshake.<a href="#section-4.3.1.2.2-3" class="p
 <p id="section-4.3.1.2.2-4">The value for latency is always agreed to be the greater of those reported
 by each party.<a href="#section-4.3.1.2.2-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.1.2.2-5.1">Destination SRT Socket ID: the SRT Socket ID field value of the previously received conclusion request.<a href="#section-4.3.1.2.2-5.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.1.2.2-5.1">
+                  <p id="section-4.3.1.2.2-5.1.1">Destination SRT Socket ID: the SRT Socket ID field value of the previously received conclusion request.<a href="#section-4.3.1.2.2-5.1.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 <p id="section-4.3.1.2.2-6">There is no "negotiation" at this point.<a href="#section-4.3.1.2.2-6" class="pilcrow">¶</a></p>
@@ -3871,17 +3939,23 @@ ContestResult CookieContest(int32_t host, int32_t peer)
 In the Waving state, the parties wishing to connect -- Bob and Alice -- each send a WAVEAHAND handshake packet
 with the fields set to the following values:<a href="#section-4.3.2.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.2-2.1">HS Version: 5<a href="#section-4.3.2.2-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.2-2.1">
+                <p id="section-4.3.2.2-2.1.1">HS Version: 5<a href="#section-4.3.2.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.2-2.2">Type: Extension field: 0, Encryption field: advertised "PBKEYLEN"<a href="#section-4.3.2.2-2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.2-2.2">
+                <p id="section-4.3.2.2-2.2.1">Type: Extension field: 0, Encryption field: advertised "PBKEYLEN"<a href="#section-4.3.2.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.2-2.3">Handshake Type: WAVEAHAND (<a href="#handshake-type" class="auto internal xref">Table 4</a>)<a href="#section-4.3.2.2-2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.2-2.3">
+                <p id="section-4.3.2.2-2.3.1">Handshake Type: WAVEAHAND (<a href="#handshake-type" class="auto internal xref">Table 4</a>)<a href="#section-4.3.2.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.2-2.4">SRT Socket ID: socket ID of the party (HS sender).<a href="#section-4.3.2.2-2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.2-2.4">
+                <p id="section-4.3.2.2-2.4.1">SRT Socket ID: socket ID of the party (HS sender).<a href="#section-4.3.2.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.2-2.5">SYN Cookie: Created based on host/port and current time.<a href="#section-4.3.2.2-2.5" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.2-2.5">
+                <p id="section-4.3.2.2-2.5.1">SYN Cookie: Created based on host/port and current time.<a href="#section-4.3.2.2-2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.2-2.6">HS Extensions: none.<a href="#section-4.3.2.2-2.6" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.2-2.6">
+                <p id="section-4.3.2.2-2.6.1">HS Extensions: none.<a href="#section-4.3.2.2-2.6.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-4.3.2.2-3">Legacy HS Version 4 clients do not look at the HS Version value,
@@ -3921,18 +3995,24 @@ and thereby determine its role.
 The determination of the Handshake Role (Initiator or Responder) is essential for further processing.<a href="#section-4.3.2.3-1" class="pilcrow">¶</a></p>
 <p id="section-4.3.2.3-2">Initiator replies with a Conclusion request handshake:<a href="#section-4.3.2.3-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.3-3.1">HS Version: 5<a href="#section-4.3.2.3-3.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.3-3.1">
+                <p id="section-4.3.2.3-3.1.1">HS Version: 5<a href="#section-4.3.2.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.3-3.2">Extension field: appropriate flags.<a href="#section-4.3.2.3-3.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.3-3.2">
+                <p id="section-4.3.2.3-3.2.1">Extension field: appropriate flags.<a href="#section-4.3.2.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.3-3.3">Encryption field: advertised PBKEYLEN<a href="#section-4.3.2.3-3.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.3-3.3">
+                <p id="section-4.3.2.3-3.3.1">Encryption field: advertised PBKEYLEN<a href="#section-4.3.2.3-3.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.3-3.4">Handshake Type: CONCLUSION.<a href="#section-4.3.2.3-3.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.3-3.4">
+                <p id="section-4.3.2.3-3.4.1">Handshake Type: CONCLUSION.<a href="#section-4.3.2.3-3.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.3-3.5">Required Handshake Extension: HS Extension Message (<a href="#handshake-extension-msg" class="auto internal xref">Section 3.2.1.1</a>)
-with HS Extension Type SRT_CMD_HSREQ.<a href="#section-4.3.2.3-3.5" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.3-3.5">
+                <p id="section-4.3.2.3-3.5.1">Required Handshake Extension: HS Extension Message (<a href="#handshake-extension-msg" class="auto internal xref">Section 3.2.1.1</a>)
+with HS Extension Type SRT_CMD_HSREQ.<a href="#section-4.3.2.3-3.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.3-3.6">Other handshake extensions are allowed.<a href="#section-4.3.2.3-3.6" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.3-3.6">
+                <p id="section-4.3.2.3-3.6.1">Other handshake extensions are allowed.<a href="#section-4.3.2.3-3.6.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-4.3.2.3-4">If encryption is on, the Initiator (Bob) will use either his
@@ -3940,15 +4020,20 @@ own cipher family and block size or the one received from Alice (if she has adve
 those values).<a href="#section-4.3.2.3-4" class="pilcrow">¶</a></p>
 <p id="section-4.3.2.3-5">The Responder responds  with a Conclusion or a WAVEAHAND handshake without extensions until it receives the Conclusion Request from the peer:<a href="#section-4.3.2.3-5" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.3-6.1">HS Version: 5<a href="#section-4.3.2.3-6.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.3-6.1">
+                <p id="section-4.3.2.3-6.1.1">HS Version: 5<a href="#section-4.3.2.3-6.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.3-6.2">Extension field: 0.<a href="#section-4.3.2.3-6.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.3-6.2">
+                <p id="section-4.3.2.3-6.2.1">Extension field: 0.<a href="#section-4.3.2.3-6.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.3-6.3">Encryption field: advertised PBKEYLEN.<a href="#section-4.3.2.3-6.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.3-6.3">
+                <p id="section-4.3.2.3-6.3.1">Encryption field: advertised PBKEYLEN.<a href="#section-4.3.2.3-6.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.3-6.4">Handshake Type: CONCLUSION.<a href="#section-4.3.2.3-6.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.3-6.4">
+                <p id="section-4.3.2.3-6.4.1">Handshake Type: CONCLUSION.<a href="#section-4.3.2.3-6.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.3.2.3-6.5">Handshake extensions are NOT allowed.<a href="#section-4.3.2.3-6.5" class="pilcrow">¶</a>
+              <li class="normal" id="section-4.3.2.3-6.5">
+                <p id="section-4.3.2.3-6.5.1">Handshake extensions are NOT allowed.<a href="#section-4.3.2.3-6.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-4.3.2.3-7">TODO: What to do if WAVEAHAND or AGREEMENT or else is received in this stage?
@@ -3993,15 +4078,20 @@ and following parties (Alice and Bob, respectively):<a href="#section-4.3.2.5-2"
                 <p id="section-4.3.2.5-3.1.1">Initially, both parties are in the waving state. Alice sends a handshake
 message to Bob:<a href="#section-4.3.2.5-3.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.5-3.1.2.1">Version: 5<a href="#section-4.3.2.5-3.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.5-3.1.2.1">
+                    <p id="section-4.3.2.5-3.1.2.1.1">Version: 5<a href="#section-4.3.2.5-3.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.1.2.2">Type: Extension field: 0, Encryption field: advertised "PBKEYLEN"<a href="#section-4.3.2.5-3.1.2.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.1.2.2">
+                    <p id="section-4.3.2.5-3.1.2.2.1">Type: Extension field: 0, Encryption field: advertised "PBKEYLEN"<a href="#section-4.3.2.5-3.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.1.2.3">Handshake Type: WAVEAHAND<a href="#section-4.3.2.5-3.1.2.3" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.1.2.3">
+                    <p id="section-4.3.2.5-3.1.2.3.1">Handshake Type: WAVEAHAND<a href="#section-4.3.2.5-3.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.1.2.4">SRT Socket ID: Alice's socket ID<a href="#section-4.3.2.5-3.1.2.4" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.1.2.4">
+                    <p id="section-4.3.2.5-3.1.2.4.1">SRT Socket ID: Alice's socket ID<a href="#section-4.3.2.5-3.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.1.2.5">SYN Cookie: Created based on host/port and current time.<a href="#section-4.3.2.5-3.1.2.5" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.1.2.5">
+                    <p id="section-4.3.2.5-3.1.2.5.1">SYN Cookie: Created based on host/port and current time.<a href="#section-4.3.2.5-3.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 <p id="section-4.3.2.5-3.1.3">
@@ -4020,13 +4110,17 @@ The resolution of the Handshake Role
 <p id="section-4.3.2.5-3.2.3">
 Then Bob responds:<a href="#section-4.3.2.5-3.2.3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.5-3.2.4.1">Version: 5<a href="#section-4.3.2.5-3.2.4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.5-3.2.4.1">
+                    <p id="section-4.3.2.5-3.2.4.1.1">Version: 5<a href="#section-4.3.2.5-3.2.4.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.2.4.2">Extension field: appropriate flags if Initiator, otherwise 0<a href="#section-4.3.2.5-3.2.4.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.2.4.2">
+                    <p id="section-4.3.2.5-3.2.4.2.1">Extension field: appropriate flags if Initiator, otherwise 0<a href="#section-4.3.2.5-3.2.4.2.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.2.4.3">Encryption field: advertised PBKEYLEN<a href="#section-4.3.2.5-3.2.4.3" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.2.4.3">
+                    <p id="section-4.3.2.5-3.2.4.3.1">Encryption field: advertised PBKEYLEN<a href="#section-4.3.2.5-3.2.4.3.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.2.4.4">Handshake Type: CONCLUSION.<a href="#section-4.3.2.5-3.2.4.4" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.2.4.4">
+                    <p id="section-4.3.2.5-3.2.4.4.1">Handshake Type: CONCLUSION.<a href="#section-4.3.2.5-3.2.4.4.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 <p id="section-4.3.2.5-3.2.5">
@@ -4039,11 +4133,14 @@ those values).<a href="#section-4.3.2.5-3.2.5" class="pilcrow">¶</a></p>
 performs the "cookie contest", the outcome will be the same. She switches to the
 "fine" state, and sends:<a href="#section-4.3.2.5-3.3.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.5-3.3.2.1">Version: 5<a href="#section-4.3.2.5-3.3.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.5-3.3.2.1">
+                    <p id="section-4.3.2.5-3.3.2.1.1">Version: 5<a href="#section-4.3.2.5-3.3.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.3.2.2">Appropriate extension flags and encryption flags<a href="#section-4.3.2.5-3.3.2.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.3.2.2">
+                    <p id="section-4.3.2.5-3.3.2.2.1">Appropriate extension flags and encryption flags<a href="#section-4.3.2.5-3.3.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.3.2.3">Handshake Type: CONCLUSION.<a href="#section-4.3.2.5-3.3.2.3" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.3.2.3">
+                    <p id="section-4.3.2.5-3.3.2.3.1">Handshake Type: CONCLUSION.<a href="#section-4.3.2.5-3.3.2.3.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 <p id="section-4.3.2.5-3.3.3">
@@ -4061,23 +4158,28 @@ following (depending on Bob's role):<a href="#section-4.3.2.5-3.4.1" class="pilc
 <li class="normal" id="section-4.3.2.5-3.4.2.1">
                     <p id="section-4.3.2.5-3.4.2.1.1">If Bob is the Initiator (Alice's message contains HSRSP), he:<a href="#section-4.3.2.5-3.4.2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.5-3.4.2.1.2.1">switches to the "connected" state, and<a href="#section-4.3.2.5-3.4.2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.5-3.4.2.1.2.1">
+                        <p id="section-4.3.2.5-3.4.2.1.2.1.1">switches to the "connected" state, and<a href="#section-4.3.2.5-3.4.2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                      <li class="normal" id="section-4.3.2.5-3.4.2.1.2.2">sends Alice a message with Handshake Type AGREEMENT, but containing
-no SRT extensions (Extension Flags field should be 0).<a href="#section-4.3.2.5-3.4.2.1.2.2" class="pilcrow">¶</a>
+                      <li class="normal" id="section-4.3.2.5-3.4.2.1.2.2">
+                        <p id="section-4.3.2.5-3.4.2.1.2.2.1">sends Alice a message with Handshake Type AGREEMENT, but containing
+no SRT extensions (Extension Flags field should be 0).<a href="#section-4.3.2.5-3.4.2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
                     </ul>
 </li>
                   <li class="normal" id="section-4.3.2.5-3.4.2.2">
                     <p id="section-4.3.2.5-3.4.2.2.1">If Bob is the Responder (Alice's message contains HSREQ), he:<a href="#section-4.3.2.5-3.4.2.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.5-3.4.2.2.2.1">switches to "initiated" state,<a href="#section-4.3.2.5-3.4.2.2.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.5-3.4.2.2.2.1">
+                        <p id="section-4.3.2.5-3.4.2.2.2.1.1">switches to "initiated" state,<a href="#section-4.3.2.5-3.4.2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                      <li class="normal" id="section-4.3.2.5-3.4.2.2.2.2">sends Alice a message with Handshake Type CONCLUSION that also contains
-extensions with HSRSP, and<a href="#section-4.3.2.5-3.4.2.2.2.2" class="pilcrow">¶</a>
+                      <li class="normal" id="section-4.3.2.5-3.4.2.2.2.2">
+                        <p id="section-4.3.2.5-3.4.2.2.2.2.1">sends Alice a message with Handshake Type CONCLUSION that also contains
+extensions with HSRSP, and<a href="#section-4.3.2.5-3.4.2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                      <li class="normal" id="section-4.3.2.5-3.4.2.2.2.3">awaits a confirmation from Alice that she is also connected (preferably
-by AGREEMENT message).<a href="#section-4.3.2.5-3.4.2.2.2.3" class="pilcrow">¶</a>
+                      <li class="normal" id="section-4.3.2.5-3.4.2.2.2.3">
+                        <p id="section-4.3.2.5-3.4.2.2.2.3.1">awaits a confirmation from Alice that she is also connected (preferably
+by AGREEMENT message).<a href="#section-4.3.2.5-3.4.2.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
                     </ul>
 </li>
@@ -4087,21 +4189,24 @@ by AGREEMENT message).<a href="#section-4.3.2.5-3.4.2.2.2.3" class="pilcrow">¶<
                 <p id="section-4.3.2.5-3.5.1">Alice receives the above message, enters into the "connected" state, and
 then does one of the following (depending on Alice's role):<a href="#section-4.3.2.5-3.5.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.5-3.5.2.1">If Alice is the Initiator (received CONCLUSION with HSRSP),
-she sends Bob a message with Handshake Type = AGREEMENT.<a href="#section-4.3.2.5-3.5.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.5-3.5.2.1">
+                    <p id="section-4.3.2.5-3.5.2.1.1">If Alice is the Initiator (received CONCLUSION with HSRSP),
+she sends Bob a message with Handshake Type = AGREEMENT.<a href="#section-4.3.2.5-3.5.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.5-3.5.2.2">If Alice is the Responder, the received message has Handshake Type AGREEMENT
-and in response she does nothing.<a href="#section-4.3.2.5-3.5.2.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.5-3.5.2.2">
+                    <p id="section-4.3.2.5-3.5.2.2.1">If Alice is the Responder, the received message has Handshake Type AGREEMENT
+and in response she does nothing.<a href="#section-4.3.2.5-3.5.2.2.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 </li>
-              <li id="section-4.3.2.5-3.6">At this point, if Bob was an Initiator, he is connected already. If he was a
+              <li id="section-4.3.2.5-3.6">
+                <p id="section-4.3.2.5-3.6.1">At this point, if Bob was an Initiator, he is connected already. If he was a
 Responder, he should receive the above AGREEMENT message, after which he
 switches to the "connected" state. In the case where the UDP packet with the
 agreement message gets lost, Bob will still enter the "connected" state once
 he receives anything else from Alice. If Bob is going to send, however, he
 has to continue sending the same CONCLUSION until he gets the confirmation
-from Alice.<a href="#section-4.3.2.5-3.6" class="pilcrow">¶</a>
+from Alice.<a href="#section-4.3.2.5-3.6.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
 </section>
@@ -4134,11 +4239,14 @@ Initiator MUST attach the HSREQ extension, and Responder MUST attach the
 <li id="section-4.3.2.6-7.1">
                 <p id="section-4.3.2.6-7.1.1">Waving<a href="#section-4.3.2.6-7.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.6-7.1.2.1">Receives WAVEAHAND message,<a href="#section-4.3.2.6-7.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.6-7.1.2.1">
+                    <p id="section-4.3.2.6-7.1.2.1.1">Receives WAVEAHAND message,<a href="#section-4.3.2.6-7.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.6-7.1.2.2">Switches to Attention,<a href="#section-4.3.2.6-7.1.2.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.6-7.1.2.2">
+                    <p id="section-4.3.2.6-7.1.2.2.1">Switches to Attention,<a href="#section-4.3.2.6-7.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.6-7.1.2.3">Sends CONCLUSION + HSREQ.<a href="#section-4.3.2.6-7.1.2.3" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.6-7.1.2.3">
+                    <p id="section-4.3.2.6-7.1.2.3.1">Sends CONCLUSION + HSREQ.<a href="#section-4.3.2.6-7.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 </li>
@@ -4147,9 +4255,11 @@ Initiator MUST attach the HSREQ extension, and Responder MUST attach the
 <p id="section-4.3.2.6-7.2.2">
 Receives CONCLUSION message which<a href="#section-4.3.2.6-7.2.2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.6-7.2.3.1">either contains no extensions, then switches to Initiated, still sends CONCLUSION + HSREQ; or<a href="#section-4.3.2.6-7.2.3.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.6-7.2.3.1">
+                    <p id="section-4.3.2.6-7.2.3.1.1">either contains no extensions, then switches to Initiated, still sends CONCLUSION + HSREQ; or<a href="#section-4.3.2.6-7.2.3.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.6-7.2.3.2">contains <code>HSRSP</code> extension, then switches to Connected, sends AGREEMENT.<a href="#section-4.3.2.6-7.2.3.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.6-7.2.3.2">
+                    <p id="section-4.3.2.6-7.2.3.2.1">contains <code>HSRSP</code> extension, then switches to Connected, sends AGREEMENT.<a href="#section-4.3.2.6-7.2.3.2.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 </li>
@@ -4158,9 +4268,11 @@ Receives CONCLUSION message which<a href="#section-4.3.2.6-7.2.2" class="pilcrow
 <p id="section-4.3.2.6-7.3.2">
 Receives CONCLUSION message, which<a href="#section-4.3.2.6-7.3.2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.6-7.3.3.1">either contains no extensions, then REMAINS IN THIS STATE, still sends CONCLUSION + HSREQ; or<a href="#section-4.3.2.6-7.3.3.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.6-7.3.3.1">
+                    <p id="section-4.3.2.6-7.3.3.1.1">either contains no extensions, then REMAINS IN THIS STATE, still sends CONCLUSION + HSREQ; or<a href="#section-4.3.2.6-7.3.3.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.6-7.3.3.2">contains <code>HSRSP</code> extension, then switches to Connected, sends AGREEMENT.<a href="#section-4.3.2.6-7.3.3.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.6-7.3.3.2">
+                    <p id="section-4.3.2.6-7.3.3.2.1">contains <code>HSRSP</code> extension, then switches to Connected, sends AGREEMENT.<a href="#section-4.3.2.6-7.3.3.2.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 </li>
@@ -4176,23 +4288,28 @@ by now it should already have received payload packets.<a href="#section-4.3.2.6
 <li id="section-4.3.2.6-9.1">
                 <p id="section-4.3.2.6-9.1.1">Waving<a href="#section-4.3.2.6-9.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.6-9.1.2.1">Receives WAVEAHAND message,<a href="#section-4.3.2.6-9.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.6-9.1.2.1">
+                    <p id="section-4.3.2.6-9.1.2.1.1">Receives WAVEAHAND message,<a href="#section-4.3.2.6-9.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.6-9.1.2.2">Switches to Attention,<a href="#section-4.3.2.6-9.1.2.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.6-9.1.2.2">
+                    <p id="section-4.3.2.6-9.1.2.2.1">Switches to Attention,<a href="#section-4.3.2.6-9.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.6-9.1.2.3">Sends CONCLUSION message (with no extensions).<a href="#section-4.3.2.6-9.1.2.3" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.6-9.1.2.3">
+                    <p id="section-4.3.2.6-9.1.2.3.1">Sends CONCLUSION message (with no extensions).<a href="#section-4.3.2.6-9.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 </li>
               <li id="section-4.3.2.6-9.2">
                 <p id="section-4.3.2.6-9.2.1">Attention<a href="#section-4.3.2.6-9.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.6-9.2.2.1">Receives CONCLUSION message with HSREQ.
+<li class="normal" id="section-4.3.2.6-9.2.2.1">
+                    <p id="section-4.3.2.6-9.2.2.1.1">Receives CONCLUSION message with HSREQ.
 This message might contain no extensions, in which case the party
 SHALL simply send the empty CONCLUSION message, as before, and remain
-in this state.<a href="#section-4.3.2.6-9.2.2.1" class="pilcrow">¶</a>
+in this state.<a href="#section-4.3.2.6-9.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.6-9.2.2.2">Switches to Initiated and sends CONCLUSION message with HSRSP.<a href="#section-4.3.2.6-9.2.2.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.6-9.2.2.2">
+                    <p id="section-4.3.2.6-9.2.2.2.1">Switches to Initiated and sends CONCLUSION message with HSRSP.<a href="#section-4.3.2.6-9.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 </li>
@@ -4201,11 +4318,14 @@ in this state.<a href="#section-4.3.2.6-9.2.2.1" class="pilcrow">¶</a>
 <p id="section-4.3.2.6-9.3.2">
 Receives:<a href="#section-4.3.2.6-9.3.2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3.2.6-9.3.3.1">CONCLUSION message with HSREQ, then responds with CONCLUSION with HSRSP and remains in this state;<a href="#section-4.3.2.6-9.3.3.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.3.2.6-9.3.3.1">
+                    <p id="section-4.3.2.6-9.3.3.1.1">CONCLUSION message with HSREQ, then responds with CONCLUSION with HSRSP and remains in this state;<a href="#section-4.3.2.6-9.3.3.1.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.6-9.3.3.2">AGREEMENT message, then responds with AGREEMENT and switches to Connected;<a href="#section-4.3.2.6-9.3.3.2" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.6-9.3.3.2">
+                    <p id="section-4.3.2.6-9.3.3.2.1">AGREEMENT message, then responds with AGREEMENT and switches to Connected;<a href="#section-4.3.2.6-9.3.3.2.1" class="pilcrow">¶</a></p>
 </li>
-                  <li class="normal" id="section-4.3.2.6-9.3.3.3">Payload packet, then responds with AGREEMENT and switches to Connected.<a href="#section-4.3.2.6-9.3.3.3" class="pilcrow">¶</a>
+                  <li class="normal" id="section-4.3.2.6-9.3.3.3">
+                    <p id="section-4.3.2.6-9.3.3.3.1">Payload packet, then responds with AGREEMENT and switches to Connected.<a href="#section-4.3.2.6-9.3.3.3.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 </li>
@@ -4220,16 +4340,19 @@ CONCLUSION message.<a href="#section-4.3.2.6-9.4.2" class="pilcrow">¶</a></p>
 <p id="section-4.3.2.6-10">Note that any of these packets may be missing, and the sending party will
 never become aware. The missing packet problem is resolved this way:<a href="#section-4.3.2.6-10" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-4.3.2.6-11">
-<li id="section-4.3.2.6-11.1">If the Responder misses the CONCLUSION + HSREQ message, it simply
+<li id="section-4.3.2.6-11.1">
+                <p id="section-4.3.2.6-11.1.1">If the Responder misses the CONCLUSION + HSREQ message, it simply
 continues sending empty CONCLUSION messages. Only upon reception of
-CONCLUSION + HSREQ it does respond with CONCLUSION + HSRSP.<a href="#section-4.3.2.6-11.1" class="pilcrow">¶</a>
+CONCLUSION + HSREQ it does respond with CONCLUSION + HSRSP.<a href="#section-4.3.2.6-11.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-4.3.2.6-11.2">If the Initiator misses the CONCLUSION + HSRSP response from the
+              <li id="section-4.3.2.6-11.2">
+                <p id="section-4.3.2.6-11.2.1">If the Initiator misses the CONCLUSION + HSRSP response from the
 Responder, it continues sending CONCLUSION + HSREQ. The Responder MUST
 always respond with CONCLUSION + HSRSP when the Initiator sends
-CONCLUSION + HSREQ, even if it has already received and interpreted it.<a href="#section-4.3.2.6-11.2" class="pilcrow">¶</a>
+CONCLUSION + HSREQ, even if it has already received and interpreted it.<a href="#section-4.3.2.6-11.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-4.3.2.6-11.3">When the Initiator switches to the Connected state it responds with a
+              <li id="section-4.3.2.6-11.3">
+                <p id="section-4.3.2.6-11.3.1">When the Initiator switches to the Connected state it responds with a
 AGREEMENT message, which may be missed by the Responder. Nonetheless, the
 Initiator may start sending data packets because it considers itself
 connected - it does not know that the Responder has not yet switched
@@ -4237,16 +4360,17 @@ to the Connected state. Therefore it is exceptionally allowed that when
 the Responder is in the Initiated state and receives a data packet
 (or any control packet that is normally sent only between connected
 parties) over this connection, it may switch to the Connected
-state just as if it had received a AGREEMENT message.<a href="#section-4.3.2.6-11.3" class="pilcrow">¶</a>
+state just as if it had received a AGREEMENT message.<a href="#section-4.3.2.6-11.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-4.3.2.6-11.4">If the the Initiator has already switched to the Connected state it will not
+              <li id="section-4.3.2.6-11.4">
+                <p id="section-4.3.2.6-11.4.1">If the the Initiator has already switched to the Connected state it will not
 bother the Responder with any more handshake messages. But the Responder may be
 completely unaware of that (having missed the AGREEMENT message from the
 Initiator). Therefore it does not exit the connecting state, which means that it
 continues sending CONCLUSION + HSRSP messages until it receives any
 packet that will make it switch to the Connected state (normally
 AGREEMENT). Only then does it exit the connecting state and the
-application can start transmission.<a href="#section-4.3.2.6-11.4" class="pilcrow">¶</a>
+application can start transmission.<a href="#section-4.3.2.6-11.4.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
 </section>
@@ -4344,14 +4468,18 @@ State         |           |              |                   |
 </div>
 <p id="section-4.5-7">The main packet states shown in <a href="#fig-latency-points" class="auto internal xref">Figure 21</a> are the following:<a href="#section-4.5-7" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.5-8.1">"Scheduled for sending": the packet is committed by the sending application, stamped and ready to be sent;<a href="#section-4.5-8.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.5-8.1">
+            <p id="section-4.5-8.1.1">"Scheduled for sending": the packet is committed by the sending application, stamped and ready to be sent;<a href="#section-4.5-8.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.5-8.2">"Sent": the packet is passed to the UDP socket and sent;<a href="#section-4.5-8.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.5-8.2">
+            <p id="section-4.5-8.2.1">"Sent": the packet is passed to the UDP socket and sent;<a href="#section-4.5-8.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.5-8.3">"Received": the packet is received and read from the UDP socket;<a href="#section-4.5-8.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.5-8.3">
+            <p id="section-4.5-8.3.1">"Received": the packet is received and read from the UDP socket;<a href="#section-4.5-8.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.5-8.4">"Scheduled for delivery": the packet is scheduled for the delivery
-and ready to be read by the receiving application.<a href="#section-4.5-8.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.5-8.4">
+            <p id="section-4.5-8.4.1">"Scheduled for delivery": the packet is scheduled for the delivery
+and ready to be read by the receiving application.<a href="#section-4.5-8.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-4.5-9">It is worth noting that the round-trip time (RTT) of an SRT link may
@@ -4377,16 +4505,20 @@ PktTsbpdTime = TsbpdTimeBase + PKT_TIMESTAMP + TsbpdDelay + Drift
 </div>
 <p id="section-4.5.1-3">where<a href="#section-4.5.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.5.1-4.1">TsbpdTimeBase is the time base that reflects the time difference between local clock of the receiver
-and the clock used by the sender to timestamp packets being sent (see <a href="#tsbpd-time-base" class="auto internal xref">Section 4.5.1.1</a>);<a href="#section-4.5.1-4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.5.1-4.1">
+              <p id="section-4.5.1-4.1.1">TsbpdTimeBase is the time base that reflects the time difference between local clock of the receiver
+and the clock used by the sender to timestamp packets being sent (see <a href="#tsbpd-time-base" class="auto internal xref">Section 4.5.1.1</a>);<a href="#section-4.5.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-4.5.1-4.2">PKT_TIMESTAMP is the data packet timestamp, in microseconds;<a href="#section-4.5.1-4.2" class="pilcrow">¶</a>
+            <li class="normal" id="section-4.5.1-4.2">
+              <p id="section-4.5.1-4.2.1">PKT_TIMESTAMP is the data packet timestamp, in microseconds;<a href="#section-4.5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-4.5.1-4.3">TsbpdDelay is the receiver's buffer delay (or receiver's buffer latency, or SRT Latency).
+            <li class="normal" id="section-4.5.1-4.3">
+              <p id="section-4.5.1-4.3.1">TsbpdDelay is the receiver’s buffer delay (or receiver’s buffer latency, or SRT Latency).
 This is the time, in milliseconds, that SRT holds a packet from the moment it has been received till the time it
-should be delivered to the upstream application;<a href="#section-4.5.1-4.3" class="pilcrow">¶</a>
+should be delivered to the upstream application;<a href="#section-4.5.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-4.5.1-4.4">Drift is the time drift used to adjust the fluctuations between sender and receiver clock, in microseconds.<a href="#section-4.5.1-4.4" class="pilcrow">¶</a>
+            <li class="normal" id="section-4.5.1-4.4">
+              <p id="section-4.5.1-4.4.1">Drift is the time drift used to adjust the fluctuations between sender and receiver clock, in microseconds.<a href="#section-4.5.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-4.5.1-5">SRT Latency (TsbpdDelay) should be a buffer time large enough to cover the unexpectedly
@@ -4428,7 +4560,8 @@ TsbpdTimeBase = TsbpdTimeBase + MAX_TIMESTAMP + 1
 </pre><a href="#section-4.5.1.1-6.1.2" class="pilcrow">¶</a>
 </div>
 </li>
-              <li id="section-4.5.1.1-6.2">By drift tracer. See <a href="#drift-management" class="auto internal xref">Section 4.7</a> for details.<a href="#section-4.5.1.1-6.2" class="pilcrow">¶</a>
+              <li id="section-4.5.1.1-6.2">
+                <p id="section-4.5.1.1-6.2.1">By drift tracer. See <a href="#drift-management" class="auto internal xref">Section 4.7</a> for details.<a href="#section-4.5.1.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
 </section>
@@ -5040,35 +5173,42 @@ else
 </div>
 <p id="section-5.2.1.1-16">where<a href="#section-5.2.1.1-16" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.2.1.1-17.1">RECEIVING_RATE is the rate at which packets are being received,
+<li class="normal" id="section-5.2.1.1-17.1">
+                <p id="section-5.2.1.1-17.1.1">RECEIVING_RATE is the rate at which packets are being received,
 in packets per second, reported by the receiver and smoothed at
-the sender side (see <a href="#ctrl-pkt-ack" class="auto internal xref">Section 3.2.4</a>, <a href="#bandwidth-estimation" class="auto internal xref">Section 5.2.1.3</a>);<a href="#section-5.2.1.1-17.1" class="pilcrow">¶</a>
+the sender side (see <a href="#ctrl-pkt-ack" class="auto internal xref">Section 3.2.4</a>, <a href="#bandwidth-estimation" class="auto internal xref">Section 5.2.1.3</a>);<a href="#section-5.2.1.1-17.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.1-17.2">RTT is the round-trip time estimate, in microseconds,
+              <li class="normal" id="section-5.2.1.1-17.2">
+                <p id="section-5.2.1.1-17.2.1">RTT is the round-trip time estimate, in microseconds,
 reported by the receiver and smoothed at the sender side (see
-<a href="#ctrl-pkt-ack" class="auto internal xref">Section 3.2.4</a>, <a href="#rtt" class="auto internal xref">Section 4.10</a>);<a href="#section-5.2.1.1-17.2" class="pilcrow">¶</a>
+<a href="#ctrl-pkt-ack" class="auto internal xref">Section 3.2.4</a>, <a href="#rtt" class="auto internal xref">Section 4.10</a>);<a href="#section-5.2.1.1-17.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.1-17.3">RC_INTERVAL is the fixed rate control interval, in microseconds.
+              <li class="normal" id="section-5.2.1.1-17.3">
+                <p id="section-5.2.1.1-17.3.1">RC_INTERVAL is the fixed rate control interval, in microseconds.
 RC_INTERVAL of SRT is SYN, or synchronization time interval, which
 is 0.01 second. An ACK in SRT is sent every fixed time interval.
 The maximum and default ACK time interval is SYN.
-See <a href="#packet-acks" class="auto internal xref">Section 4.8.1</a> for details.<a href="#section-5.2.1.1-17.3" class="pilcrow">¶</a>
+See <a href="#packet-acks" class="auto internal xref">Section 4.8.1</a> for details.<a href="#section-5.2.1.1-17.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-5.2.1.1-18">(2) On a loss report (NAK) packet reception:<a href="#section-5.2.1.1-18" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.2.1.1-19.1">Slow start phase ends;<a href="#section-5.2.1.1-19.1" class="pilcrow">¶</a>
+<li class="normal" id="section-5.2.1.1-19.1">
+                <p id="section-5.2.1.1-19.1.1">Slow start phase ends;<a href="#section-5.2.1.1-19.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.1-19.2">Set the packet sending period PKT_SND_PERIOD as described in Step 5
-of section (1) above.<a href="#section-5.2.1.1-19.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-5.2.1.1-19.2">
+                <p id="section-5.2.1.1-19.2.1">Set the packet sending period PKT_SND_PERIOD as described in Step 5
+of section (1) above.<a href="#section-5.2.1.1-19.2.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-5.2.1.1-20">(3) On a retransmission timeout (RTO) event:<a href="#section-5.2.1.1-20" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.2.1.1-21.1">Slow start phase ends;<a href="#section-5.2.1.1-21.1" class="pilcrow">¶</a>
+<li class="normal" id="section-5.2.1.1-21.1">
+                <p id="section-5.2.1.1-21.1.1">Slow start phase ends;<a href="#section-5.2.1.1-21.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.1-21.2">Set the packet sending period PKT_SND_PERIOD as described in Step 5
-of section (1) above.<a href="#section-5.2.1.1-21.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-5.2.1.1-21.2">
+                <p id="section-5.2.1.1-21.2.1">Set the packet sending period PKT_SND_PERIOD as described in Step 5
+of section (1) above.<a href="#section-5.2.1.1-21.2.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </section>
@@ -5143,19 +5283,23 @@ PKT_SND_PERIOD = (PKT_SND_PERIOD * RC_INTERVAL) /
 </div>
 <p id="section-5.2.1.2-19">where<a href="#section-5.2.1.2-19" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.2.1.2-20.1">LastDecPeriod is the value of PKT_SND_PERIOD right before the last
+<li class="normal" id="section-5.2.1.2-20.1">
+                <p id="section-5.2.1.2-20.1.1">LastDecPeriod is the value of PKT_SND_PERIOD right before the last
 sending rate decrease has happened (on a loss report (NAK) packet
 reception), in microseconds. The initial value of LastDecPeriod
-is set to 1 microsecond;<a href="#section-5.2.1.2-20.1" class="pilcrow">¶</a>
+is set to 1 microsecond;<a href="#section-5.2.1.2-20.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.2-20.2">EST_LINK_CAPACITY is the estimated link capacity reported
+              <li class="normal" id="section-5.2.1.2-20.2">
+                <p id="section-5.2.1.2-20.2.1">EST_LINK_CAPACITY is the estimated link capacity reported
 by the receiver within an ACK packet and smoothed at the sender side
-(<a href="#bandwidth-estimation" class="auto internal xref">Section 5.2.1.3</a>), in packets per second;<a href="#section-5.2.1.2-20.2" class="pilcrow">¶</a>
+(<a href="#bandwidth-estimation" class="auto internal xref">Section 5.2.1.3</a>), in packets per second;<a href="#section-5.2.1.2-20.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.2-20.3">B is the estimated available bandwidth, in packets per second;<a href="#section-5.2.1.2-20.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-5.2.1.2-20.3">
+                <p id="section-5.2.1.2-20.3.1">B is the estimated available bandwidth, in packets per second;<a href="#section-5.2.1.2-20.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.2-20.4">S is the SRT packet size (in terms of IP payload) in bytes.
-SRT treats 1500 bytes as a standard packet size.<a href="#section-5.2.1.2-20.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-5.2.1.2-20.4">
+                <p id="section-5.2.1.2-20.4.1">S is the SRT packet size (in terms of IP payload) in bytes.
+SRT treats 1500 bytes as a standard packet size.<a href="#section-5.2.1.2-20.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-5.2.1.2-21">A detailed explanation of the formulas used to calculate the increase
@@ -5220,19 +5364,23 @@ between 1 and AvgNAKNum. If DecRandom &lt; 1: DecRandom = 1;<a href="#section-5.
 <p id="section-5.2.1.2-42">g. Stop;<a href="#section-5.2.1.2-42" class="pilcrow">¶</a></p>
 <p id="section-5.2.1.2-43">where<a href="#section-5.2.1.2-43" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.2.1.2-44.1">AvgNAKNum is the average number of NAKs during a congestion period.
-Initial value: 0;<a href="#section-5.2.1.2-44.1" class="pilcrow">¶</a>
+<li class="normal" id="section-5.2.1.2-44.1">
+                <p id="section-5.2.1.2-44.1.1">AvgNAKNum is the average number of NAKs during a congestion period.
+Initial value: 0;<a href="#section-5.2.1.2-44.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.2-44.2">NAKCount is the number of NAKs received so far in the current
-congestion period. Initial value: 0;<a href="#section-5.2.1.2-44.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-5.2.1.2-44.2">
+                <p id="section-5.2.1.2-44.2.1">NAKCount is the number of NAKs received so far in the current
+congestion period. Initial value: 0;<a href="#section-5.2.1.2-44.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.2-44.3">DecCount means the number of times that the sending rate has been
-decreased during the congestion period. Initial value: 0;<a href="#section-5.2.1.2-44.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-5.2.1.2-44.3">
+                <p id="section-5.2.1.2-44.3.1">DecCount means the number of times that the sending rate has been
+decreased during the congestion period. Initial value: 0;<a href="#section-5.2.1.2-44.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-5.2.1.2-44.4">DecRandom is a random number used to decide if the rate should be
+              <li class="normal" id="section-5.2.1.2-44.4">
+                <p id="section-5.2.1.2-44.4.1">DecRandom is a random number used to decide if the rate should be
 decreased or not for the following NAKs (not the first one) during
 the congestion period. DecRandom is a random number between 1 and
-the average number of NAKs per congestion period (AvgNAKNum).<a href="#section-5.2.1.2-44.4" class="pilcrow">¶</a>
+the average number of NAKs per congestion period (AvgNAKNum).<a href="#section-5.2.1.2-44.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-5.2.1.2-45">Congestion period is defined as the time between two NAKs in which
@@ -5322,11 +5470,14 @@ No constraints apply to the payload of SRT data packets as no padding of the pay
 <p id="section-6.1.2-1">The counter for AES-CTR is the size of the cipher's block, i.e. 128 bits. It is derived from
 a 128-bit sequence consisting of<a href="#section-6.1.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.1.2-2.1">a block counter in the least significant 16 bits which counts the blocks in a packet;<a href="#section-6.1.2-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.1.2-2.1">
+              <p id="section-6.1.2-2.1.1">a block counter in the least significant 16 bits which counts the blocks in a packet;<a href="#section-6.1.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.1.2-2.2">a packet index, based on the packet sequence number in the SRT header, in the next 32 bits;<a href="#section-6.1.2-2.2" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.1.2-2.2">
+              <p id="section-6.1.2-2.2.1">a packet index, based on the packet sequence number in the SRT header, in the next 32 bits;<a href="#section-6.1.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.1.2-2.3">eighty zeroed bits.<a href="#section-6.1.2-2.3" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.1.2-2.3">
+              <p id="section-6.1.2-2.3.1">eighty zeroed bits.<a href="#section-6.1.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-6.1.2-3">The upper 112 bits of this sequence are XORed with an Initialization Vector (IV)
@@ -5408,10 +5559,12 @@ The receiver knows which SEK (odd or even) was used to encrypt the packet
 by means of the KK field of the SRT Data Packet (<a href="#data-pkt" class="auto internal xref">Section 3.1</a>).<a href="#section-6.1.6-1" class="pilcrow">¶</a></p>
 <p id="section-6.1.6-2">There are two variables used to determine the KM Refresh timing:<a href="#section-6.1.6-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.1.6-3.1">KM Refresh Period specifies the number of packets to be sent before switching to the new SEK.<a href="#section-6.1.6-3.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.1.6-3.1">
+              <p id="section-6.1.6-3.1.1">KM Refresh Period specifies the number of packets to be sent before switching to the new SEK.<a href="#section-6.1.6-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.1.6-3.2">KM Pre-Announcement Period specifies when a new key is announced in a number of packets before key switchover.
-The same value is used to determine when to decommission the old key after switchover.<a href="#section-6.1.6-3.2" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.1.6-3.2">
+              <p id="section-6.1.6-3.2.1">KM Pre-Announcement Period specifies when a new key is announced in a number of packets before key switchover.
+The same value is used to determine when to decommission the old key after switchover.<a href="#section-6.1.6-3.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-6.1.6-4">The recommended KM Refresh Period is after 2^25 packets encrypted with the same SEK are sent.
@@ -5452,17 +5605,23 @@ KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
 </div>
 <p id="section-6.2.1-3">where<a href="#section-6.2.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.2.1-4.1">PBKDF2 is the PKCS#5 Password Based Key Derivation Function <span>[<a href="#RFC8018" class="cite xref">RFC8018</a>]</span>;<a href="#section-6.2.1-4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.2.1-4.1">
+              <p id="section-6.2.1-4.1.1">PBKDF2 is the PKCS#5 Password Based Key Derivation Function <span>[<a href="#RFC8018" class="cite xref">RFC8018</a>]</span>;<a href="#section-6.2.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.2.1-4.2">passphrase is the pre-shared passphrase;<a href="#section-6.2.1-4.2" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.2.1-4.2">
+              <p id="section-6.2.1-4.2.1">passphrase is the pre-shared passphrase;<a href="#section-6.2.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.2.1-4.3">Salt is a field of the KM message;<a href="#section-6.2.1-4.3" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.2.1-4.3">
+              <p id="section-6.2.1-4.3.1">Salt is a field of the KM message;<a href="#section-6.2.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.2.1-4.4">LSB(n, v) is the function taking n least significant bits of v;<a href="#section-6.2.1-4.4" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.2.1-4.4">
+              <p id="section-6.2.1-4.4.1">LSB(n, v) is the function taking n least significant bits of v;<a href="#section-6.2.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.2.1-4.5">Iter=2048 defines the number of iterations for PBKDF2;<a href="#section-6.2.1-4.5" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.2.1-4.5">
+              <p id="section-6.2.1-4.5.1">Iter=2048 defines the number of iterations for PBKDF2;<a href="#section-6.2.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.2.1-4.6">KLen is a field of the KM message.<a href="#section-6.2.1-4.6" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.2.1-4.6">
+              <p id="section-6.2.1-4.6.1">KLen is a field of the KM message.<a href="#section-6.2.1-4.6.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <div class="alignLeft art-text artwork" id="section-6.2.1-5">
@@ -5517,17 +5676,23 @@ KEK = PBKDF2(passphrase, LSB(64,Salt), Iter, KLen)
 </div>
 <p id="section-6.3.1-4">where<a href="#section-6.3.1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.3.1-5.1">PBKDF2 is the PKCS#5 Password Based Key Derivation Function <span>[<a href="#RFC8018" class="cite xref">RFC8018</a>]</span>;<a href="#section-6.3.1-5.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.3.1-5.1">
+              <p id="section-6.3.1-5.1.1">PBKDF2 is the PKCS#5 Password Based Key Derivation Function <span>[<a href="#RFC8018" class="cite xref">RFC8018</a>]</span>;<a href="#section-6.3.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.3.1-5.2">passphrase is the pre-shared passphrase;<a href="#section-6.3.1-5.2" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.3.1-5.2">
+              <p id="section-6.3.1-5.2.1">passphrase is the pre-shared passphrase;<a href="#section-6.3.1-5.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.3.1-5.3">Salt is a field of the KM message;<a href="#section-6.3.1-5.3" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.3.1-5.3">
+              <p id="section-6.3.1-5.3.1">Salt is a field of the KM message;<a href="#section-6.3.1-5.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.3.1-5.4">LSB(n, v) is the function taking n least significant bits of v;<a href="#section-6.3.1-5.4" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.3.1-5.4">
+              <p id="section-6.3.1-5.4.1">LSB(n, v) is the function taking n least significant bits of v;<a href="#section-6.3.1-5.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.3.1-5.5">Iter=2048 defines the number of iterations for PBKDF2;<a href="#section-6.3.1-5.5" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.3.1-5.5">
+              <p id="section-6.3.1-5.5.1">Iter=2048 defines the number of iterations for PBKDF2;<a href="#section-6.3.1-5.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.3.1-5.6">KLen is a field of the KM message.<a href="#section-6.3.1-5.6" class="pilcrow">¶</a>
+            <li class="normal" id="section-6.3.1-5.6">
+              <p id="section-6.3.1-5.6.1">KLen is a field of the KM message.<a href="#section-6.3.1-5.6.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <div class="alignLeft art-text artwork" id="section-6.3.1-6">
@@ -5576,14 +5741,18 @@ IV = (MSB(112, Salt) &lt;&lt; 2) XOR (PktSeqNo)
 <p id="section-7.1-2">The term "live streaming" refers to MPEG-TS style continuous data transmission with latency management. Live streaming based on segmentation and transmission of files like in HLS protocol <span>[<a href="#RFC8216" class="cite xref">RFC8216</a>]</span> is not part of this use case.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <p id="section-7.1-3">The default SRT data transmission mode for continuous live streaming is message mode (<a href="#transmission-mode-msg" class="auto internal xref">Section 4.2.1</a>) with certain settings applied as described below:<a href="#section-7.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.1-4.1">Only data packets with their Packet Position Flag (PP) field set to "11b" are allowed, meaning a single data packet forms exactly one message (<a href="#data-pkt" class="auto internal xref">Section 3.1</a>).<a href="#section-7.1-4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-7.1-4.1">
+            <p id="section-7.1-4.1.1">Only data packets with their Packet Position Flag (PP) field set to "11b" are allowed, meaning a single data packet forms exactly one message (<a href="#data-pkt" class="auto internal xref">Section 3.1</a>).<a href="#section-7.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-4.2">Timestamp-Based Packet Delivery (TSBPD) (<a href="#tsbpd" class="auto internal xref">Section 4.5</a>) and Too-Late Packet Drop
-(TLPKTDROP) (<a href="#too-late-packet-drop" class="auto internal xref">Section 4.6</a>) mechanisms must be enabled.<a href="#section-7.1-4.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-7.1-4.2">
+            <p id="section-7.1-4.2.1">Timestamp-Based Packet Delivery (TSBPD) (<a href="#tsbpd" class="auto internal xref">Section 4.5</a>) and Too-Late Packet Drop
+(TLPKTDROP) (<a href="#too-late-packet-drop" class="auto internal xref">Section 4.6</a>) mechanisms must be enabled.<a href="#section-7.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-4.3">Live Congestion Control (LiveCC) (<a href="#liveCC" class="auto internal xref">Section 5.1</a>) must be used.<a href="#section-7.1-4.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-7.1-4.3">
+            <p id="section-7.1-4.3.1">Live Congestion Control (LiveCC) (<a href="#liveCC" class="auto internal xref">Section 5.1</a>) must be used.<a href="#section-7.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-4.4">Periodic NAK reports (<a href="#packet-naks" class="auto internal xref">Section 4.8.2</a>) must be enabled.<a href="#section-7.1-4.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-7.1-4.4">
+            <p id="section-7.1-4.4.1">Periodic NAK reports (<a href="#packet-naks" class="auto internal xref">Section 4.8.2</a>) must be enabled.<a href="#section-7.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-4.5">
             <p id="section-7.1-4.5.1">The Order Flag (<a href="#data-pkt" class="auto internal xref">Section 3.1</a>) needs special attention. In the case
@@ -5648,38 +5817,45 @@ is known to the attacker.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <p id="section-8-2">On the protocol control level, SRT does not encrypt packet headers.
 Therefore it has some vulnerabilities similar to TCP <span>[<a href="#RFC6528" class="cite xref">RFC6528</a>]</span>:<a href="#section-8-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8-3.1">A peer tells a counterpart its public IP during the handshake that is visible to any attacker.<a href="#section-8-3.1" class="pilcrow">¶</a>
+<li class="normal" id="section-8-3.1">
+          <p id="section-8-3.1.1">A peer tells a counterpart its public IP during the handshake that is visible to any attacker.<a href="#section-8-3.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-8-3.2">An attacker may potentially count the number of SRT processes behind a Network
+        <li class="normal" id="section-8-3.2">
+          <p id="section-8-3.2.1">An attacker may potentially count the number of SRT processes behind a Network
 Address Translator (NAT) by establishing multiple SRT connections and tracking
 the ranges of SRT Socket IDs. If a random Socket ID is generated for the first
 connection, subsequent connections may get consecutive SRT Socket IDs. Assuming
 one system runs only one SRT process, for example, then an attacker can estimate
-the number of systems behind a NAT.<a href="#section-8-3.2" class="pilcrow">¶</a>
+the number of systems behind a NAT.<a href="#section-8-3.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-8-3.3">Similarly, the possibility of attack depends on the implementation of the initial
+        <li class="normal" id="section-8-3.3">
+          <p id="section-8-3.3.1">Similarly, the possibility of attack depends on the implementation of the initial
 sequence number (ISN) generation. If an ISN is not generated randomly for each
 connection, an attacker may potentially count the number of systems behind a
 Network Address Translator (NAT) by establishing a number of SRT connections and
 identifying the number of different sequence number "spaces", given that no SRT
-packet headers are encrypted.<a href="#section-8-3.3" class="pilcrow">¶</a>
+packet headers are encrypted.<a href="#section-8-3.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-8-3.4">An eavesdropper can hijack existing connections only if it steals the IP and
+        <li class="normal" id="section-8-3.4">
+          <p id="section-8-3.4.1">An eavesdropper can hijack existing connections only if it steals the IP and
 port of one of the parties. If some stream addresses an existing SRT receiver
 by its SRT socket ID, IP, and port number, but arrives from a different IP or
-port, the SRT receiver ignores it.<a href="#section-8-3.4" class="pilcrow">¶</a>
+port, the SRT receiver ignores it.<a href="#section-8-3.4.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-8-3.5">SRT has a certain protection from DoS attacks, see <a href="#handshake-messages" class="auto internal xref">Section 4.3</a>.<a href="#section-8-3.5" class="pilcrow">¶</a>
+        <li class="normal" id="section-8-3.5">
+          <p id="section-8-3.5.1">SRT has a certain protection from DoS attacks, see <a href="#handshake-messages" class="auto internal xref">Section 4.3</a>.<a href="#section-8-3.5.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-8-4">There are some important considerations regarding the encryption feature of SRT:<a href="#section-8-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8-5.1">The SEK must be changed at an appropriate refresh interval to avoid the risk
-associated with the use of security keys over a long period of time.<a href="#section-8-5.1" class="pilcrow">¶</a>
+<li class="normal" id="section-8-5.1">
+          <p id="section-8-5.1.1">The SEK must be changed at an appropriate refresh interval to avoid the risk
+associated with the use of security keys over a long period of time.<a href="#section-8-5.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-8-5.2">The shared secret for KEK generation must be carefully configured by a
+        <li class="normal" id="section-8-5.2">
+          <p id="section-8-5.2.1">The shared secret for KEK generation must be carefully configured by a
 security officer responsible for security policies, enforcing encryption, and
-limiting key size selection.<a href="#section-8-5.2" class="pilcrow">¶</a>
+limiting key size selection.<a href="#section-8-5.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -5728,6 +5904,7 @@ the authors of the UDP-based Data Transfer Protocol <span>[<a href="#GHG04b" cla
       <h2 id="name-references">
 <a href="#name-references" class="section-name selfRef">References</a>
       </h2>
+<div id="sec-normative-references">
 <section id="section-12.1">
         <h3 id="name-normative-references">
 <a href="#name-normative-references" class="section-name selfRef">Normative References</a>
@@ -5747,6 +5924,8 @@ the authors of the UDP-based Data Transfer Protocol <span>[<a href="#GHG04b" cla
 <dd class="break"></dd>
 </dl>
 </section>
+</div>
+<div id="sec-informative-references">
 <section id="section-12.2">
         <h3 id="name-informative-references">
 <a href="#name-informative-references" class="section-name selfRef">Informative References</a>
@@ -5758,7 +5937,7 @@ the authors of the UDP-based Data Transfer Protocol <span>[<a href="#GHG04b" cla
 <dd class="break"></dd>
 <dt id="AV1">[AV1]</dt>
         <dd>
-<span class="refAuthor">Rivaz, P. de.</span> and <span class="refAuthor">J. Haughton</span>, <span class="refTitle">"AV1 Bitstream &amp; Decoding Process Specification"</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://aomediacodec.github.io/av1-spec/av1-spec.pdf">https://aomediacodec.github.io/av1-spec/av1-spec.pdf</a>&gt;</span>. </dd>
+<span class="refAuthor">Rivaz, P. de.</span> and <span class="refAuthor">J. Haughton</span>, <span class="refTitle">"AV1 Bitstream &amp; Decoding Process Specification"</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://aomediacodec.github.io/av1-spec/av1-spec.pdf">https://aomediacodec.github.io/av1-spec/av1-spec.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="BBR">[BBR]</dt>
         <dd>
@@ -5766,7 +5945,7 @@ the authors of the UDP-based Data Transfer Protocol <span>[<a href="#GHG04b" cla
 <dd class="break"></dd>
 <dt id="GuAnAO">[GuAnAO]</dt>
         <dd>
-<span class="refAuthor">Gu, Y.</span>, <span class="refAuthor">Hong, X.</span>, and <span class="refAuthor">R. L. Grossman</span>, <span class="refTitle">"An Analysis of AIMD Algorithm with Decreasing Increases"</span>, <span class="seriesInfo">Proceedings of the 1st International Workshop on Networks for Grid Applications (GridNets '04) </span>, <time datetime="2004-10" class="refDate">October 2004</time>. </dd>
+<span class="refAuthor">Gu, Y.</span>, <span class="refAuthor">Hong, X.</span>, and <span class="refAuthor">R. L. Grossman</span>, <span class="refTitle">"An Analysis of AIMD Algorithm with Decreasing Increases"</span>, <span class="seriesInfo">Proceedings of the 1st International Workshop on Networks for Grid Applications (GridNets ’04) </span>, <time datetime="2004-10" class="refDate">October 2004</time>. </dd>
 <dd class="break"></dd>
 <dt id="H.265">[H.265]</dt>
         <dd>
@@ -5774,15 +5953,15 @@ the authors of the UDP-based Data Transfer Protocol <span>[<a href="#GHG04b" cla
 <dd class="break"></dd>
 <dt id="ISO13818-1">[ISO13818-1]</dt>
         <dd>
-<span class="refAuthor">ISO</span>, <span class="refTitle">"Information technology — Generic coding of moving pictures and associated audio information: Systems"</span>, <span class="seriesInfo">ISO/IEC 13818-1</span>, <time datetime="2023-07" class="refDate">July 2023</time>. </dd>
+<span class="refAuthor">ISO</span>, <span class="refTitle">"Information technology — Generic coding of moving pictures and associated audio information: Systems"</span>, <span class="seriesInfo">ISO/IEC 13818-1</span>, <time datetime="2023-12" class="refDate">December 2023</time>. </dd>
 <dd class="break"></dd>
 <dt id="ISO23009">[ISO23009]</dt>
         <dd>
-<span class="refAuthor">ISO</span>, <span class="refTitle">"Information technology - Dynamic adaptive streaming over HTTP (DASH)"</span>, <span class="seriesInfo">ISO/IEC 23009:2019</span>, <time datetime="2023-07" class="refDate">July 2023</time>. </dd>
+<span class="refAuthor">ISO</span>, <span class="refTitle">"Information technology - Dynamic adaptive streaming over HTTP (DASH)"</span>, <span class="seriesInfo">ISO/IEC 23009:2019</span>, <time datetime="2023-12" class="refDate">December 2023</time>. </dd>
 <dd class="break"></dd>
 <dt id="PNPID">[PNPID]</dt>
         <dd>
-<span class="refTitle">"PNP ID AND ACPI ID REGISTRY"</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://uefi.org/PNP_ACPI_Registry">https://uefi.org/PNP_ACPI_Registry</a>&gt;</span>. </dd>
+<span class="refTitle">"PNP ID AND ACPI ID REGISTRY"</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://uefi.org/PNP_ACPI_Registry">https://uefi.org/PNP_ACPI_Registry</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2104">[RFC2104]</dt>
         <dd>
@@ -5830,7 +6009,7 @@ the authors of the UDP-based Data Transfer Protocol <span>[<a href="#GHG04b" cla
 <dd class="break"></dd>
 <dt id="RTMP">[RTMP]</dt>
         <dd>
-<span class="refTitle">"Real-Time Messaging Protocol"</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://www.adobe.com/devnet/rtmp.html">https://www.adobe.com/devnet/rtmp.html</a>&gt;</span>. </dd>
+<span class="refTitle">"Real-Time Messaging Protocol"</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.adobe.com/devnet/rtmp.html">https://www.adobe.com/devnet/rtmp.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="SP800-38A">[SP800-38A]</dt>
         <dd>
@@ -5838,7 +6017,7 @@ the authors of the UDP-based Data Transfer Protocol <span>[<a href="#GHG04b" cla
 <dd class="break"></dd>
 <dt id="SRTSRC">[SRTSRC]</dt>
         <dd>
-<span class="refTitle">"SRT fully functional reference implementation"</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://github.com/Haivision/srt">https://github.com/Haivision/srt</a>&gt;</span>. </dd>
+<span class="refTitle">"SRT fully functional reference implementation"</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://github.com/Haivision/srt">https://github.com/Haivision/srt</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="SRTTO">[SRTTO]</dt>
         <dd>
@@ -5846,10 +6025,11 @@ the authors of the UDP-based Data Transfer Protocol <span>[<a href="#GHG04b" cla
 <dd class="break"></dd>
 <dt id="VP9">[VP9]</dt>
       <dd>
-<span class="refAuthor">WebM</span>, <span class="refTitle">"VP9 Video Codec"</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://www.webmproject.org/vp9">https://www.webmproject.org/vp9</a>&gt;</span>. </dd>
+<span class="refAuthor">WebM</span>, <span class="refTitle">"VP9 Video Codec"</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.webmproject.org/vp9">https://www.webmproject.org/vp9</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
+</div>
 </section>
 <div id="packet-seq-list-coding">
 <section id="appendix-A">
@@ -5913,9 +6093,11 @@ select the desired data stream, or set an appropriate passphrase for the connect
 <p id="appendix-B-3">The Stream ID value can be used as free-form, but there is a recommended convention so that
 all SRT users speak the same language. The intent of the convention is to:<a href="#appendix-B-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B-4.1">promote readability and consistency among free-form names,<a href="#appendix-B-4.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-B-4.1">
+          <p id="appendix-B-4.1.1">promote readability and consistency among free-form names,<a href="#appendix-B-4.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-4.2">interpret some typical data in the key-value style.<a href="#appendix-B-4.2" class="pilcrow">¶</a>
+        <li class="normal" id="appendix-B-4.2">
+          <p id="appendix-B-4.2.1">interpret some typical data in the key-value style.<a href="#appendix-B-4.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <div id="general-syntax">
@@ -5960,39 +6142,49 @@ where user and companyname are to be replaced with an actual user or company nam
 <p id="appendix-B.2-2">The existing key values MUST NOT be extended, and MUST NOT differ from those described in this section.<a href="#appendix-B.2-2" class="pilcrow">¶</a></p>
 <p id="appendix-B.2-3">The following keys are standard:<a href="#appendix-B.2-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B.2-4.1">u: User Name, or authorization name, that is expected to control which password should be used for the connection.
-The application should interpret it to distinguish which user should be used by the listener party to set up the password.<a href="#appendix-B.2-4.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-B.2-4.1">
+            <p id="appendix-B.2-4.1.1">u: User Name, or authorization name, that is expected to control which password should be used for the connection.
+The application should interpret it to distinguish which user should be used by the listener party to set up the password.<a href="#appendix-B.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.2-4.2">r: Resource Name identifies the name of the resource and facilitates selection should the listener party be able to serve multiple resources.<a href="#appendix-B.2-4.2" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-B.2-4.2">
+            <p id="appendix-B.2-4.2.1">r: Resource Name identifies the name of the resource and facilitates selection should the listener party be able to serve multiple resources.<a href="#appendix-B.2-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.2-4.3">h: Host Name identifies the hostname of the resource. For example, to request a stream with the URI somehost.com/videos/querry.php?vid=366
+          <li class="normal" id="appendix-B.2-4.3">
+            <p id="appendix-B.2-4.3.1">h: Host Name identifies the hostname of the resource. For example, to request a stream with the URI somehost.com/videos/querry.php?vid=366
 the hostname field should have somehost.com, and the resource name can have videos/querry.php?vid=366 or simply 366.
 Note that this is still a key to be specified explicitly. Support tools that apply simplifications and URI extraction
-are expected to insert only the host portion of the URI here.<a href="#appendix-B.2-4.3" class="pilcrow">¶</a>
+are expected to insert only the host portion of the URI here.<a href="#appendix-B.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-B.2-4.4">s: Session ID is a temporary resource identifier negotiated with the server, used just for verification.
+          <li class="normal" id="appendix-B.2-4.4">
+            <p id="appendix-B.2-4.4.1">s: Session ID is a temporary resource identifier negotiated with the server, used just for verification.
 This is a one-shot identifier, invalidated after the first use. The expected usage is when details for the resource
-and authorization are negotiated over a separate connection first, and then the session ID is used here alone.<a href="#appendix-B.2-4.4" class="pilcrow">¶</a>
+and authorization are negotiated over a separate connection first, and then the session ID is used here alone.<a href="#appendix-B.2-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-B.2-4.5">
             <p id="appendix-B.2-4.5.1">t: Type specifies the purpose of the connection. Several standard types are defined:<a href="#appendix-B.2-4.5.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B.2-4.5.2.1">stream (default, if not specified): for exchanging the user-specified payload for an application-defined purpose,<a href="#appendix-B.2-4.5.2.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-B.2-4.5.2.1">
+                <p id="appendix-B.2-4.5.2.1.1">stream (default, if not specified): for exchanging the user-specified payload for an application-defined purpose,<a href="#appendix-B.2-4.5.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="appendix-B.2-4.5.2.2">file: for transmitting a file where r is the filename,<a href="#appendix-B.2-4.5.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="appendix-B.2-4.5.2.2">
+                <p id="appendix-B.2-4.5.2.2.1">file: for transmitting a file where r is the filename,<a href="#appendix-B.2-4.5.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="appendix-B.2-4.5.2.3">auth: for exchanging sensible data. The r value states its purpose. No specific possible values for that are known so far (for future use).<a href="#appendix-B.2-4.5.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="appendix-B.2-4.5.2.3">
+                <p id="appendix-B.2-4.5.2.3.1">auth: for exchanging sensible data. The r value states its purpose. No specific possible values for that are known so far (for future use).<a href="#appendix-B.2-4.5.2.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
           <li class="normal" id="appendix-B.2-4.6">
             <p id="appendix-B.2-4.6.1">m: Mode expected for this connection:<a href="#appendix-B.2-4.6.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B.2-4.6.2.1">request (default): the caller wants to receive the stream data,<a href="#appendix-B.2-4.6.2.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-B.2-4.6.2.1">
+                <p id="appendix-B.2-4.6.2.1.1">request (default): the caller wants to receive the stream data,<a href="#appendix-B.2-4.6.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="appendix-B.2-4.6.2.2">publish: the caller wants to send the stream data,<a href="#appendix-B.2-4.6.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="appendix-B.2-4.6.2.2">
+                <p id="appendix-B.2-4.6.2.2.1">publish: the caller wants to send the stream data,<a href="#appendix-B.2-4.6.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="appendix-B.2-4.6.2.3">bidirectional: bidirectional data exchange is expected.<a href="#appendix-B.2-4.6.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="appendix-B.2-4.6.2.3">
+                <p id="appendix-B.2-4.6.2.3.1">bidirectional: bidirectional data exchange is expected.<a href="#appendix-B.2-4.6.2.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
@@ -6035,23 +6227,32 @@ and is therefore required to know what the caller is attempting to do.<a href="#
 <a href="#appendix-C.1" class="section-number selfRef">C.1. </a><a href="#name-since-draft-sharabayko-mops" class="section-name selfRef">Since draft-sharabayko-mops-srt-00</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-C.1-1.1">Improved and extended the description of "Encryption" section.<a href="#appendix-C.1-1.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-C.1-1.1">
+            <p id="appendix-C.1-1.1.1">Improved and extended the description of "Encryption" section.<a href="#appendix-C.1-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.1-1.2">Improved and extended the description of "Round-Trip Time Estimation" section.<a href="#appendix-C.1-1.2" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.1-1.2">
+            <p id="appendix-C.1-1.2.1">Improved and extended the description of "Round-Trip Time Estimation" section.<a href="#appendix-C.1-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.1-1.3">Extended the description of "Handshake" section with "Stream ID Extension Message", "Group Membership Extension" subsections.<a href="#appendix-C.1-1.3" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.1-1.3">
+            <p id="appendix-C.1-1.3.1">Extended the description of "Handshake" section with "Stream ID Extension Message", "Group Membership Extension" subsections.<a href="#appendix-C.1-1.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.1-1.4">Extended "Handshake Messages" section with the detailed description of handshake procedure.<a href="#appendix-C.1-1.4" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.1-1.4">
+            <p id="appendix-C.1-1.4.1">Extended "Handshake Messages" section with the detailed description of handshake procedure.<a href="#appendix-C.1-1.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.1-1.5">Improved "Key Material" section description.<a href="#appendix-C.1-1.5" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.1-1.5">
+            <p id="appendix-C.1-1.5.1">Improved "Key Material" section description.<a href="#appendix-C.1-1.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.1-1.6">Changed packet structure formatting for "Packet Structure" section.<a href="#appendix-C.1-1.6" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.1-1.6">
+            <p id="appendix-C.1-1.6.1">Changed packet structure formatting for "Packet Structure" section.<a href="#appendix-C.1-1.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.1-1.7">Did minor additions to the "Acknowledgement and Lost Packet Handling" section.<a href="#appendix-C.1-1.7" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.1-1.7">
+            <p id="appendix-C.1-1.7.1">Did minor additions to the "Acknowledgement and Lost Packet Handling" section.<a href="#appendix-C.1-1.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.1-1.8">Fixed broken links.<a href="#appendix-C.1-1.8" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.1-1.8">
+            <p id="appendix-C.1-1.8.1">Fixed broken links.<a href="#appendix-C.1-1.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.1-1.9">Extended the list of references.<a href="#appendix-C.1-1.9" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.1-1.9">
+            <p id="appendix-C.1-1.9.1">Extended the list of references.<a href="#appendix-C.1-1.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6062,21 +6263,29 @@ and is therefore required to know what the caller is attempting to do.<a href="#
 <a href="#appendix-C.2" class="section-number selfRef">C.2. </a><a href="#name-since-draft-sharabayko-mops-" class="section-name selfRef">Since draft-sharabayko-mops-srt-01</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-C.2-1.1">Extended "Congestion Control" section with the detailed description of SRT packet pacing for both live streaming and file transmission cases.<a href="#appendix-C.2-1.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-C.2-1.1">
+            <p id="appendix-C.2-1.1.1">Extended "Congestion Control" section with the detailed description of SRT packet pacing for both live streaming and file transmission cases.<a href="#appendix-C.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.2-1.2">Improved "Group Membership Extension" section.<a href="#appendix-C.2-1.2" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.2-1.2">
+            <p id="appendix-C.2-1.2.1">Improved "Group Membership Extension" section.<a href="#appendix-C.2-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.2-1.3">Reworked "Security Consideration" section.<a href="#appendix-C.2-1.3" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.2-1.3">
+            <p id="appendix-C.2-1.3.1">Reworked "Security Consideration" section.<a href="#appendix-C.2-1.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.2-1.4">Added missing control packets: Drop Request, Peer Error, Congestion Warning.<a href="#appendix-C.2-1.4" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.2-1.4">
+            <p id="appendix-C.2-1.4.1">Added missing control packets: Drop Request, Peer Error, Congestion Warning.<a href="#appendix-C.2-1.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.2-1.5">Improved "Data Transmission Modes" section as well as added "Best Practices and Configuration Tips for Data Transmission via SRT" section describing the use cases of live streaming and file transmission via SRT.<a href="#appendix-C.2-1.5" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.2-1.5">
+            <p id="appendix-C.2-1.5.1">Improved "Data Transmission Modes" section as well as added "Best Practices and Configuration Tips for Data Transmission via SRT" section describing the use cases of live streaming and file transmission via SRT.<a href="#appendix-C.2-1.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.2-1.6">Changed the workgroup from "MOPS" to "Network Working Group".<a href="#appendix-C.2-1.6" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.2-1.6">
+            <p id="appendix-C.2-1.6.1">Changed the workgroup from "MOPS" to "Network Working Group".<a href="#appendix-C.2-1.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.2-1.7">Changed the intended status of the document from "Standards Track" to "Informational".<a href="#appendix-C.2-1.7" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.2-1.7">
+            <p id="appendix-C.2-1.7.1">Changed the intended status of the document from "Standards Track" to "Informational".<a href="#appendix-C.2-1.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.2-1.8">Overall corrections throughout the document: fixed lists, punctuation, etc.<a href="#appendix-C.2-1.8" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.2-1.8">
+            <p id="appendix-C.2-1.8.1">Overall corrections throughout the document: fixed lists, punctuation, etc.<a href="#appendix-C.2-1.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6087,19 +6296,26 @@ and is therefore required to know what the caller is attempting to do.<a href="#
 <a href="#appendix-C.3" class="section-number selfRef">C.3. </a><a href="#name-since-draft-sharabayko-srt-" class="section-name selfRef">Since draft-sharabayko-srt-00</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-C.3-1.1">Message Drop Request control packet: added note about possible zero-valued message number.<a href="#appendix-C.3-1.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-C.3-1.1">
+            <p id="appendix-C.3-1.1.1">Message Drop Request control packet: added note about possible zero-valued message number.<a href="#appendix-C.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.3-1.2">Corrected an error in the formula for NAKInterval: changed min to max.<a href="#appendix-C.3-1.2" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.3-1.2">
+            <p id="appendix-C.3-1.2.1">Corrected an error in the formula for NAKInterval: changed min to max.<a href="#appendix-C.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.3-1.3">Added a note in "Best Practices and Configuration Tips for Data Transmission via SRT" section that Periodic NAK reports must be enabled in the case of live streaming.<a href="#appendix-C.3-1.3" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.3-1.3">
+            <p id="appendix-C.3-1.3.1">Added a note in "Best Practices and Configuration Tips for Data Transmission via SRT" section that Periodic NAK reports must be enabled in the case of live streaming.<a href="#appendix-C.3-1.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.3-1.4">Introduced the value of TLPKTDROP_THRESHOLD for Too-Late Packet Drop mechanism.<a href="#appendix-C.3-1.4" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.3-1.4">
+            <p id="appendix-C.3-1.4.1">Introduced the value of TLPKTDROP_THRESHOLD for Too-Late Packet Drop mechanism.<a href="#appendix-C.3-1.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.3-1.5">Improved the description of general syntax for SRT Access Control.<a href="#appendix-C.3-1.5" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.3-1.5">
+            <p id="appendix-C.3-1.5.1">Improved the description of general syntax for SRT Access Control.<a href="#appendix-C.3-1.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.3-1.6">Updated the list of contributors.<a href="#appendix-C.3-1.6" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.3-1.6">
+            <p id="appendix-C.3-1.6.1">Updated the list of contributors.<a href="#appendix-C.3-1.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.3-1.7">Overall corrections throughout the document.<a href="#appendix-C.3-1.7" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.3-1.7">
+            <p id="appendix-C.3-1.7.1">Overall corrections throughout the document.<a href="#appendix-C.3-1.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6110,13 +6326,17 @@ and is therefore required to know what the caller is attempting to do.<a href="#
 <a href="#appendix-C.4" class="section-number selfRef">C.4. </a><a href="#name-since-draft-sharabayko-srt-0" class="section-name selfRef">Since draft-sharabayko-srt-01</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="appendix-C.4-1.1">Improved the cookie contest description in the Rendezvous connection mode.<a href="#appendix-C.4-1.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-C.4-1.1">
+            <p id="appendix-C.4-1.1.1">Improved the cookie contest description in the Rendezvous connection mode.<a href="#appendix-C.4-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.4-1.2">Described the key material negotiation error during the handshake.<a href="#appendix-C.4-1.2" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.4-1.2">
+            <p id="appendix-C.4-1.2.1">Described the key material negotiation error during the handshake.<a href="#appendix-C.4-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.4-1.3">Added AES-GCM mode to the key material message (SRT v1.6.0).<a href="#appendix-C.4-1.3" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.4-1.3">
+            <p id="appendix-C.4-1.3.1">Added AES-GCM mode to the key material message (SRT v1.6.0).<a href="#appendix-C.4-1.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-C.4-1.4">Improved handshake negotiation description.<a href="#appendix-C.4-1.4" class="pilcrow">¶</a>
+          <li class="normal" id="appendix-C.4-1.4">
+            <p id="appendix-C.4-1.4.1">Improved handshake negotiation description.<a href="#appendix-C.4-1.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>

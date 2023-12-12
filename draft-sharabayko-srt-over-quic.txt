@@ -5,7 +5,7 @@
 TODO Working Group                                      M. P. Sharabayko
 Internet-Draft                                          M. A. Sharabayko
 Intended status: Experimental              Haivision Network Video, GmbH
-Expires: 12 January 2024                                    11 July 2023
+Expires: 14 June 2024                                   12 December 2023
 
 
                         Tunnelling SRT over QUIC
@@ -63,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 January 2024.
+   This Internet-Draft will expire on 14 June 2024.
 
 Copyright Notice
 
@@ -409,8 +409,8 @@ Informative References
               <https://datatracker.ietf.org/doc/draft-ietf-quic-
               datagram/>.
 
-   [QUICLY]   "QUIC protocol implementation quicly for H2O server", July
-              2023, <https://github.com/h2o/quicly>.
+   [QUICLY]   "QUIC protocol implementation quicly for H2O server",
+              December 2023, <https://github.com/h2o/quicly>.
 
    [SRTRFC]   Sharabayko, M., Sharabayko, M., Dube, J., Kim, J., and J.
               Kim, "The SRT Protocol", December 2019,

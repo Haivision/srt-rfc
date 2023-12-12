@@ -5,12 +5,12 @@
 Network Working Group                                   M. P. Sharabayko
 Internet-Draft                                          M. A. Sharabayko
 Intended status: Informational             Haivision Network Video, GmbH
-Expires: 12 January 2024                                         J. Dube
+Expires: 14 June 2024                                            J. Dube
                                                  Haivision Systems, Inc.
                                                                   JS Kim
                                                                   JW Kim
                                                     SK Telecom Co., Ltd.
-                                                            11 July 2023
+                                                        12 December 2023
 
 
                             The SRT Protocol
@@ -46,7 +46,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 January 2024.
+   This Internet-Draft will expire on 14 June 2024.
 
 Copyright Notice
 
@@ -1109,7 +1109,9 @@ Table of Contents
       for future use.
 
    Acknowledgement Number: 32 bits.  This field contains the sequential
-      number of the full acknowledgment packet starting from 1.
+      number of the full acknowledgment packet starting from 1, except
+      in the case of Light ACKs and Small ACKs, where this value is 0
+      (see below).
 
    Timestamp: 32 bits.  See Section 3.
 
@@ -2348,7 +2350,7 @@ Table of Contents
 
    *  PKT_TIMESTAMP is the data packet timestamp, in microseconds;
 
-   *  TsbpdDelay is the receiver's buffer delay (or receiver's buffer
+   *  TsbpdDelay is the receiver’s buffer delay (or receiver’s buffer
       latency, or SRT Latency).  This is the time, in milliseconds, that
       SRT holds a packet from the moment it has been received till the
       time it should be delivered to the upstream application;
@@ -3746,7 +3748,7 @@ Informative References
               197.pdf>.
 
    [AV1]      Rivaz, P. de. and J. Haughton, "AV1 Bitstream & Decoding
-              Process Specification", July 2023,
+              Process Specification", December 2023,
               <https://aomediacodec.github.io/av1-spec/av1-spec.pdf>.
 
    [BBR]      Cardwell, N., Cheng, Y., Gunn, C. S., Yeganeh, S. H., and
@@ -3756,7 +3758,7 @@ Informative References
    [GuAnAO]   Gu, Y., Hong, X., and R. L. Grossman, "An Analysis of AIMD
               Algorithm with Decreasing Increases", Proceedings of the
               1st International Workshop on Networks for Grid
-              Applications (GridNets '04) , October 2004.
+              Applications (GridNets ’04) , October 2004.
 
    [H.265]    International Telecommunications Union, "H.265 : High
               efficiency video coding", ITU-T Recommendation H.265,
@@ -3765,12 +3767,12 @@ Informative References
    [ISO13818-1]
               ISO, "Information technology — Generic coding of moving
               pictures and associated audio information: Systems", ISO/
-              IEC 13818-1, July 2023.
+              IEC 13818-1, December 2023.
 
    [ISO23009] ISO, "Information technology - Dynamic adaptive streaming
-              over HTTP (DASH)", ISO/IEC 23009:2019, July 2023.
+              over HTTP (DASH)", ISO/IEC 23009:2019, December 2023.
 
-   [PNPID]    "PNP ID AND ACPI ID REGISTRY", July 2023,
+   [PNPID]    "PNP ID AND ACPI ID REGISTRY", December 2023,
               <https://uefi.org/PNP_ACPI_Registry>.
 
    [RFC2104]  Krawczyk, H., Bellare, M., and R. Canetti, "HMAC: Keyed-
@@ -3821,20 +3823,20 @@ Informative References
    [RFC9114]  Bishop, M., Ed., "HTTP/3", RFC 9114, DOI 10.17487/RFC9114,
               June 2022, <https://www.rfc-editor.org/rfc/rfc9114>.
 
-   [RTMP]     "Real-Time Messaging Protocol", July 2023,
+   [RTMP]     "Real-Time Messaging Protocol", December 2023,
               <https://www.adobe.com/devnet/rtmp.html>.
 
    [SP800-38A]
               Dworkin, M., "Recommendation for Block Cipher Modes of
               Operation", December 2001.
 
-   [SRTSRC]   "SRT fully functional reference implementation", July
+   [SRTSRC]   "SRT fully functional reference implementation", December
               2023, <https://github.com/Haivision/srt>.
 
    [SRTTO]    Dube, J. and S. Matthews, "SRT Protocol Technical
               Overview", December 2019.
 
-   [VP9]      WebM, "VP9 Video Codec", July 2023,
+   [VP9]      WebM, "VP9 Video Codec", December 2023,
               <https://www.webmproject.org/vp9>.
 
 Appendix A.  Packet Sequence List Coding
