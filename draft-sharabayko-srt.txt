@@ -5,12 +5,12 @@
 Network Working Group                                   M. P. Sharabayko
 Internet-Draft                                          M. A. Sharabayko
 Intended status: Informational             Haivision Network Video, GmbH
-Expires: 14 June 2024                                            J. Dube
+Expires: 11 July 2024                                            J. Dube
                                                  Haivision Systems, Inc.
                                                                   JS Kim
                                                                   JW Kim
                                                     SK Telecom Co., Ltd.
-                                                        12 December 2023
+                                                          8 January 2024
 
 
                             The SRT Protocol
@@ -46,11 +46,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 June 2024.
+   This Internet-Draft will expire on 11 July 2024.
 
 Copyright Notice
 
-   Copyright (c) 2023 IETF Trust and the persons identified as the
+   Copyright (c) 2024 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -1844,9 +1844,9 @@ Table of Contents
 
    ContestResult CookieContest(int32_t host, int32_t peer)
    {
-     // peer - Requestor-side (peer) cookie value.
-     // host - Responder-side (host) cookie value.
-     int64_t contest = int64_t(peer) - int64_t(host);
+     // peer - Remote (peer) cookie value.
+     // host - Local (host) cookie value.
+     int64_t contest = int64_t(host) - int64_t(peer);
 
      if ((contest & 0xFFFFFFFF) == 0)
        return DRAW;
@@ -3748,7 +3748,7 @@ Informative References
               197.pdf>.
 
    [AV1]      Rivaz, P. de. and J. Haughton, "AV1 Bitstream & Decoding
-              Process Specification", December 2023,
+              Process Specification", January 2024,
               <https://aomediacodec.github.io/av1-spec/av1-spec.pdf>.
 
    [BBR]      Cardwell, N., Cheng, Y., Gunn, C. S., Yeganeh, S. H., and
@@ -3767,12 +3767,12 @@ Informative References
    [ISO13818-1]
               ISO, "Information technology — Generic coding of moving
               pictures and associated audio information: Systems", ISO/
-              IEC 13818-1, December 2023.
+              IEC 13818-1, January 2024.
 
    [ISO23009] ISO, "Information technology - Dynamic adaptive streaming
-              over HTTP (DASH)", ISO/IEC 23009:2019, December 2023.
+              over HTTP (DASH)", ISO/IEC 23009:2019, January 2024.
 
-   [PNPID]    "PNP ID AND ACPI ID REGISTRY", December 2023,
+   [PNPID]    "PNP ID AND ACPI ID REGISTRY", January 2024,
               <https://uefi.org/PNP_ACPI_Registry>.
 
    [RFC2104]  Krawczyk, H., Bellare, M., and R. Canetti, "HMAC: Keyed-
@@ -3823,20 +3823,20 @@ Informative References
    [RFC9114]  Bishop, M., Ed., "HTTP/3", RFC 9114, DOI 10.17487/RFC9114,
               June 2022, <https://www.rfc-editor.org/rfc/rfc9114>.
 
-   [RTMP]     "Real-Time Messaging Protocol", December 2023,
+   [RTMP]     "Real-Time Messaging Protocol", January 2024,
               <https://www.adobe.com/devnet/rtmp.html>.
 
    [SP800-38A]
               Dworkin, M., "Recommendation for Block Cipher Modes of
               Operation", December 2001.
 
-   [SRTSRC]   "SRT fully functional reference implementation", December
-              2023, <https://github.com/Haivision/srt>.
+   [SRTSRC]   "SRT fully functional reference implementation", January
+              2024, <https://github.com/Haivision/srt>.
 
    [SRTTO]    Dube, J. and S. Matthews, "SRT Protocol Technical
               Overview", December 2019.
 
-   [VP9]      WebM, "VP9 Video Codec", December 2023,
+   [VP9]      WebM, "VP9 Video Codec", January 2024,
               <https://www.webmproject.org/vp9>.
 
 Appendix A.  Packet Sequence List Coding
