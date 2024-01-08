@@ -1675,9 +1675,9 @@ of the higher bit of the difference.
 
     ContestResult CookieContest(int32_t host, int32_t peer)
     {
-      // peer - Requestor-side (peer) cookie value.
-      // host - Responder-side (host) cookie value.
-      int64_t contest = int64_t(peer) - int64_t(host);
+      // peer - Remote (peer) cookie value.
+      // host - Local (host) cookie value.
+      int64_t contest = int64_t(host) - int64_t(peer);
 
       if ((contest & 0xFFFFFFFF) == 0)
         return DRAW;
