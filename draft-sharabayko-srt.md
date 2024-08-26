@@ -333,8 +333,8 @@ Timestamp: 32 bits.
 : The timestamp of the packet, in microseconds.
   The value is relative to the time the SRT connection was established.
   Depending on the transmission mode ({{data-transmission-modes}}),
-  the field stores the packet send time or the packet origin time. 
-  In the case of a retransmission this is the original packet timestamp.
+  the field stores the packet send time (when TSBPD is disabled) or the packet origin time (TSBPD enabled). 
+  In the case of a retransmission when TSBPD is enabled the original packet timestamp is used.
 
 Destination SRT Socket ID: 32 bits.
 : A fixed-width field providing the SRT socket ID to which a packet should be dispatched.
