@@ -2998,7 +2998,7 @@ and in Galois/Counter Mode (AES-GCM, starting from SRT v1.6.0) {{RFC7714}} with 
 to encrypt and decrypt the media stream. The AES-CTR cipher is suitable for continuous stream encryption
 that permits decryption from any point, without access to start of the stream (random access),
 and for the same reason tolerates packet loss. It also offers strong confidentiality when the counter is managed properly.
-The AES-GCM mode can provide an additional lavel of security by ensuring the data is no altered.
+The AES-GCM mode can provide an additional lavel of security by ensuring the data is not altered.
 
 SRT uses key lengths (KLen) of 128, 192, and 256 bits based on the configuration exchanged in the KM packet
 ({{sec-ctrlpkt-km}}).
@@ -3019,8 +3019,8 @@ to count blocks in the packet payload.
 
 #### AES-CTR Initialisation Vector (IV)
 
-The Initialisation Vector (IV) for the AES-CTR encryption mode is derived 
-by exclusive ORing the first 112 bits of the Salt provided in the Keying Material ({{sec-ctrlpkt-km}})
+The Initialisation Vector (IV) for the AES-CTR encryption mode is derived by using the "exclusive-OR"
+operation on the first 112 bits of the Salt provided in the Keying Material ({{sec-ctrlpkt-km}})
 with the packet sequence number (PktSeqNo) in the SRT header, and left-shifting the resulting value by 16 bits:
 
 ~~~~~~~~~~~
