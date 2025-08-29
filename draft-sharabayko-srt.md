@@ -1663,8 +1663,7 @@ than its peer's, it wins the cookie contest and becomes Initiator
 (the other party becomes the Responder).
 
 The intent is to let the side with the greater cookie value become the Initiator
-(the other party becomes the Responder). However, with a special handling
-of the higher bit of the difference.
+(the other party becomes the Responder).
 
     <CODE BEGINS>
     enum ContestResult
@@ -1680,15 +1679,21 @@ of the higher bit of the difference.
       // host - Local (host) cookie value.
       int64_t contest = int64_t(host) - int64_t(peer);
 
-      if ((contest & 0xFFFFFFFF) == 0)
+      if (contest == 0)
         return DRAW;
 
-      if (contest & 0x80000000)
+      if (contest < 0)
         return RESPONDER;
 
       return INITIATOR;
     }
     <CODE ENDS>
+
+Note that implementations must:
+ - Treat cookies as signed integers in 2s complement format.
+ - The cookies must be sign-expanded to 64 bit signed integers prior to the contest.
+ - Implementations must consider network and host endianness and perform conversions as
+   appropriate.
 
 #### The Waving State {#waving-state}
 
